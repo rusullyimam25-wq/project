@@ -1,0 +1,519 @@
+<div id="app-root"></div>
+<style>
+  :root{
+    --bg: #F4F6F5;
+    --panel: #FFFFFF;
+    --ink: #16232C;
+    --ink-soft: #52646C;
+    --line: #C7D1CE;
+    --tinggi: #C1440E;
+    --tinggi-bg: #FCEBE3;
+    --sedang: #B8790F;
+    --sedang-bg: #FBF1DE;
+    --rendah: #3E7A68;
+    --rendah-bg: #E7F1EC;
+    --accent: #1E4E5F;
+  }
+  *{ box-sizing: border-box; }
+  body{ margin:0; }
+  #app-root{
+    font-family: "IBM Plex Sans", "Segoe UI", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100%;
+    padding: 20px 16px 60px;
+  }
+  .wrap{ max-width: 760px; margin: 0 auto; }
+
+  .masthead{
+    display:flex; align-items:baseline; justify-content:space-between;
+    border-bottom: 2px solid var(--ink); padding-bottom: 10px; margin-bottom: 4px;
+  }
+  .masthead h1{
+    font-size: 21px; margin:0; font-weight: 700; letter-spacing: 0.2px;
+  }
+  .masthead .unit{ font-size: 12px; color: var(--ink-soft); font-family: "IBM Plex Mono", monospace; }
+
+  .summary{
+    display:flex; gap: 10px; margin: 14px 0 18px; flex-wrap: wrap;
+  }
+  .summary .stat{
+    flex: 1; min-width: 90px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+    padding: 10px 12px;
+  }
+  .summary .stat .num{ font-size: 22px; font-weight: 700; font-family: "IBM Plex Mono", monospace; }
+  .summary .stat .lbl{ font-size: 11.5px; color: var(--ink-soft); margin-top: 2px; }
+  .summary .stat.tinggi .num{ color: var(--tinggi); }
+
+  .toolbar{
+    display:flex; gap:10px; margin-bottom: 14px; align-items:center; justify-content: space-between; flex-wrap:wrap;
+  }
+  .toolbar .filters{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .toolbar .sortmode{ font-size: 12.5px; color: var(--ink-soft); }
+  .toolbar select{
+    font-size: 12.5px; padding: 4px 6px; border:1px solid var(--line); border-radius:3px; background: var(--panel); color: var(--ink);
+  }
+  button{
+    font-family: inherit; cursor:pointer; border:none;
+  }
+  .btn-primary{
+    background: var(--accent); color:#fff; padding: 9px 16px; border-radius: 4px; font-size: 14px; font-weight:600;
+  }
+  .btn-primary:active{ opacity:0.85; }
+  .btn-ghost{
+    background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 7px 12px; border-radius:4px; font-size: 13px;
+  }
+  .btn-text{ background:none; color: var(--ink-soft); font-size: 12.5px; text-decoration: underline; padding:2px; }
+
+  /* Form */
+  .form-panel{
+    background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+    padding: 16px; margin-bottom: 20px; display:none;
+  }
+  .form-panel.open{ display:block; }
+  .form-panel h2{ font-size: 14px; margin: 0 0 12px; text-transform: none; }
+  .field-row{ display:flex; gap: 10px; margin-bottom: 10px; flex-wrap:wrap; }
+  .field{ flex:1; min-width: 140px; display:flex; flex-direction:column; gap:4px; }
+  .field label{ font-size: 12px; color: var(--ink-soft); }
+  .field input, .field select, .field textarea{
+    font-family: inherit; font-size: 14px; padding: 8px 9px; border: 1px solid var(--line);
+    border-radius: 4px; background: #FCFDFC; color: var(--ink);
+  }
+  .field textarea{ resize: vertical; min-height: 54px; }
+  .form-actions{ display:flex; gap:8px; margin-top: 10px; }
+  .urgent-toggle{
+    display:flex; align-items:center; gap:7px; font-size:13px; padding: 8px 0;
+  }
+
+  /* Queue */
+  .ticket{
+    background: var(--panel); border: 1px solid var(--line); border-left-width: 5px;
+    border-radius: 5px; padding: 12px 14px; margin-bottom: 10px;
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .ticket.tinggi{ border-left-color: var(--tinggi); }
+  .ticket.sedang{ border-left-color: var(--sedang); }
+  .ticket.rendah{ border-left-color: var(--rendah); }
+  .ticket.selesai{ opacity: 0.55; }
+
+  .ticket-top{ display:flex; justify-content: space-between; align-items:flex-start; gap: 10px; }
+  .ticket-id{ font-family:"IBM Plex Mono", monospace; font-size: 11.5px; color: var(--ink-soft); }
+  .ticket-badge{
+    font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; white-space: nowrap;
+  }
+  .badge-tinggi{ background: var(--tinggi-bg); color: var(--tinggi); }
+  .badge-sedang{ background: var(--sedang-bg); color: var(--sedang); }
+  .badge-rendah{ background: var(--rendah-bg); color: var(--rendah); }
+
+  .ticket-cust{ font-size: 15.5px; font-weight: 600; }
+  .ticket-meta{ font-size: 12.5px; color: var(--ink-soft); }
+  .ticket-desc{ font-size: 13.5px; color: var(--ink); line-height: 1.4; }
+  .ticket-wait{ font-size: 12px; color: var(--ink-soft); font-family:"IBM Plex Mono", monospace; }
+  .ticket-loc{ font-size: 12.5px; }
+  .ticket-loc a{ color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent); }
+
+  .ticket-actions{ display:flex; gap: 8px; margin-top: 4px; flex-wrap:wrap; }
+  .ticket-actions button{
+    font-size: 12.5px; padding: 6px 11px; border-radius: 4px; border:1px solid var(--line); background:#fff; color: var(--ink);
+  }
+  .ticket-actions button.done{ border-color: var(--rendah); color: var(--rendah); }
+  .ticket-actions button.progress{ border-color: var(--accent); color: var(--accent); }
+  .ticket-actions button.del{ border-color: #C7D1CE; color: #97A3A0; margin-left:auto; }
+  .ticket-actions button.edit{ border-color: #97A3A0; color: var(--ink-soft); }
+
+  .status-tag{ font-size: 11px; font-weight:600; color: var(--accent); }
+
+  .section-head{
+    font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+    color: var(--ink-soft); margin: 18px 0 8px; display:flex; align-items:center; gap:8px;
+  }
+  .section-head .count{
+    background: var(--line); color: var(--ink); font-size: 11px; font-weight:700;
+    border-radius: 10px; padding: 1px 8px; font-family:"IBM Plex Mono", monospace;
+  }
+  .section-head.first{ margin-top: 0; }
+
+  .empty{
+    text-align:center; padding: 40px 10px; color: var(--ink-soft); font-size: 13.5px;
+    border: 1px dashed var(--line); border-radius: 6px; background: var(--panel);
+  }
+
+  .foot-actions{ text-align:center; margin-top: 24px; }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  // ==== KONFIGURASI SUPABASE ====
+  // Ganti dua nilai di bawah dengan Project URL dan anon public key dari
+  // Supabase dashboard Anda: Project Settings -> API.
+  const SUPABASE_URL = "https://bprmrbwmoadocyslhsqr.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwcm1yYndtb2Fkb2N5c2xoc3FyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzODc4ODgsImV4cCI6MjEwNDk2Mzg4OH0.oaCUIBFy2ii_ZBrR-XMpuL-UsGvTaH2CGmTpncvf5K8";
+  const TABLE = "complaints";
+
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const CATEGORIES = [
+    { key: "tidak_ada_air", label: "Tidak ada air", weight: 5 },
+    { key: "kebocoran_besar", label: "Kebocoran pipa (besar)", weight: 5 },
+    { key: "kualitas_air", label: "Kualitas air keruh/bau", weight: 4 },
+    { key: "kebocoran_kecil", label: "Kebocoran pipa (kecil)", weight: 3 },
+    { key: "tekanan_rendah", label: "Tekanan rendah", weight: 2 },
+    { key: "lainnya", label: "Lainnya", weight: 1 },
+  ];
+
+  let complaints = [];
+  let sortMode = "prioritas";
+  let categoryFilter = "semua";
+  let storageOk = true;
+
+  function catInfo(key){
+    return CATEGORIES.find(c => c.key === key) || CATEGORIES[CATEGORIES.length-1];
+  }
+
+  function urgencyLevel(item){
+    const w = item.urgent ? 5 : catInfo(item.category).weight;
+    if (w >= 5) return "tinggi";
+    if (w >= 3) return "sedang";
+    return "rendah";
+  }
+
+  function hoursWaiting(item){
+    const ms = Date.now() - new Date(item.receivedAt).getTime();
+    return Math.max(0, ms / 3600000);
+  }
+
+  function priorityScore(item){
+    const w = item.urgent ? 5 : catInfo(item.category).weight;
+    const hrs = Math.min(hoursWaiting(item), 48);
+    return w * 10 + hrs;
+  }
+
+  function fmtWait(item){
+    const hrs = hoursWaiting(item);
+    if (hrs < 1) return Math.round(hrs*60) + " menit menunggu";
+    const h = Math.floor(hrs);
+    const m = Math.round((hrs - h) * 60);
+    return h + "j " + (m>0? m+"m ":"") + "menunggu";
+  }
+
+  function fmtReceived(item){
+    const d = new Date(item.receivedAt);
+    return d.toLocaleString("id-ID", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" });
+  }
+
+  // ==== Mapping baris Supabase <-> objek JS yang dipakai UI ====
+  function rowToItem(row){
+    return {
+      id: row.id,
+      customer: row.customer,
+      area: row.area,
+      category: row.category,
+      desc: row.description,
+      receivedAt: row.received_at,
+      urgent: row.urgent,
+      coords: row.coords,
+      status: row.status,
+      createdAt: row.created_at,
+    };
+  }
+
+  function itemToRow(item){
+    return {
+      id: item.id,
+      customer: item.customer,
+      area: item.area,
+      category: item.category,
+      description: item.desc,
+      received_at: item.receivedAt,
+      urgent: item.urgent,
+      coords: item.coords,
+      status: item.status,
+    };
+  }
+
+  async function load(){
+    try{
+      const { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: true });
+      if(error) throw error;
+      complaints = data.map(rowToItem);
+      storageOk = true;
+    }catch(e){
+      console.error(e);
+      complaints = [];
+      storageOk = false;
+    }
+    render();
+  }
+
+  async function addComplaint(data){
+    const item = {
+      id: "WO-" + Date.now().toString().slice(-6),
+      customer: data.customer,
+      area: data.area,
+      category: data.category,
+      desc: data.desc,
+      receivedAt: data.receivedAt,
+      urgent: data.urgent,
+      coords: data.coords,
+      status: "baru",
+    };
+    try{
+      const { error } = await sb.from(TABLE).insert(itemToRow(item));
+      if(error) throw error;
+    }catch(e){
+      console.error(e);
+      storageOk = false;
+    }
+    await load();
+  }
+
+  async function updateComplaint(id, data){
+    try{
+      const { error } = await sb.from(TABLE).update({
+        customer: data.customer,
+        area: data.area,
+        category: data.category,
+        description: data.desc,
+        received_at: data.receivedAt,
+        urgent: data.urgent,
+        coords: data.coords,
+      }).eq("id", id);
+      if(error) throw error;
+    }catch(e){
+      console.error(e);
+      storageOk = false;
+    }
+    await load();
+  }
+
+  async function setStatus(id, status){
+    try{
+      const { error } = await sb.from(TABLE).update({ status }).eq("id", id);
+      if(error) throw error;
+    }catch(e){
+      console.error(e);
+      storageOk = false;
+    }
+    await load();
+  }
+
+  async function removeComplaint(id){
+    try{
+      const { error } = await sb.from(TABLE).delete().eq("id", id);
+      if(error) throw error;
+    }catch(e){
+      console.error(e);
+      storageOk = false;
+    }
+    await load();
+  }
+
+  function sorted(){
+    return complaints;
+  }
+
+  function el(tag, attrs, ...children){
+    const e = document.createElement(tag);
+    if(attrs) for(const k in attrs){
+      if(k === "class") e.className = attrs[k];
+      else if(k.startsWith("on")) e.addEventListener(k.slice(2), attrs[k]);
+      else e.setAttribute(k, attrs[k]);
+    }
+    children.flat().forEach(c => {
+      if(c === null || c === undefined) return;
+      e.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    });
+    return e;
+  }
+
+  function nowLocalInputValue(){
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0,16);
+  }
+
+  let formOpen = false;
+  let editingId = null;
+
+  function renderForm(){
+    if(!formOpen) return el("div");
+
+    const editing = editingId ? complaints.find(x => x.id === editingId) : null;
+    const toLocalInput = (iso) => {
+      const d = new Date(iso);
+      d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+      return d.toISOString().slice(0,16);
+    };
+
+    const customerInput = el("input", { type:"text", placeholder:"Nama pelanggan / ID langganan", value: editing ? editing.customer : "" });
+    const areaInput = el("input", { type:"text", placeholder:"Area / zona", value: editing ? editing.area : "" });
+    const catSelect = el("select", {},
+      ...CATEGORIES.map(c => el("option", { value: c.key, selected: editing && editing.category===c.key ? "selected" : null }, c.label))
+    );
+    const descInput = el("textarea", { placeholder:"Detail komplain dari email..." }, editing ? editing.desc : "");
+    const timeInput = el("input", { type:"datetime-local", value: editing ? toLocalInput(editing.receivedAt) : nowLocalInputValue() });
+    const urgentCheck = el("input", { type:"checkbox", checked: editing && editing.urgent ? "checked" : null });
+    const coordsInput = el("input", { type:"text", placeholder:"-6.1783, 106.6319 (opsional)", value: editing ? (editing.coords||"") : "" });
+
+    const panel = el("div", { class:"form-panel open" },
+      el("h2", {}, editing ? "Ubah data komplain " + editing.id : "Tambah komplain dari email"),
+      el("div", { class:"field-row" },
+        el("div", { class:"field" }, el("label", {}, "Pelanggan"), customerInput),
+        el("div", { class:"field" }, el("label", {}, "Area / zona"), areaInput),
+      ),
+      el("div", { class:"field-row" },
+        el("div", { class:"field" }, el("label", {}, "Jenis keluhan"), catSelect),
+        el("div", { class:"field" }, el("label", {}, "Waktu komplain diterima"), timeInput),
+      ),
+      el("div", { class:"field-row" },
+        el("div", { class:"field" }, el("label", {}, "Deskripsi"), descInput),
+        el("div", { class:"field" }, el("label", {}, "Koordinat lokasi"), coordsInput),
+      ),
+      el("label", { class:"urgent-toggle" }, urgentCheck, "Tandai mendesak (override manual)"),
+      el("div", { class:"form-actions" },
+        el("button", { class:"btn-primary", onclick: () => {
+          if(!customerInput.value.trim()){ customerInput.focus(); return; }
+          const data = {
+            customer: customerInput.value.trim(),
+            area: areaInput.value.trim(),
+            category: catSelect.value,
+            desc: descInput.value.trim(),
+            receivedAt: new Date(timeInput.value).toISOString(),
+            urgent: urgentCheck.checked,
+            coords: coordsInput.value.trim(),
+          };
+          if(editing){ updateComplaint(editing.id, data); }
+          else{ addComplaint(data); }
+          formOpen = false;
+          editingId = null;
+          render();
+        }}, editing ? "Simpan perubahan" : "Simpan ke antrian"),
+        el("button", { class:"btn-ghost", onclick: () => { formOpen = false; editingId = null; render(); } }, "Batal"),
+      )
+    );
+    return panel;
+  }
+
+  function renderTicket(item){
+    const level = urgencyLevel(item);
+    const badgeText = level === "tinggi" ? "Tinggi" : level === "sedang" ? "Sedang" : "Rendah";
+    const isDone = item.status === "selesai";
+
+    return el("div", { class: "ticket " + level + (isDone ? " selesai" : "") },
+      el("div", { class:"ticket-top" },
+        el("div", {},
+          el("div", { class:"ticket-id" }, item.id + " · diterima " + fmtReceived(item)),
+          el("div", { class:"ticket-cust" }, item.customer)
+        ),
+        el("span", { class:"ticket-badge badge-" + level }, badgeText)
+      ),
+      el("div", { class:"ticket-meta" }, [item.area, catInfo(item.category).label].filter(Boolean).join(" · ")),
+      item.desc ? el("div", { class:"ticket-desc" }, item.desc) : null,
+      item.coords ? el("div", { class:"ticket-loc" },
+        el("a", { href: "https://www.google.com/maps?q=" + encodeURIComponent(item.coords), target:"_blank", rel:"noopener" }, "Lihat lokasi ↗")
+      ) : null,
+      el("div", { class:"ticket-wait" },
+        isDone ? "Selesai" : fmtWait(item) + (item.status==="proses" ? " · sedang dikerjakan" : "")
+      ),
+      isDone ? null : el("div", { class:"ticket-actions" },
+        item.status !== "proses" ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Mulai proses") : null,
+        el("button", { class:"done", onclick: () => setStatus(item.id, "selesai") }, "Selesai"),
+        el("button", { class:"edit", onclick: () => { editingId = item.id; formOpen = true; render(); window.scrollTo({top:0, behavior:"smooth"}); } }, "Edit"),
+        el("button", { class:"del", onclick: () => removeComplaint(item.id) }, "Hapus")
+      ),
+      isDone ? el("div", { class:"ticket-actions" },
+        el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Buka lagi"),
+        el("button", { class:"edit", onclick: () => { editingId = item.id; formOpen = true; render(); window.scrollTo({top:0, behavior:"smooth"}); } }, "Edit"),
+        el("button", { class:"del", onclick: () => removeComplaint(item.id) }, "Hapus")
+      ) : null
+    );
+  }
+
+  function render(){
+    const root = document.getElementById("app-root");
+    root.innerHTML = "";
+
+    const base = categoryFilter === "semua" ? complaints : complaints.filter(c => c.category === categoryFilter);
+    const byStatus = (st) => {
+      const items = base.filter(c => c.status === st);
+      if(sortMode === "prioritas") items.sort((a,b) => priorityScore(b) - priorityScore(a));
+      else items.sort((a,b) => new Date(a.receivedAt) - new Date(b.receivedAt));
+      return items;
+    };
+    const belum = byStatus("baru");
+    const proses = byStatus("proses");
+    const selesai = byStatus("selesai").sort((a,b) => new Date(b.receivedAt) - new Date(a.receivedAt));
+
+    const openAll = belum.concat(proses);
+    const tinggiCount = openAll.filter(c => urgencyLevel(c) === "tinggi").length;
+    const oldestHrs = openAll.length ? Math.max(...openAll.map(hoursWaiting)) : 0;
+
+    const section = (title, items, isFirst) => el("div", {},
+      el("div", { class:"section-head" + (isFirst ? " first" : "") }, title, el("span", { class:"count" }, String(items.length))),
+      items.length === 0
+        ? el("div", { class:"empty" }, "Tidak ada komplain di kolom ini.")
+        : el("div", {}, ...items.map(renderTicket))
+    );
+
+    const wrap = el("div", { class:"wrap" },
+      el("div", { class:"masthead" },
+        el("h1", {}, "Papan Kerja Komplain"),
+        el("span", { class:"unit" }, "Aetra Air Tangerang · Lapangan")
+      ),
+      el("div", { class:"summary" },
+        el("div", { class:"stat tinggi" }, el("div", { class:"num" }, String(tinggiCount)), el("div", { class:"lbl" }, "Prioritas tinggi")),
+        el("div", { class:"stat" }, el("div", { class:"num" }, String(openAll.length)), el("div", { class:"lbl" }, "Belum selesai")),
+        el("div", { class:"stat" }, el("div", { class:"num" }, oldestHrs >= 1 ? Math.round(oldestHrs)+"j" : "<1j"), el("div", { class:"lbl" }, "Menunggu paling lama")),
+      ),
+      el("div", { class:"toolbar" },
+        el("button", { class:"btn-primary", onclick: () => { formOpen = !formOpen; if(!formOpen) editingId=null; render(); } }, formOpen ? "Tutup form" : "+ Tambah komplain"),
+        el("div", { class:"filters" },
+          el("div", { class:"sortmode" },
+            "Jenis: ",
+            el("select", { onchange: (e) => { categoryFilter = e.target.value; render(); } },
+              el("option", { value:"semua", selected: categoryFilter==="semua" ? "selected" : null }, "Semua"),
+              ...CATEGORIES.map(c => el("option", { value: c.key, selected: categoryFilter===c.key ? "selected" : null }, c.label))
+            )
+          ),
+          el("div", { class:"sortmode" },
+            "Urutkan: ",
+            el("select", { onchange: (e) => { sortMode = e.target.value; render(); } },
+              el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "Prioritas"),
+              el("option", { value:"waktu", selected: sortMode==="waktu" ? "selected" : null }, "Waktu diterima")
+            )
+          )
+        )
+      ),
+      renderForm(),
+      section("Belum Dikerjakan", belum, true),
+      section("Sedang Dikerjakan", proses, false),
+      section("Selesai", selesai, false),
+      el("div", { class:"foot-actions" },
+        el("button", { class:"btn-text", onclick: async () => {
+          if(confirm("Hapus semua data komplain di server?")){
+            for(const c of complaints){
+              await sb.from(TABLE).delete().eq("id", c.id);
+            }
+            await load();
+          }
+        }}, "Kosongkan semua data")
+      )
+    );
+
+    root.appendChild(wrap);
+
+    if(!storageOk){
+      const warn = el("div", { style:"margin-top:10px; font-size:12px; color:#C1440E; text-align:center;" }, "Tidak bisa terhubung ke database. Periksa konfigurasi SUPABASE_URL / SUPABASE_ANON_KEY.");
+      root.appendChild(warn);
+    }
+  }
+
+  load();
+  sb.channel("complaints-sync")
+    .on("postgres_changes", { event: "*", schema: "public", table: TABLE }, () => load())
+    .subscribe();
+  setInterval(render, 60000);
+})();
+</script>
