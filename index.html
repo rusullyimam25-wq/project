@@ -110,8 +110,20 @@
   .ticket-meta{ font-size: 12.5px; color: var(--ink-soft); }
   .ticket-desc{ font-size: 13.5px; color: var(--ink); line-height: 1.4; }
   .ticket-wait{ font-size: 12px; color: var(--ink-soft); font-family:"IBM Plex Mono", monospace; }
-  .ticket-loc{ font-size: 12.5px; }
+  .ticket-loc{ font-size: 12.5px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
   .ticket-loc a{ color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent); }
+  .ticket-map{
+    width:100%; height: 130px; border:1px solid var(--line); border-radius: 4px; overflow:hidden; margin-top: 2px;
+  }
+  .ticket-map iframe{ width:100%; height:100%; border:0; display:block; }
+
+  .coords-row{ display:flex; gap:8px; align-items:flex-end; }
+  .coords-row .field{ flex:1; }
+  .btn-geo{
+    background: var(--panel); border:1px solid var(--accent); color: var(--accent);
+    font-size: 12.5px; padding: 8px 10px; border-radius: 4px; white-space: nowrap;
+  }
+  .btn-geo:disabled{ opacity:0.5; }
 
   .ticket-actions{ display:flex; gap: 8px; margin-top: 4px; flex-wrap:wrap; }
   .ticket-actions button{
@@ -150,6 +162,7 @@
   // Supabase dashboard Anda: Project Settings -> API.
   const SUPABASE_URL = "https://bprmrbwmoadocyslhsqr.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwcm1yYndtb2Fkb2N5c2xoc3FyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzODc4ODgsImV4cCI6MjEwNDk2Mzg4OH0.oaCUIBFy2ii_ZBrR-XMpuL-UsGvTaH2CGmTpncvf5K8";
+  const TABLE = "complaints";
   const TABLE = "complaints";
 
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -356,6 +369,23 @@
     const timeInput = el("input", { type:"datetime-local", value: editing ? toLocalInput(editing.receivedAt) : nowLocalInputValue() });
     const urgentCheck = el("input", { type:"checkbox", checked: editing && editing.urgent ? "checked" : null });
     const coordsInput = el("input", { type:"text", placeholder:"-6.1783, 106.6319 (opsional)", value: editing ? (editing.coords||"") : "" });
+    const geoBtn = el("button", { type:"button", class:"btn-geo", onclick: () => {
+      if(!navigator.geolocation){ alert("Perangkat ini tidak mendukung GPS."); return; }
+      geoBtn.disabled = true;
+      geoBtn.textContent = "Mengambil...";
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          coordsInput.value = pos.coords.latitude.toFixed(6) + ", " + pos.coords.longitude.toFixed(6);
+          geoBtn.disabled = false;
+          geoBtn.textContent = "📍 Lokasi Saat Ini";
+        },
+        () => {
+          alert("Tidak bisa mengambil lokasi. Pastikan izin GPS diaktifkan.");
+          geoBtn.disabled = false;
+          geoBtn.textContent = "📍 Lokasi Saat Ini";
+        }
+      );
+    }}, "📍 Lokasi Saat Ini");
 
     const panel = el("div", { class:"form-panel open" },
       el("h2", {}, editing ? "Ubah data komplain " + editing.id : "Tambah komplain dari email"),
@@ -369,7 +399,10 @@
       ),
       el("div", { class:"field-row" },
         el("div", { class:"field" }, el("label", {}, "Deskripsi"), descInput),
-        el("div", { class:"field" }, el("label", {}, "Koordinat lokasi"), coordsInput),
+        el("div", { class:"field" },
+          el("label", {}, "Koordinat lokasi"),
+          el("div", { class:"coords-row" }, coordsInput, geoBtn)
+        ),
       ),
       el("label", { class:"urgent-toggle" }, urgentCheck, "Tandai mendesak (override manual)"),
       el("div", { class:"form-actions" },
@@ -411,8 +444,14 @@
       ),
       el("div", { class:"ticket-meta" }, [item.area, catInfo(item.category).label].filter(Boolean).join(" · ")),
       item.desc ? el("div", { class:"ticket-desc" }, item.desc) : null,
-      item.coords ? el("div", { class:"ticket-loc" },
-        el("a", { href: "https://www.google.com/maps?q=" + encodeURIComponent(item.coords), target:"_blank", rel:"noopener" }, "Lihat lokasi ↗")
+      item.coords ? el("div", {},
+        el("div", { class:"ticket-map" },
+          el("iframe", { src: "https://maps.google.com/maps?q=" + encodeURIComponent(item.coords) + "&z=15&output=embed", loading:"lazy" })
+        ),
+        el("div", { class:"ticket-loc" },
+          el("a", { href: "https://www.google.com/maps?q=" + encodeURIComponent(item.coords), target:"_blank", rel:"noopener" }, "Lihat di Maps ↗"),
+          el("a", { href: "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(item.coords), target:"_blank", rel:"noopener" }, "🧭 Navigasi ke lokasi ↗")
+        )
       ) : null,
       el("div", { class:"ticket-wait" },
         isDone ? "Selesai" : fmtWait(item) + (item.status==="proses" ? " · sedang dikerjakan" : "")
