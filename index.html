@@ -20,7 +20,7 @@
     font-family: "IBM Plex Sans", "Segoe UI", Arial, sans-serif;
     background: var(--bg);
     color: var(--ink);
-    min-height: 100%;
+    min-height: 100vh;
     padding: 20px 16px 60px;
   }
   .wrap{ max-width: 760px; margin: 0 auto; }
@@ -29,14 +29,10 @@
     display:flex; align-items:baseline; justify-content:space-between;
     border-bottom: 2px solid var(--ink); padding-bottom: 10px; margin-bottom: 4px;
   }
-  .masthead h1{
-    font-size: 21px; margin:0; font-weight: 700; letter-spacing: 0.2px;
-  }
+  .masthead h1{ font-size: 21px; margin:0; font-weight: 700; letter-spacing: 0.2px; }
   .masthead .unit{ font-size: 12px; color: var(--ink-soft); font-family: "IBM Plex Mono", monospace; }
 
-  .summary{
-    display:flex; gap: 10px; margin: 14px 0 18px; flex-wrap: wrap;
-  }
+  .summary{ display:flex; gap: 10px; margin: 14px 0 18px; flex-wrap: wrap; }
   .summary .stat{
     flex: 1; min-width: 90px;
     background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
@@ -54,9 +50,7 @@
   .toolbar select{
     font-size: 12.5px; padding: 4px 6px; border:1px solid var(--line); border-radius:3px; background: var(--panel); color: var(--ink);
   }
-  button{
-    font-family: inherit; cursor:pointer; border:none;
-  }
+  button{ font-family: inherit; cursor:pointer; border:none; }
   .btn-primary{
     background: var(--accent); color:#fff; padding: 9px 16px; border-radius: 4px; font-size: 14px; font-weight:600;
   }
@@ -82,9 +76,7 @@
   }
   .field textarea{ resize: vertical; min-height: 54px; }
   .form-actions{ display:flex; gap:8px; margin-top: 10px; }
-  .urgent-toggle{
-    display:flex; align-items:center; gap:7px; font-size:13px; padding: 8px 0;
-  }
+  .urgent-toggle{ display:flex; align-items:center; gap:7px; font-size:13px; padding: 8px 0; }
 
   /* Queue */
   .ticket{
@@ -99,9 +91,7 @@
 
   .ticket-top{ display:flex; justify-content: space-between; align-items:flex-start; gap: 10px; }
   .ticket-id{ font-family:"IBM Plex Mono", monospace; font-size: 11.5px; color: var(--ink-soft); }
-  .ticket-badge{
-    font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; white-space: nowrap;
-  }
+  .ticket-badge{ font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
   .badge-tinggi{ background: var(--tinggi-bg); color: var(--tinggi); }
   .badge-sedang{ background: var(--sedang-bg); color: var(--sedang); }
   .badge-rendah{ background: var(--rendah-bg); color: var(--rendah); }
@@ -110,12 +100,14 @@
   .ticket-meta{ font-size: 12.5px; color: var(--ink-soft); }
   .ticket-desc{ font-size: 13.5px; color: var(--ink); line-height: 1.4; }
   .ticket-wait{ font-size: 12px; color: var(--ink-soft); font-family:"IBM Plex Mono", monospace; }
-  .ticket-loc{ font-size: 12.5px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .ticket-loc{ font-size: 12.5px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-top: 4px; }
   .ticket-loc a{ color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent); }
-  .ticket-map{
-    width:100%; height: 130px; border:1px solid var(--line); border-radius: 4px; overflow:hidden; margin-top: 2px;
+  
+  /* Mini Map Leaflet */
+  .ticket-map-container {
+    width: 100%; height: 160px; border: 1px solid var(--line);
+    border-radius: 4px; overflow: hidden; margin-top: 4px; z-index: 1;
   }
-  .ticket-map iframe{ width:100%; height:100%; border:0; display:block; }
 
   .coords-row{ display:flex; gap:8px; align-items:flex-end; }
   .coords-row .field{ flex:1; }
@@ -133,8 +125,6 @@
   .ticket-actions button.progress{ border-color: var(--accent); color: var(--accent); }
   .ticket-actions button.del{ border-color: #C7D1CE; color: #97A3A0; margin-left:auto; }
   .ticket-actions button.edit{ border-color: #97A3A0; color: var(--ink-soft); }
-
-  .status-tag{ font-size: 11px; font-weight:600; color: var(--accent); }
 
   .section-head{
     font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
@@ -154,15 +144,15 @@
   .foot-actions{ text-align:center; margin-top: 24px; }
 </style>
 
+<!-- Styles & Library Leaflet Map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
-  // ==== KONFIGURASI SUPABASE ====
-  // Ganti dua nilai di bawah dengan Project URL dan anon public key dari
-  // Supabase dashboard Anda: Project Settings -> API.
   const SUPABASE_URL = "https://bprmrbwmoadocyslhsqr.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwcm1yYndtb2Fkb2N5c2xoc3FyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzODc4ODgsImV4cCI6MjEwNDk2Mzg4OH0.oaCUIBFy2ii_ZBrR-XMpuL-UsGvTaH2CGmTpncvf5K8";
-  const TABLE = "complaints";
   const TABLE = "complaints";
 
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -180,6 +170,7 @@
   let sortMode = "prioritas";
   let categoryFilter = "semua";
   let storageOk = true;
+  let activeMaps = {}; // Menyimpan instance Leaflet
 
   function catInfo(key){
     return CATEGORIES.find(c => c.key === key) || CATEGORIES[CATEGORIES.length-1];
@@ -216,7 +207,15 @@
     return d.toLocaleString("id-ID", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" });
   }
 
-  // ==== Mapping baris Supabase <-> objek JS yang dipakai UI ====
+  function parseCoords(str){
+    if(!str) return null;
+    const parts = str.split(",").map(p => parseFloat(p.trim()));
+    if(parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])){
+      return { lat: parts[0], lng: parts[1] };
+    }
+    return null;
+  }
+
   function rowToItem(row){
     return {
       id: row.id,
@@ -323,10 +322,6 @@
     await load();
   }
 
-  function sorted(){
-    return complaints;
-  }
-
   function el(tag, attrs, ...children){
     const e = document.createElement(tag);
     if(attrs) for(const k in attrs){
@@ -387,8 +382,8 @@
       );
     }}, "📍 Lokasi Saat Ini");
 
-    const panel = el("div", { class:"form-panel open" },
-      el("h2", {}, editing ? "Ubah data komplain " + editing.id : "Tambah komplain dari email"),
+    return el("div", { class:"form-panel open" },
+      el("h2", {}, editing ? "Ubah data komplain " + editing.id : "Tambah komplain baru"),
       el("div", { class:"field-row" },
         el("div", { class:"field" }, el("label", {}, "Pelanggan"), customerInput),
         el("div", { class:"field" }, el("label", {}, "Area / zona"), areaInput),
@@ -421,18 +416,19 @@
           else{ addComplaint(data); }
           formOpen = false;
           editingId = null;
-          render();
         }}, editing ? "Simpan perubahan" : "Simpan ke antrian"),
-        el("button", { class:"btn-ghost", onclick: () => { formOpen = false; editingId = null; render(); } }, "Batal"),
+        el("button", { class:"btn-ghost", onclick: () => { formOpen = false; editingId = null; render(); } }, "Batal")
       )
     );
-    return panel;
   }
 
   function renderTicket(item){
     const level = urgencyLevel(item);
     const badgeText = level === "tinggi" ? "Tinggi" : level === "sedang" ? "Sedang" : "Rendah";
     const isDone = item.status === "selesai";
+    const coordsObj = parseCoords(item.coords);
+
+    const mapContainerId = "map-" + item.id;
 
     return el("div", { class: "ticket " + level + (isDone ? " selesai" : "") },
       el("div", { class:"ticket-top" },
@@ -444,30 +440,57 @@
       ),
       el("div", { class:"ticket-meta" }, [item.area, catInfo(item.category).label].filter(Boolean).join(" · ")),
       item.desc ? el("div", { class:"ticket-desc" }, item.desc) : null,
-      item.coords ? el("div", {},
-        el("div", { class:"ticket-map" },
-          el("iframe", { src: "https://maps.google.com/maps?q=" + encodeURIComponent(item.coords) + "&z=15&output=embed", loading:"lazy" })
-        ),
+      
+      // Mini Peta Container
+      coordsObj ? el("div", {},
+        el("div", { id: mapContainerId, class: "ticket-map-container" }),
         el("div", { class:"ticket-loc" },
-          el("a", { href: "https://www.google.com/maps?q=" + encodeURIComponent(item.coords), target:"_blank", rel:"noopener" }, "Lihat di Maps ↗"),
-          el("a", { href: "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(item.coords), target:"_blank", rel:"noopener" }, "🧭 Navigasi ke lokasi ↗")
+          el("a", { href: "https://www.google.com/maps?q=" + encodeURIComponent(item.coords), target:"_blank", rel:"noopener" }, "Lihat di Google Maps ↗"),
+          el("a", { href: "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(item.coords), target:"_blank", rel:"noopener" }, "🧭 Navigasi ↗")
         )
       ) : null,
+
       el("div", { class:"ticket-wait" },
         isDone ? "Selesai" : fmtWait(item) + (item.status==="proses" ? " · sedang dikerjakan" : "")
       ),
-      isDone ? null : el("div", { class:"ticket-actions" },
-        item.status !== "proses" ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Mulai proses") : null,
-        el("button", { class:"done", onclick: () => setStatus(item.id, "selesai") }, "Selesai"),
+      el("div", { class:"ticket-actions" },
+        !isDone && item.status !== "proses" ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Mulai proses") : null,
+        !isDone ? el("button", { class:"done", onclick: () => setStatus(item.id, "selesai") }, "Selesai") : null,
+        isDone ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Buka lagi") : null,
         el("button", { class:"edit", onclick: () => { editingId = item.id; formOpen = true; render(); window.scrollTo({top:0, behavior:"smooth"}); } }, "Edit"),
         el("button", { class:"del", onclick: () => removeComplaint(item.id) }, "Hapus")
-      ),
-      isDone ? el("div", { class:"ticket-actions" },
-        el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Buka lagi"),
-        el("button", { class:"edit", onclick: () => { editingId = item.id; formOpen = true; render(); window.scrollTo({top:0, behavior:"smooth"}); } }, "Edit"),
-        el("button", { class:"del", onclick: () => removeComplaint(item.id) }, "Hapus")
-      ) : null
+      )
     );
+  }
+
+  // Inisialisasi peta Leaflet setelah DOM di-render
+  function initMaps(){
+    // Hapus map lama dari memori untuk mencegah memory leak
+    Object.keys(activeMaps).forEach(id => {
+      activeMaps[id].remove();
+      delete activeMaps[id];
+    });
+
+    complaints.forEach(item => {
+      const coords = parseCoords(item.coords);
+      const container = document.getElementById("map-" + item.id);
+      
+      if(container && coords){
+        const map = L.map(container, {
+          attributionControl: false,
+          zoomControl: false
+        }).setView([coords.lat, coords.lng], 15);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19
+        }).addTo(map);
+
+        L.marker([coords.lat, coords.lng]).addTo(map)
+          .bindPopup(`<b>${item.customer}</b><br>${item.area}`);
+
+        activeMaps[item.id] = map;
+      }
+    });
   }
 
   function render(){
@@ -547,6 +570,9 @@
       const warn = el("div", { style:"margin-top:10px; font-size:12px; color:#C1440E; text-align:center;" }, "Tidak bisa terhubung ke database. Periksa konfigurasi SUPABASE_URL / SUPABASE_ANON_KEY.");
       root.appendChild(warn);
     }
+
+    // Panggil render peta setelah elemen dimasukkan ke DOM
+    setTimeout(initMaps, 50);
   }
 
   load();
