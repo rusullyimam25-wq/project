@@ -100,12 +100,32 @@
   .ticket-meta{ font-size: 12.5px; color: var(--ink-soft); }
   .ticket-desc{ font-size: 13.5px; color: var(--ink); line-height: 1.4; }
   .ticket-wait{ font-size: 12px; color: var(--ink-soft); font-family:"IBM Plex Mono", monospace; }
+  
+  /* Kalender & Deadline Box */
+  .schedule-box {
+    background: #F8FAFA;
+    border: 1px dashed var(--line);
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 2px;
+  }
+  .schedule-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .schedule-title { font-weight: 600; color: var(--accent); }
+  .deadline-tag { font-family: "IBM Plex Mono", monospace; font-weight: 600; padding: 2px 6px; border-radius: 3px; font-size: 11px; }
+  .deadline-normal { background: #E2E8F0; color: #334155; }
+  .deadline-warning { background: var(--sedang-bg); color: var(--sedang); }
+  .deadline-overdue { background: var(--tinggi-bg); color: var(--tinggi); }
+
   .ticket-loc{ font-size: 12.5px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-top: 4px; }
   .ticket-loc a{ color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent); }
   
   /* Mini Map Leaflet */
   .ticket-map-container {
-    width: 100%; height: 160px; border: 1px solid var(--line);
+    width: 100%; height: 150px; border: 1px solid var(--line);
     border-radius: 4px; overflow: hidden; margin-top: 4px; z-index: 1;
   }
 
@@ -144,10 +164,11 @@
   .foot-actions{ text-align:center; margin-top: 24px; }
 </style>
 
-<!-- Styles & Library Leaflet Map -->
+<!-- Leaflet Map CSS & JS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+<!-- Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
@@ -166,11 +187,13 @@
     { key: "lainnya", label: "Lainnya", weight: 1 },
   ];
 
+  const SLA_DAYS = 14; // Maksimal batas waktu penanganan (14 Hari)
+
   let complaints = [];
   let sortMode = "prioritas";
   let categoryFilter = "semua";
   let storageOk = true;
-  let activeMaps = {}; // Menyimpan instance Leaflet
+  let activeMaps = {};
 
   function catInfo(key){
     return CATEGORIES.find(c => c.key === key) || CATEGORIES[CATEGORIES.length-1];
@@ -190,8 +213,8 @@
 
   function priorityScore(item){
     const w = item.urgent ? 5 : catInfo(item.category).weight;
-    const hrs = Math.min(hoursWaiting(item), 48);
-    return w * 10 + hrs;
+    const hrs = Math.min(hoursWaiting(item), 336); // Maksimal pembobotan jam hingga 14 hari (336 jam)
+    return w * 100 + hrs; // Prioritas jenis/urgent paling mendominasi, disusul lamanya menunggu
   }
 
   function fmtWait(item){
@@ -202,9 +225,8 @@
     return h + "j " + (m>0? m+"m ":"") + "menunggu";
   }
 
-  function fmtReceived(item){
-    const d = new Date(item.receivedAt);
-    return d.toLocaleString("id-ID", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" });
+  function fmtDateTime(dateObj){
+    return dateObj.toLocaleString("id-ID", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
   }
 
   function parseCoords(str){
@@ -214,6 +236,33 @@
       return { lat: parts[0], lng: parts[1] };
     }
     return null;
+  }
+
+  // ==== Logika Kalender & Tenggat (14 Hari) ====
+  function getDeadlineInfo(item){
+    const start = new Date(item.receivedAt);
+    const deadline = new Date(start.getTime() + SLA_DAYS * 24 * 60 * 60 * 1000);
+    const now = new Date();
+    const diffMs = deadline - now;
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    let statusClass = "deadline-normal";
+    let statusText = `Sisa ${diffDays} hari`;
+
+    if (diffMs < 0) {
+      statusClass = "deadline-overdue";
+      statusText = `Terlambat (${Math.abs(diffDays)} hari)`;
+    } else if (diffDays <= 3) {
+      statusClass = "deadline-warning";
+      statusText = `Mendesak (${diffDays} hari lagi)`;
+    }
+
+    return {
+      receivedText: fmtDateTime(start),
+      deadlineText: fmtDateTime(deadline),
+      statusClass,
+      statusText
+    };
   }
 
   function rowToItem(row){
@@ -422,18 +471,21 @@
     );
   }
 
-  function renderTicket(item){
+  function renderTicket(item, index, scheduleOrderMap){
     const level = urgencyLevel(item);
     const badgeText = level === "tinggi" ? "Tinggi" : level === "sedang" ? "Sedang" : "Rendah";
     const isDone = item.status === "selesai";
     const coordsObj = parseCoords(item.coords);
-
+    const deadlineInfo = getDeadlineInfo(item);
     const mapContainerId = "map-" + item.id;
+
+    // Nomor urut jadwal kerja jika belum selesai
+    const scheduleNum = scheduleOrderMap[item.id] ? `Urutan Kerja #${scheduleOrderMap[item.id]}` : null;
 
     return el("div", { class: "ticket " + level + (isDone ? " selesai" : "") },
       el("div", { class:"ticket-top" },
         el("div", {},
-          el("div", { class:"ticket-id" }, item.id + " · diterima " + fmtReceived(item)),
+          el("div", { class:"ticket-id" }, item.id + (scheduleNum ? " · " + scheduleNum : "")),
           el("div", { class:"ticket-cust" }, item.customer)
         ),
         el("span", { class:"ticket-badge badge-" + level }, badgeText)
@@ -441,6 +493,16 @@
       el("div", { class:"ticket-meta" }, [item.area, catInfo(item.category).label].filter(Boolean).join(" · ")),
       item.desc ? el("div", { class:"ticket-desc" }, item.desc) : null,
       
+      // Box Kalender & Deadline Pengerjaan
+      el("div", { class:"schedule-box" },
+        el("div", { class:"schedule-row" },
+          el("span", { class:"schedule-title" }, "📅 Jadwal Kalender Penanganan:"),
+          el("span", { class:`deadline-tag ${deadlineInfo.statusClass}` }, deadlineInfo.statusText)
+        ),
+        el("div", { style:"color:var(--ink-soft);" }, `Diterima: ${deadlineInfo.receivedText}`),
+        el("div", { style:"color:var(--ink-soft);" }, `Batas Selesai (14 Hari): ${deadlineInfo.deadlineText}`)
+      ),
+
       // Mini Peta Container
       coordsObj ? el("div", {},
         el("div", { id: mapContainerId, class: "ticket-map-container" }),
@@ -451,7 +513,7 @@
       ) : null,
 
       el("div", { class:"ticket-wait" },
-        isDone ? "Selesai" : fmtWait(item) + (item.status==="proses" ? " · sedang dikerjakan" : "")
+        isDone ? "Status: Selesai Dikerjakan" : fmtWait(item) + (item.status==="proses" ? " · sedang dikerjakan" : "")
       ),
       el("div", { class:"ticket-actions" },
         !isDone && item.status !== "proses" ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Mulai proses") : null,
@@ -463,9 +525,7 @@
     );
   }
 
-  // Inisialisasi peta Leaflet setelah DOM di-render
   function initMaps(){
-    // Hapus map lama dari memori untuk mencegah memory leak
     Object.keys(activeMaps).forEach(id => {
       activeMaps[id].remove();
       delete activeMaps[id];
@@ -498,17 +558,34 @@
     root.innerHTML = "";
 
     const base = categoryFilter === "semua" ? complaints : complaints.filter(c => c.category === categoryFilter);
-    const byStatus = (st) => {
-      const items = base.filter(c => c.status === st);
-      if(sortMode === "prioritas") items.sort((a,b) => priorityScore(b) - priorityScore(a));
-      else items.sort((a,b) => new Date(a.receivedAt) - new Date(b.receivedAt));
-      return items;
-    };
-    const belum = byStatus("baru");
-    const proses = byStatus("proses");
-    const selesai = byStatus("selesai").sort((a,b) => new Date(b.receivedAt) - new Date(a.receivedAt));
 
-    const openAll = belum.concat(proses);
+    // Pengurutan Utama Kalender Pengerjaan: Prioritas Tinggi -> Waktu Diterima Terlama
+    const getScheduledOrder = (items) => {
+      return [...items].sort((a,b) => {
+        const scoreA = priorityScore(a);
+        const scoreB = priorityScore(b);
+        if (scoreB !== scoreA) return scoreB - scoreA;
+        return new Date(a.receivedAt) - new Date(b.receivedAt);
+      });
+    };
+
+    const sortedByMode = (items) => {
+      if(sortMode === "prioritas") return getScheduledOrder(items);
+      return [...items].sort((a,b) => new Date(a.receivedAt) - new Date(b.receivedAt));
+    };
+
+    const belum = sortedByMode(base.filter(c => c.status === "baru"));
+    const proses = sortedByMode(base.filter(c => c.status === "proses"));
+    const selesai = base.filter(c => c.status === "selesai").sort((a,b) => new Date(b.receivedAt) - new Date(a.receivedAt));
+
+    // Membuat Map Urutan Pengerjaan Kalender
+    const allPendingScheduled = getScheduledOrder(complaints.filter(c => c.status !== "selesai"));
+    const scheduleOrderMap = {};
+    allPendingScheduled.forEach((item, index) => {
+      scheduleOrderMap[item.id] = index + 1;
+    });
+
+    const openAll = base.filter(c => c.status !== "selesai");
     const tinggiCount = openAll.filter(c => urgencyLevel(c) === "tinggi").length;
     const oldestHrs = openAll.length ? Math.max(...openAll.map(hoursWaiting)) : 0;
 
@@ -516,12 +593,12 @@
       el("div", { class:"section-head" + (isFirst ? " first" : "") }, title, el("span", { class:"count" }, String(items.length))),
       items.length === 0
         ? el("div", { class:"empty" }, "Tidak ada komplain di kolom ini.")
-        : el("div", {}, ...items.map(renderTicket))
+        : el("div", {}, ...items.map((item, idx) => renderTicket(item, idx, scheduleOrderMap)))
     );
 
     const wrap = el("div", { class:"wrap" },
       el("div", { class:"masthead" },
-        el("h1", {}, "Papan Kerja Komplain"),
+        el("h1", {}, "Papan Kerja & Kalender Komplain"),
         el("span", { class:"unit" }, "Aetra Air Tangerang · Lapangan")
       ),
       el("div", { class:"summary" },
@@ -542,8 +619,8 @@
           el("div", { class:"sortmode" },
             "Urutkan: ",
             el("select", { onchange: (e) => { sortMode = e.target.value; render(); } },
-              el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "Prioritas"),
-              el("option", { value:"waktu", selected: sortMode==="waktu" ? "selected" : null }, "Waktu diterima")
+              el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "Urutan Kalender (Prioritas & Lama)"),
+              el("option", { value:"waktu", selected: sortMode==="waktu" ? "selected" : null }, "Waktu Diterima")
             )
           )
         )
@@ -571,7 +648,6 @@
       root.appendChild(warn);
     }
 
-    // Panggil render peta setelah elemen dimasukkan ke DOM
     setTimeout(initMaps, 50);
   }
 
