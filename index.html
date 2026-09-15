@@ -36,7 +36,7 @@
   
   .wrap { max-width: 820px; margin: 0 auto; }
 
-  /* Masthead / Header Logo */
+  /* Header Logo */
   .masthead {
     display: flex; justify-content: space-between; align-items: center;
     margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
@@ -46,7 +46,7 @@
   .brand-title h1 { font-size: 20px; font-weight: 700; margin: 0; color: var(--ink); }
   .brand-title .unit { font-size: 12px; color: var(--ink-soft); font-weight: 500; }
 
-  /* WIDGET KALENDER DASHBOARD (Sesuai Desain Gambar) */
+  /* WIDGET KALENDER DASHBOARD */
   .calendar-card {
     background: #E5E7EB; border: 1px solid var(--border); border-radius: var(--radius);
     padding: 16px 20px; margin-bottom: 24px; box-shadow: var(--shadow-sm); color: #1F2937;
@@ -90,6 +90,7 @@
   }
   .cal-date-cell.selected.has-tasks::after { background: #FFFFFF; }
   .cal-date-cell.has-high::after { background: var(--tinggi); }
+  .cal-date-cell.all-done::after { background: var(--rendah); }
 
   /* Stats Summary Cards */
   .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px; }
@@ -158,6 +159,7 @@
   .badge-tinggi { background: var(--tinggi-bg); color: var(--tinggi); }
   .badge-sedang { background: var(--sedang-bg); color: var(--sedang); }
   .badge-rendah { background: var(--rendah-bg); color: var(--rendah); }
+  .badge-selesai { background: var(--rendah-bg); color: var(--rendah); }
 
   .case-tag { background: #F1F5F9; color: #334155; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-right: 6px; }
   .ticket-meta { font-size: 13px; color: var(--ink-soft); font-weight: 500; }
@@ -266,7 +268,6 @@
   let storageOk = true;
   let activeMaps = {};
   
-  // Tanggal Aktif Kalender (Default: Hari Ini)
   let selectedDate = new Date();
   let viewMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
 
@@ -350,9 +351,21 @@
     };
   }
 
-  // LOGIKA ALOKASI JADWAL KALENDER & CARRY-OVER OTOMATIS
+  // ALOKASI KALENDER (Mempertahankan Kasus Selesai Pada Tanggalnya & Rollover Kasus Belum Selesai)
   function calculateCalendarSchedule(){
-    // HANYA ambil komplain yang BELUM SELESAI (Kasus Selesai tidak ditampilkan di kalender lagi)
+    const dateMap = {}; 
+    const itemScheduledDateMap = {};
+
+    // 1. Masukkan kasus yang SUDAH SELESAI ke tanggal diterima/selesainya (Tetap ada di kalender)
+    const completedItems = complaints.filter(c => c.status === "selesai");
+    completedItems.forEach(item => {
+      const dateKey = formatDateKey(new Date(item.receivedAt));
+      if (!dateMap[dateKey]) dateMap[dateKey] = [];
+      dateMap[dateKey].push(item);
+      itemScheduledDateMap[item.id] = new Date(item.receivedAt);
+    });
+
+    // 2. Alokasikan kasus yang BELUM SELESAI (Carry-Over ke hari ini & berurutan)
     const pendingItems = complaints
       .filter(c => c.status !== "selesai")
       .sort((a,b) => {
@@ -362,29 +375,23 @@
         return new Date(a.receivedAt) - new Date(b.receivedAt);
       });
 
-    const dateMap = {}; 
-    const itemScheduledDateMap = {};
-    
-    // Mulai alokasi dari HARI INI (Carry-over otomatis jika komplain kemarin belum selesai)
     let currentDate = new Date();
     currentDate.setHours(0,0,0,0);
 
-    let countInCurrentDay = 0;
+    let countInCurrentDay = (dateMap[formatDateKey(currentDate)] || []).length;
 
     pendingItems.forEach(item => {
       const recDate = new Date(item.receivedAt);
       recDate.setHours(0,0,0,0);
 
-      // Jika tanggal komplain diterima lebih baru dari tanggal alokasi saat ini
       if (recDate > currentDate) {
         currentDate = new Date(recDate);
-        countInCurrentDay = 0;
+        countInCurrentDay = (dateMap[formatDateKey(currentDate)] || []).length;
       }
 
-      // Jika kuota 5 komplain tercapai, pindah ke tanggal berikutnya
       if (countInCurrentDay >= MAX_PER_DAY) {
         currentDate.setDate(currentDate.getDate() + 1);
-        countInCurrentDay = 0;
+        countInCurrentDay = (dateMap[formatDateKey(currentDate)] || []).length;
       }
 
       const dateKey = formatDateKey(currentDate);
@@ -543,7 +550,7 @@
       ...CATEGORIES.map(c => el("option", { value: c.key, selected: editing && editing.category===c.key ? "selected" : null }, `[${c.key}] ${c.label}`))
     );
 
-    const descInput = el("textarea", { placeholder:"Detail komplain dari pelanggan..." }, editing ? editing.desc : "");
+    const descInput = el("textarea", { placeholder:"Detail komplain..." }, editing ? editing.desc : "");
     const timeInput = el("input", { type:"datetime-local", value: editing ? toLocalInput(editing.receivedAt) : nowLocalInputValue() });
     const urgentCheck = el("input", { type:"checkbox", checked: editing && editing.urgent ? "checked" : null });
     const coordsInput = el("input", { type:"text", placeholder:"-6.1783, 106.6319 (opsional)", value: editing ? (editing.coords||"") : "" });
@@ -560,10 +567,7 @@
       ),
       el("div", { class:"field-row" },
         el("div", { class:"field" }, el("label", {}, "Deskripsi"), descInput),
-        el("div", { class:"field" },
-          el("label", {}, "Koordinat Lokasi"),
-          coordsInput
-        ),
+        el("div", { class:"field" }, el("label", {}, "Koordinat Lokasi"), coordsInput),
       ),
       el("label", { style: "display:flex; align-items:center; gap:8px; font-size:13px; margin: 8px 0 16px; cursor:pointer;" }, 
         urgentCheck, "Tandai mendesak (Prioritas Utama)"
@@ -590,7 +594,7 @@
     );
   }
 
-  // WIDGET KALENDER EMBEDDED PADA DASHBOARD
+  // WIDGET KALENDER EMBEDDED
   function renderDashboardCalendar(dateMap){
     const selectedKey = formatDateKey(selectedDate);
     const dayName = selectedDate.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long" });
@@ -606,19 +610,17 @@
 
     const dateCells = [];
 
-    // Hari dari bulan sebelumnya
     for(let i = startDayOfWeek - 1; i >= 0; i--){
-      const prevDate = prevMonthLastDay - i;
-      dateCells.push({ dayNum: prevDate, isOtherMonth: true });
+      dateCells.push({ dayNum: prevMonthLastDay - i, isOtherMonth: true });
     }
 
-    // Hari dari bulan berjalan
     for(let d = 1; d <= lastDay.getDate(); d++){
       const fullDate = new Date(year, month, d);
       const key = formatDateKey(fullDate);
       const tasks = dateMap[key] || [];
       const isSelected = key === selectedKey;
-      const hasHigh = tasks.some(t => urgencyLevel(t) === "tinggi");
+      const hasHigh = tasks.some(t => urgencyLevel(t) === "tinggi" && t.status !== "selesai");
+      const allDone = tasks.length > 0 && tasks.every(t => t.status === "selesai");
 
       dateCells.push({
         dayNum: d,
@@ -627,23 +629,21 @@
         isSelected,
         hasTasks: tasks.length > 0,
         hasHigh,
+        allDone,
         isOtherMonth: false
       });
     }
 
-    // Hari dari bulan berikutnya untuk melengkapi grid
     const remainingSlots = 42 - dateCells.length;
     for(let i = 1; i <= remainingSlots; i++){
       dateCells.push({ dayNum: i, isOtherMonth: true });
     }
 
     return el("div", { class: "calendar-card" },
-      // Header Atas (Tuesday, 15 September)
       el("div", { class: "cal-top-header" },
         el("span", {}, dayName),
-        el("span", { style: "font-size:12px; color:#6B7280; font-weight:normal;" }, "▾")
+        el("span", { style: "font-size:12px; color:#6B7280;" }, "▾")
       ),
-      // Navigator Bulan (September 2026 ▲ ▼)
       el("div", { class: "cal-month-nav" },
         el("span", { class: "cal-month-title" }, monthTitle),
         el("div", { class: "cal-nav-btns" },
@@ -657,7 +657,6 @@
           }}, "▼")
         )
       ),
-      // Grid Hari & Tanggal
       el("div", { class: "cal-grid-embedded" },
         ...["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(h => el("div", { class: "cal-head-cell" }, h)),
         ...dateCells.map(c => {
@@ -668,6 +667,7 @@
           if (c.isSelected) classes += " selected";
           if (c.hasTasks) classes += " has-tasks";
           if (c.hasHigh) classes += " has-high";
+          if (c.allDone) classes += " all-done";
 
           return el("div", {
             class: classes,
@@ -699,7 +699,7 @@
           el("div", { class:"ticket-id" }, item.id),
           el("div", { class:"ticket-cust" }, item.customer)
         ),
-        el("span", { class:"ticket-badge badge-" + level }, badgeText)
+        el("span", { class:`ticket-badge ${isDone ? 'badge-selesai' : 'badge-' + level}` }, isDone ? "Selesai" : badgeText)
       ),
       el("div", { class:"ticket-meta" }, 
         el("span", { class:"case-tag" }, caseDetails.key),
@@ -707,17 +707,15 @@
       ),
       item.desc ? el("div", { class:"ticket-desc" }, item.desc) : null,
       
-      // Schedule Box
       el("div", { class:"schedule-box" },
         el("div", { class:"schedule-row" },
-          el("span", { class:"schedule-title" }, `📅 Jadwal Kerja: ${scheduledText}`),
+          el("span", { class:"schedule-title" }, `📅 Tanggal Kerja: ${scheduledText}`),
           el("span", { class:`deadline-tag ${deadlineInfo.statusClass}` }, deadlineInfo.statusText)
         ),
         el("div", { style:"color:var(--ink-soft);" }, `Diterima: ${deadlineInfo.receivedText}`),
         el("div", { style:"color:var(--ink-soft);" }, `Batas SLA (14 Hari): ${deadlineInfo.deadlineText}`)
       ),
 
-      // Mini Map Container
       coordsObj ? el("div", {},
         el("div", { id: mapContainerId, class: "ticket-map-container" }),
         el("div", { class:"ticket-loc" },
@@ -805,7 +803,6 @@
     );
 
     const wrap = el("div", { class:"wrap" },
-      // Masthead Header
       el("div", { class:"masthead" },
         el("div", { class:"brand-group" },
           el("img", { 
@@ -820,17 +817,14 @@
         )
       ),
 
-      // Embedded Kalender Widget di Dashboard
       renderDashboardCalendar(dateMap),
 
-      // Summary Cards
       el("div", { class:"summary" },
         el("div", { class:"stat-card tinggi" }, el("div", { class:"num" }, String(tinggiCount)), el("div", { class:"lbl" }, "Prioritas Tinggi")),
         el("div", { class:"stat-card" }, el("div", { class:"num" }, String(openAll.length)), el("div", { class:"lbl" }, "Belum Selesai")),
         el("div", { class:"stat-card" }, el("div", { class:"num" }, oldestHrs >= 1 ? Math.round(oldestHrs)+"j" : "<1j"), el("div", { class:"lbl" }, "Menunggu Lama")),
       ),
 
-      // Toolbar Controls
       el("div", { class:"toolbar" },
         el("div", { class:"toolbar-actions" },
           el("button", { class:"btn-primary", onclick: () => { formOpen = !formOpen; if(!formOpen) editingId=null; render(); } }, formOpen ? "Tutup Form" : "+ Tambah Komplain")
