@@ -1,210 +1,231 @@
 <div id="app-root"></div>
 <style>
-  :root{
-    --bg: #F4F6F5;
+  :root {
+    --bg: #F8FAFC;
     --panel: #FFFFFF;
-    --ink: #16232C;
-    --ink-soft: #52646C;
-    --line: #C7D1CE;
-    --tinggi: #C1440E;
-    --tinggi-bg: #FCEBE3;
-    --sedang: #B8790F;
-    --sedang-bg: #FBF1DE;
-    --rendah: #3E7A68;
-    --rendah-bg: #E7F1EC;
-    --accent: #1E4E5F;
+    --border: #E2E8F0;
+    --border-hover: #CBD5E1;
+    --ink: #0F172A;
+    --ink-soft: #64748B;
+    --ink-muted: #94A3B8;
+    
+    --accent: #0F766E;
+    --accent-bg: #F0FDFA;
+    --accent-hover: #0D9488;
+    
+    --tinggi: #E11D48;
+    --tinggi-bg: #FFF1F2;
+    --sedang: #D97706;
+    --sedang-bg: #FFFBEB;
+    --rendah: #059669;
+    --rendah-bg: #ECFDF5;
+    
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --radius: 8px;
   }
-  *{ box-sizing: border-box; }
-  body{ margin:0; }
-  #app-root{
-    font-family: "IBM Plex Sans", "Segoe UI", Arial, sans-serif;
-    background: var(--bg);
-    color: var(--ink);
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); }
+
+  #app-root {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     min-height: 100vh;
-    padding: 20px 16px 60px;
+    padding: 32px 16px 60px;
   }
-  .wrap{ max-width: 760px; margin: 0 auto; }
-
-  .masthead{
-    display:flex; align-items:baseline; justify-content:space-between;
-    border-bottom: 2px solid var(--ink); padding-bottom: 10px; margin-bottom: 4px;
-  }
-  .masthead h1{ font-size: 21px; margin:0; font-weight: 700; letter-spacing: 0.2px; }
-  .masthead .unit{ font-size: 12px; color: var(--ink-soft); font-family: "IBM Plex Mono", monospace; }
-
-  .summary{ display:flex; gap: 10px; margin: 14px 0 18px; flex-wrap: wrap; }
-  .summary .stat{
-    flex: 1; min-width: 90px;
-    background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
-    padding: 10px 12px;
-  }
-  .summary .stat .num{ font-size: 22px; font-weight: 700; font-family: "IBM Plex Mono", monospace; }
-  .summary .stat .lbl{ font-size: 11.5px; color: var(--ink-soft); margin-top: 2px; }
-  .summary .stat.tinggi .num{ color: var(--tinggi); }
-
-  .toolbar{
-    display:flex; gap:10px; margin-bottom: 14px; align-items:center; justify-content: space-between; flex-wrap:wrap;
-  }
-  .toolbar .filters{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-  .toolbar .sortmode{ font-size: 12.5px; color: var(--ink-soft); }
-  .toolbar select{
-    font-size: 12.5px; padding: 4px 6px; border:1px solid var(--line); border-radius:3px; background: var(--panel); color: var(--ink); max-width: 200px;
-  }
-  button{ font-family: inherit; cursor:pointer; border:none; }
-  .btn-primary{
-    background: var(--accent); color:#fff; padding: 9px 16px; border-radius: 4px; font-size: 14px; font-weight:600;
-  }
-  .btn-primary:active{ opacity:0.85; }
-  .btn-ghost{
-    background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 7px 12px; border-radius:4px; font-size: 13px; font-weight:600;
-  }
-  .btn-text{ background:none; color: var(--ink-soft); font-size: 12.5px; text-decoration: underline; padding:2px; }
-
-  /* Form */
-  .form-panel{
-    background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
-    padding: 16px; margin-bottom: 20px; display:none;
-  }
-  .form-panel.open{ display:block; }
-  .form-panel h2{ font-size: 14px; margin: 0 0 12px; text-transform: none; }
-  .field-row{ display:flex; gap: 10px; margin-bottom: 10px; flex-wrap:wrap; }
-  .field{ flex:1; min-width: 140px; display:flex; flex-direction:column; gap:4px; }
-  .field label{ font-size: 12px; color: var(--ink-soft); }
-  .field input, .field select, .field textarea{
-    font-family: inherit; font-size: 14px; padding: 8px 9px; border: 1px solid var(--line);
-    border-radius: 4px; background: #FCFDFC; color: var(--ink);
-  }
-  .field textarea{ resize: vertical; min-height: 54px; }
-  .form-actions{ display:flex; gap:8px; margin-top: 10px; }
-  .urgent-toggle{ display:flex; align-items:center; gap:7px; font-size:13px; padding: 8px 0; }
-
-  /* Queue */
-  .ticket{
-    background: var(--panel); border: 1px solid var(--line); border-left-width: 5px;
-    border-radius: 5px; padding: 12px 14px; margin-bottom: 10px;
-    display:flex; flex-direction:column; gap:6px;
-  }
-  .ticket.tinggi{ border-left-color: var(--tinggi); }
-  .ticket.sedang{ border-left-color: var(--sedang); }
-  .ticket.rendah{ border-left-color: var(--rendah); }
-  .ticket.selesai{ opacity: 0.55; }
-
-  .ticket-top{ display:flex; justify-content: space-between; align-items:flex-start; gap: 10px; }
-  .ticket-id{ font-family:"IBM Plex Mono", monospace; font-size: 11.5px; color: var(--ink-soft); }
-  .ticket-badge{ font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
-  .badge-tinggi{ background: var(--tinggi-bg); color: var(--tinggi); }
-  .badge-sedang{ background: var(--sedang-bg); color: var(--sedang); }
-  .badge-rendah{ background: var(--rendah-bg); color: var(--rendah); }
-
-  .ticket-cust{ font-size: 15.5px; font-weight: 600; }
-  .ticket-meta{ font-size: 12.5px; color: var(--ink-soft); font-weight: 500; }
-  .case-tag { background: #E2E8F0; color: #1E293B; font-family: "IBM Plex Mono", monospace; padding: 1px 5px; border-radius: 3px; font-size: 11px; font-weight: 700; }
-  .ticket-desc{ font-size: 13.5px; color: var(--ink); line-height: 1.4; }
-  .ticket-wait{ font-size: 12px; color: var(--ink-soft); font-family:"IBM Plex Mono", monospace; }
   
-  /* Kalender Box Tiket */
+  .wrap { max-width: 800px; margin: 0 auto; }
+
+  /* Header Header */
+  .masthead {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+  }
+  .masthead h1 { font-size: 22px; font-weight: 700; margin: 0; color: var(--ink); letter-spacing: -0.02em; }
+  .masthead .unit { font-size: 13px; color: var(--ink-soft); font-weight: 500; }
+
+  /* Stats Grid */
+  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px; box-shadow: var(--shadow-sm); transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .stat-card .num { font-size: 26px; font-weight: 800; color: var(--ink); line-height: 1; letter-spacing: -0.03em; }
+  .stat-card .lbl { font-size: 12px; font-weight: 500; color: var(--ink-soft); margin-top: 6px; }
+  .stat-card.tinggi .num { color: var(--tinggi); }
+
+  /* Toolbar */
+  .toolbar {
+    display: flex; gap: 12px; justify-content: space-between; align-items: center;
+    margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .filter-group { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-soft); font-weight: 500; }
+
+  /* Buttons & Selects */
+  select {
+    font-size: 13px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px;
+    background: var(--panel); color: var(--ink); outline: none; transition: border-color 0.2s;
+    max-width: 200px;
+  }
+  select:focus { border-color: var(--accent); }
+
+  button { font-family: inherit; cursor: pointer; border: none; font-size: 13px; font-weight: 600; border-radius: 6px; transition: all 0.2s; }
+  
+  .btn-primary { background: var(--accent); color: #fff; padding: 8px 16px; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  
+  .btn-secondary { background: var(--panel); border: 1px solid var(--border); color: var(--ink); padding: 8px 14px; }
+  .btn-secondary:hover { background: #F1F5F9; border-color: var(--border-hover); }
+  
+  .btn-text { background: none; color: var(--ink-soft); font-weight: 500; text-decoration: underline; padding: 4px; }
+  .btn-text:hover { color: var(--tinggi); }
+
+  /* Form Container */
+  .form-panel {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px; margin-bottom: 24px; box-shadow: var(--shadow-md); display: none;
+  }
+  .form-panel.open { display: block; }
+  .form-panel h2 { font-size: 15px; font-weight: 700; margin: 0 0 16px; color: var(--ink); }
+  .field-row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .field { flex: 1; min-width: 160px; display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+  .field input, .field select, .field textarea {
+    font-family: inherit; font-size: 13px; padding: 9px 12px; border: 1px solid var(--border);
+    border-radius: 6px; background: #FFF; color: var(--ink); outline: none; transition: border-color 0.2s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
+  .field textarea { resize: vertical; min-height: 60px; }
+  
+  .coords-row { display: flex; gap: 8px; }
+  .btn-geo { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--border); padding: 8px 12px; white-space: nowrap; }
+  .btn-geo:hover { background: #CCFBF1; }
+
+  /* Cards Ticket */
+  .ticket {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow-sm);
+    display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .ticket:hover { box-shadow: var(--shadow-md); }
+  .ticket::before {
+    content: ""; position: absolute; top: 0; left: 0; bottom: 0; width: 4px;
+  }
+  .ticket.tinggi::before { background: var(--tinggi); }
+  .ticket.sedang::before { background: var(--sedang); }
+  .ticket.rendah::before { background: var(--rendah); }
+  .ticket.selesai { opacity: 0.6; }
+
+  .ticket-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .ticket-id { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+  .ticket-cust { font-size: 16px; font-weight: 700; color: var(--ink); margin-top: 2px; }
+  
+  .ticket-badge {
+    font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .badge-tinggi { background: var(--tinggi-bg); color: var(--tinggi); }
+  .badge-sedang { background: var(--sedang-bg); color: var(--sedang); }
+  .badge-rendah { background: var(--rendah-bg); color: var(--rendah); }
+
+  .case-tag {
+    background: #F1F5F9; color: #334155; font-size: 11px; font-weight: 700;
+    padding: 2px 6px; border-radius: 4px; margin-right: 6px; display: inline-block;
+  }
+  .ticket-meta { font-size: 13px; color: var(--ink-soft); font-weight: 500; }
+  .ticket-desc { font-size: 14px; color: var(--ink); line-height: 1.5; }
+
+  /* Schedule Box Inside Card */
   .schedule-box {
-    background: #F8FAFA;
-    border: 1px dashed var(--line);
-    border-radius: 4px;
-    padding: 8px 10px;
-    font-size: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-top: 2px;
+    background: #F8FAFC; border: 1px solid var(--border); border-radius: 6px;
+    padding: 10px 12px; font-size: 12px; display: flex; flex-direction: column; gap: 4px;
   }
   .schedule-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
-  .schedule-title { font-weight: 600; color: var(--accent); }
-  .deadline-tag { font-family: "IBM Plex Mono", monospace; font-weight: 600; padding: 2px 6px; border-radius: 3px; font-size: 11px; }
+  .schedule-title { font-weight: 700; color: var(--accent); }
+  .deadline-tag { font-weight: 700; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
   .deadline-normal { background: #E2E8F0; color: #334155; }
   .deadline-warning { background: var(--sedang-bg); color: var(--sedang); }
   .deadline-overdue { background: var(--tinggi-bg); color: var(--tinggi); }
 
-  .ticket-loc{ font-size: 12.5px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-top: 4px; }
-  .ticket-loc a{ color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent); }
-  
-  /* Mini Map Leaflet */
+  /* Mini Map Container */
   .ticket-map-container {
-    width: 100%; height: 150px; border: 1px solid var(--line);
-    border-radius: 4px; overflow: hidden; margin-top: 4px; z-index: 1;
+    width: 100%; height: 140px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-top: 4px; z-index: 1;
+  }
+  .ticket-loc { font-size: 12px; display: flex; gap: 12px; margin-top: 4px; }
+  .ticket-loc a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .ticket-loc a:hover { text-decoration: underline; }
+
+  .ticket-actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+  .ticket-actions button {
+    font-size: 12px; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: #FFF; color: var(--ink-soft);
+  }
+  .ticket-actions button:hover { background: #F1F5F9; color: var(--ink); }
+  .ticket-actions button.progress { border-color: var(--accent); color: var(--accent); }
+  .ticket-actions button.done { border-color: var(--rendah); color: var(--rendah); }
+  .ticket-actions button.del { margin-left: auto; border-color: transparent; color: var(--ink-muted); }
+  .ticket-actions button.del:hover { color: var(--tinggi); background: var(--tinggi-bg); }
+
+  /* Sections */
+  .section-head {
+    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--ink-soft); margin: 24px 0 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .section-head .count {
+    background: #E2E8F0; color: var(--ink); font-size: 11px; font-weight: 700;
+    border-radius: 12px; padding: 2px 8px;
+  }
+  .section-head.first { margin-top: 0; }
+
+  .empty {
+    text-align: center; padding: 32px 16px; color: var(--ink-soft); font-size: 13px;
+    border: 1px dashed var(--border); border-radius: var(--radius); background: var(--panel);
   }
 
-  .coords-row{ display:flex; gap:8px; align-items:flex-end; }
-  .coords-row .field{ flex:1; }
-  .btn-geo{
-    background: var(--panel); border:1px solid var(--accent); color: var(--accent);
-    font-size: 12.5px; padding: 8px 10px; border-radius: 4px; white-space: nowrap;
-  }
-  .btn-geo:disabled{ opacity:0.5; }
-
-  .ticket-actions{ display:flex; gap: 8px; margin-top: 4px; flex-wrap:wrap; }
-  .ticket-actions button{
-    font-size: 12.5px; padding: 6px 11px; border-radius: 4px; border:1px solid var(--line); background:#fff; color: var(--ink);
-  }
-  .ticket-actions button.done{ border-color: var(--rendah); color: var(--rendah); }
-  .ticket-actions button.progress{ border-color: var(--accent); color: var(--accent); }
-  .ticket-actions button.del{ border-color: #C7D1CE; color: #97A3A0; margin-left:auto; }
-  .ticket-actions button.edit{ border-color: #97A3A0; color: var(--ink-soft); }
-
-  .section-head{
-    font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
-    color: var(--ink-soft); margin: 18px 0 8px; display:flex; align-items:center; gap:8px;
-  }
-  .section-head .count{
-    background: var(--line); color: var(--ink); font-size: 11px; font-weight:700;
-    border-radius: 10px; padding: 1px 8px; font-family:"IBM Plex Mono", monospace;
-  }
-  .section-head.first{ margin-top: 0; }
-
-  .empty{
-    text-align:center; padding: 40px 10px; color: var(--ink-soft); font-size: 13.5px;
-    border: 1px dashed var(--line); border-radius: 6px; background: var(--panel);
-  }
-
-  .foot-actions{ text-align:center; margin-top: 24px; }
-
-  /* ===== MODAL POP-UP KALENDER ===== */
+  /* MODAL POP-UP KALENDER */
   .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(22, 35, 44, 0.6); display: none;
+    background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); display: none;
     align-items: center; justify-content: center; z-index: 9999; padding: 16px;
   }
   .modal-overlay.open { display: flex; }
   .modal-content {
-    background: var(--panel); border-radius: 8px; width: 100%; max-width: 720px;
-    max-height: 90vh; overflow-y: auto; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    background: var(--panel); border-radius: 12px; width: 100%; max-width: 760px;
+    max-height: 85vh; overflow-y: auto; padding: 24px; box-shadow: var(--shadow-lg);
   }
-  .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--line); padding-bottom: 10px; margin-bottom: 16px; }
-  .modal-header h2 { font-size: 18px; margin: 0; }
-  .modal-close { background: none; border: none; font-size: 20px; font-weight: bold; color: var(--ink-soft); cursor: pointer; }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .modal-header h2 { font-size: 18px; font-weight: 700; margin: 0; }
+  .modal-close { background: none; border: none; font-size: 22px; color: var(--ink-soft); cursor: pointer; }
   
   .calendar-grid {
-    display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 10px;
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 12px;
   }
   .cal-day-head {
-    text-align: center; font-size: 12px; font-weight: bold; color: var(--ink-soft); padding: 4px 0;
+    text-align: center; font-size: 11px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; padding: 4px 0;
   }
   .cal-cell {
-    background: #FCFDFC; border: 1px solid var(--line); border-radius: 4px; min-height: 80px; padding: 6px;
-    display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: background 0.2s;
+    background: #FFF; border: 1px solid var(--border); border-radius: 8px; min-height: 85px; padding: 8px;
+    display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: all 0.2s;
   }
-  .cal-cell:hover { background: #F0F4F3; }
-  .cal-cell.today { border-color: var(--accent); background: #EBF2F4; }
-  .cal-cell.other-month { opacity: 0.35; }
-  .cal-date-num { font-size: 12px; font-weight: bold; font-family: "IBM Plex Mono", monospace; }
+  .cal-cell:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); }
+  .cal-cell.today { border-color: var(--accent); background: var(--accent-bg); }
+  .cal-cell.other-month { opacity: 0.3; }
+  .cal-date-num { font-size: 13px; font-weight: 700; color: var(--ink); }
   .cal-count-badge {
-    background: var(--accent); color: #fff; font-size: 10px; font-weight: bold;
-    padding: 2px 4px; border-radius: 4px; margin-top: 4px; text-align: center;
+    background: var(--accent); color: #fff; font-size: 10px; font-weight: 700;
+    padding: 3px 6px; border-radius: 4px; text-align: center;
   }
   .cal-count-badge.tinggi { background: var(--tinggi); }
   
   .selected-day-details {
-    margin-top: 16px; border-top: 1px dashed var(--line); padding-top: 12px;
+    margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px;
   }
-  .selected-day-details h3 { font-size: 14px; margin: 0 0 8px; color: var(--accent); }
+  .selected-day-details h3 { font-size: 14px; font-weight: 700; margin: 0 0 12px; color: var(--ink); }
   .cal-item-mini {
-    background: #F8FAFA; border-left: 3px solid var(--accent); padding: 6px 8px; margin-bottom: 6px; font-size: 12px; border-radius: 2px;
+    background: #F8FAFC; border-left: 4px solid var(--accent); padding: 8px 12px; margin-bottom: 8px; font-size: 13px; border-radius: 4px;
   }
   .cal-item-mini.tinggi { border-left-color: var(--tinggi); }
   .cal-item-mini.sedang { border-left-color: var(--sedang); }
@@ -275,7 +296,7 @@
   ];
 
   const SLA_DAYS = 14;
-  const MAX_PER_DAY = 5; // Kuota 5 kasus per hari
+  const MAX_PER_DAY = 5;
 
   let complaints = [];
   let sortMode = "prioritas";
@@ -366,7 +387,6 @@
     };
   }
 
-  // ALOKASI JADWAL KALENDER (Max 5 komplain / hari)
   function calculateCalendarSchedule(){
     const pendingItems = complaints
       .filter(c => c.status !== "selesai")
@@ -377,10 +397,10 @@
         return new Date(a.receivedAt) - new Date(b.receivedAt);
       });
 
-    const dateMap = {}; // Key: "YYYY-MM-DD", Value: [item1, item2, ...]
-    const itemScheduledDateMap = {}; // Key: item.id, Value: Date
+    const dateMap = {};
+    const itemScheduledDateMap = {};
     
-    let currentDate = new Date(); // Mulai dari hari ini
+    let currentDate = new Date();
     currentDate.setHours(0,0,0,0);
 
     let countInCurrentDay = 0;
@@ -389,13 +409,11 @@
       const recDate = new Date(item.receivedAt);
       recDate.setHours(0,0,0,0);
 
-      // Jika tanggal diterima komplain lebih baru dari tanggal pengerjaan saat ini, majukan tanggal
       if (recDate > currentDate) {
         currentDate = new Date(recDate);
         countInCurrentDay = 0;
       }
 
-      // Jika kuota 5 komplain pada tanggal ini penuh, pindah ke hari berikutnya
       if (countInCurrentDay >= MAX_PER_DAY) {
         currentDate.setDate(currentDate.getDate() + 1);
         countInCurrentDay = 0;
@@ -557,7 +575,7 @@
       ...CATEGORIES.map(c => el("option", { value: c.key, selected: editing && editing.category===c.key ? "selected" : null }, `[${c.key}] ${c.label}`))
     );
 
-    const descInput = el("textarea", { placeholder:"Detail komplain dari email/pelanggan..." }, editing ? editing.desc : "");
+    const descInput = el("textarea", { placeholder:"Detail komplain dari pelanggan..." }, editing ? editing.desc : "");
     const timeInput = el("input", { type:"datetime-local", value: editing ? toLocalInput(editing.receivedAt) : nowLocalInputValue() });
     const urgentCheck = el("input", { type:"checkbox", checked: editing && editing.urgent ? "checked" : null });
     const coordsInput = el("input", { type:"text", placeholder:"-6.1783, 106.6319 (opsional)", value: editing ? (editing.coords||"") : "" });
@@ -581,24 +599,26 @@
     }}, "📍 Lokasi Saat Ini");
 
     return el("div", { class:"form-panel open" },
-      el("h2", {}, editing ? "Ubah data komplain " + editing.id : "Tambah komplain baru"),
+      el("h2", {}, editing ? "Ubah Komplain " + editing.id : "Tambah Komplain Baru"),
       el("div", { class:"field-row" },
         el("div", { class:"field" }, el("label", {}, "Pelanggan"), customerInput),
-        el("div", { class:"field" }, el("label", {}, "Area / zona"), areaInput),
+        el("div", { class:"field" }, el("label", {}, "Area / Zona"), areaInput),
       ),
       el("div", { class:"field-row" },
         el("div", { class:"field" }, el("label", {}, "Jenis CASE Keluhan"), catSelect),
-        el("div", { class:"field" }, el("label", {}, "Waktu komplain diterima"), timeInput),
+        el("div", { class:"field" }, el("label", {}, "Waktu Diterima"), timeInput),
       ),
       el("div", { class:"field-row" },
         el("div", { class:"field" }, el("label", {}, "Deskripsi"), descInput),
         el("div", { class:"field" },
-          el("label", {}, "Koordinat lokasi"),
+          el("label", {}, "Koordinat Lokasi"),
           el("div", { class:"coords-row" }, coordsInput, geoBtn)
         ),
       ),
-      el("label", { class:"urgent-toggle" }, urgentCheck, "Tandai mendesak (override manual)"),
-      el("div", { class:"form-actions" },
+      el("label", { style: "display:flex; align-items:center; gap:8px; font-size:13px; margin: 8px 0 16px; cursor:pointer;" }, 
+        urgentCheck, "Tandai mendesak (Prioritas Utama)"
+      ),
+      el("div", { style: "display:flex; gap:8px;" },
         el("button", { class:"btn-primary", onclick: () => {
           if(!customerInput.value.trim()){ customerInput.focus(); return; }
           const data = {
@@ -614,8 +634,8 @@
           else{ addComplaint(data); }
           formOpen = false;
           editingId = null;
-        }}, editing ? "Simpan perubahan" : "Simpan ke antrian"),
-        el("button", { class:"btn-ghost", onclick: () => { formOpen = false; editingId = null; render(); } }, "Batal")
+        }}, editing ? "Simpan Perubahan" : "Simpan Komplain"),
+        el("button", { class:"btn-secondary", onclick: () => { formOpen = false; editingId = null; render(); } }, "Batal")
       )
     );
   }
@@ -646,33 +666,33 @@
       ),
       item.desc ? el("div", { class:"ticket-desc" }, item.desc) : null,
       
-      // Box Kalender & Schedule
+      // Schedule Box
       el("div", { class:"schedule-box" },
         el("div", { class:"schedule-row" },
           el("span", { class:"schedule-title" }, `📅 Jadwal Kerja: ${scheduledText}`),
           el("span", { class:`deadline-tag ${deadlineInfo.statusClass}` }, deadlineInfo.statusText)
         ),
         el("div", { style:"color:var(--ink-soft);" }, `Diterima: ${deadlineInfo.receivedText}`),
-        el("div", { style:"color:var(--ink-soft);" }, `Batas Selesai (14 Hari): ${deadlineInfo.deadlineText}`)
+        el("div", { style:"color:var(--ink-soft);" }, `Batas SLA (14 Hari): ${deadlineInfo.deadlineText}`)
       ),
 
-      // Mini Peta Container
+      // Mini Map Container
       coordsObj ? el("div", {},
         el("div", { id: mapContainerId, class: "ticket-map-container" }),
         el("div", { class:"ticket-loc" },
-          el("a", { href: "https://www.google.com/maps?q=" + encodeURIComponent(item.coords), target:"_blank", rel:"noopener" }, "Lihat di Google Maps ↗"),
+          el("a", { href: "https://www.google.com/maps?q=" + encodeURIComponent(item.coords), target:"_blank", rel:"noopener" }, "Lihat Google Maps ↗"),
           el("a", { href: "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(item.coords), target:"_blank", rel:"noopener" }, "🧭 Navigasi ↗")
         )
       ) : null,
 
-      el("div", { class:"ticket-wait" },
-        isDone ? "Status: Selesai Dikerjakan" : fmtWait(item) + (item.status==="proses" ? " · sedang dikerjakan" : "")
+      el("div", { style: "font-size: 12px; color: var(--ink-soft); font-weight: 500;" },
+        isDone ? "Status: Selesai" : fmtWait(item) + (item.status==="proses" ? " · sedang dikerjakan" : "")
       ),
       el("div", { class:"ticket-actions" },
-        !isDone && item.status !== "proses" ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Mulai proses") : null,
+        !isDone && item.status !== "proses" ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Mulai Proses") : null,
         !isDone ? el("button", { class:"done", onclick: () => setStatus(item.id, "selesai") }, "Selesai") : null,
-        isDone ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Buka lagi") : null,
-        el("button", { class:"edit", onclick: () => { editingId = item.id; formOpen = true; render(); window.scrollTo({top:0, behavior:"smooth"}); } }, "Edit"),
+        isDone ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Buka Lagi") : null,
+        el("button", { onclick: () => { editingId = item.id; formOpen = true; render(); window.scrollTo({top:0, behavior:"smooth"}); } }, "Edit"),
         el("button", { class:"del", onclick: () => removeComplaint(item.id) }, "Hapus")
       )
     );
@@ -688,7 +708,7 @@
 
     const firstDay = new Date(currYear, currMonth, 1);
     const lastDay = new Date(currYear, currMonth + 1, 0);
-    const startDayOfWeek = firstDay.getDay(); // 0 = Minggu
+    const startDayOfWeek = firstDay.getDay();
 
     const days = [];
     for(let i=0; i<startDayOfWeek; i++){
@@ -708,11 +728,11 @@
     }},
       el("div", { class: "modal-content" },
         el("div", { class: "modal-header" },
-          el("h2", {}, `Kalender Pengerjaan Komplain (${today.toLocaleString('id-ID', { month: 'long', year: 'numeric' })})`),
+          el("h2", {}, `Kalender Pengerjaan (${today.toLocaleString('id-ID', { month: 'long', year: 'numeric' })})`),
           el("button", { class: "modal-close", onclick: () => { calendarModalOpen = false; render(); } }, "×")
         ),
-        el("div", { style: "font-size: 12.5px; color: var(--ink-soft); margin-bottom: 8px;" },
-          "* Komplain otomatis dibagi maksimal 5 kasus per hari berdasarkan prioritas tinggi dan tanggal diterima."
+        el("div", { style: "font-size: 13px; color: var(--ink-soft); margin-bottom: 12px;" },
+          "Setiap hari maksimal mengalokasikan 5 komplain berdasar urutan prioritas dan waktu diterima."
         ),
         
         // Grid Kalender
@@ -736,18 +756,18 @@
           })
         ),
 
-        // Detail Rincian Kasus per Tanggal
+        // Detail Rincian Kasus
         selectedCalDateKey ? el("div", { class: "selected-day-details" },
           el("h3", {}, `Daftar Tugas (${selectedCalDateKey}): ${selectedItems.length} Kasus`),
           selectedItems.length === 0 
-            ? el("div", { style: "font-size:12px; color:var(--ink-soft);" }, "Tidak ada kasus dijadwalkan pada tanggal ini.")
+            ? el("div", { style: "font-size:13px; color:var(--ink-soft);" }, "Tidak ada komplain pada tanggal ini.")
             : el("div", {},
                 ...selectedItems.map(item => {
                   const lvl = urgencyLevel(item);
                   return el("div", { class: `cal-item-mini ${lvl}` },
                     el("strong", {}, `${item.id} - ${item.customer}`),
                     el("div", {}, `[${item.category}] ${catInfo(item.category).label}`),
-                    el("div", { style:"font-size:11px; color:var(--ink-soft);" }, `Area: ${item.area || '-'} | Diterima: ${fmtDateOnly(new Date(item.receivedAt))}`)
+                    el("div", { style:"font-size:11px; color:var(--ink-soft); margin-top:2px;" }, `Area: ${item.area || '-'} | Diterima: ${fmtDateOnly(new Date(item.receivedAt))}`)
                   );
                 })
               )
@@ -817,37 +837,37 @@
     const section = (title, items, isFirst) => el("div", {},
       el("div", { class:"section-head" + (isFirst ? " first" : "") }, title, el("span", { class:"count" }, String(items.length))),
       items.length === 0
-        ? el("div", { class:"empty" }, "Tidak ada komplain di kolom ini.")
+        ? el("div", { class:"empty" }, "Tidak ada komplain di kategori ini.")
         : el("div", {}, ...items.map((item) => renderTicket(item, itemScheduledDateMap)))
     );
 
     const wrap = el("div", { class:"wrap" },
       el("div", { class:"masthead" },
-        el("h1", {}, "Papan Kerja & Kalender Komplain"),
-        el("span", { class:"unit" }, "Aetra Air Tangerang · Lapangan")
+        el("h1", {}, "Papan Kerja Komplain"),
+        el("span", { class:"unit" }, "Aetra Air Tangerang")
       ),
       el("div", { class:"summary" },
-        el("div", { class:"stat tinggi" }, el("div", { class:"num" }, String(tinggiCount)), el("div", { class:"lbl" }, "Prioritas tinggi")),
-        el("div", { class:"stat" }, el("div", { class:"num" }, String(openAll.length)), el("div", { class:"lbl" }, "Belum selesai")),
-        el("div", { class:"stat" }, el("div", { class:"num" }, oldestHrs >= 1 ? Math.round(oldestHrs)+"j" : "<1j"), el("div", { class:"lbl" }, "Menunggu paling lama")),
+        el("div", { class:"stat-card tinggi" }, el("div", { class:"num" }, String(tinggiCount)), el("div", { class:"lbl" }, "Prioritas Tinggi")),
+        el("div", { class:"stat-card" }, el("div", { class:"num" }, String(openAll.length)), el("div", { class:"lbl" }, "Belum Selesai")),
+        el("div", { class:"stat-card" }, el("div", { class:"num" }, oldestHrs >= 1 ? Math.round(oldestHrs)+"j" : "<1j"), el("div", { class:"lbl" }, "Menunggu Lama")),
       ),
       el("div", { class:"toolbar" },
-        el("div", { style:"display:flex; gap:8px;" },
-          el("button", { class:"btn-primary", onclick: () => { formOpen = !formOpen; if(!formOpen) editingId=null; render(); } }, formOpen ? "Tutup form" : "+ Tambah komplain"),
-          el("button", { class:"btn-ghost", onclick: () => { calendarModalOpen = true; render(); } }, "📅 Buka Kalender Pengerjaan")
+        el("div", { class:"toolbar-actions" },
+          el("button", { class:"btn-primary", onclick: () => { formOpen = !formOpen; if(!formOpen) editingId=null; render(); } }, formOpen ? "Tutup Form" : "+ Tambah Komplain"),
+          el("button", { class:"btn-secondary", onclick: () => { calendarModalOpen = true; render(); } }, "📅 Kalender Pengerjaan")
         ),
         el("div", { class:"filters" },
-          el("div", { class:"sortmode" },
-            "Filter CASE: ",
+          el("div", { class:"filter-group" },
+            "CASE:",
             el("select", { onchange: (e) => { categoryFilter = e.target.value; render(); } },
-              el("option", { value:"semua", selected: categoryFilter==="semua" ? "selected" : null }, "-- Semua CASE --"),
+              el("option", { value:"semua", selected: categoryFilter==="semua" ? "selected" : null }, "Semua CASE"),
               ...CATEGORIES.map(c => el("option", { value: c.key, selected: categoryFilter===c.key ? "selected" : null }, `[${c.key}] ${c.label}`))
             )
           ),
-          el("div", { class:"sortmode" },
-            "Urutkan: ",
+          el("div", { class:"filter-group" },
+            "Urutkan:",
             el("select", { onchange: (e) => { sortMode = e.target.value; render(); } },
-              el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "Urutan Kalender (Prioritas)"),
+              el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "Prioritas Utama"),
               el("option", { value:"waktu", selected: sortMode==="waktu" ? "selected" : null }, "Waktu Diterima")
             )
           )
@@ -859,7 +879,7 @@
       section("Selesai", selesai, false),
       el("div", { class:"foot-actions" },
         el("button", { class:"btn-text", onclick: async () => {
-          if(confirm("Hapus semua data komplain di server?")){
+          if(confirm("Hapus semua data komplain dari server?")){
             for(const c of complaints){
               await sb.from(TABLE).delete().eq("id", c.id);
             }
@@ -873,7 +893,7 @@
     root.appendChild(renderCalendarModal(dateMap));
 
     if(!storageOk){
-      const warn = el("div", { style:"margin-top:10px; font-size:12px; color:#C1440E; text-align:center;" }, "Tidak bisa terhubung ke database. Periksa konfigurasi SUPABASE_URL / SUPABASE_ANON_KEY.");
+      const warn = el("div", { style:"margin-top:12px; font-size:12px; color:var(--tinggi); text-align:center;" }, "Tidak bisa terhubung ke database. Periksa konfigurasi SUPABASE_URL / SUPABASE_ANON_KEY.");
       root.appendChild(warn);
     }
 
