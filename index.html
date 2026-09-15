@@ -1,17 +1,17 @@
 <div id="app-root"></div>
 <style>
   :root {
-    --bg: #F8FAFC;
+    --bg: #F1F5F9;
     --panel: #FFFFFF;
-    --border: #E2E8F0;
-    --border-hover: #CBD5E1;
+    --border: #CBD5E1;
+    --border-hover: #94A3B8;
     --ink: #0F172A;
-    --ink-soft: #64748B;
+    --ink-soft: #475569;
     --ink-muted: #94A3B8;
     
-    --accent: #0F766E;
-    --accent-bg: #F0FDFA;
-    --accent-hover: #0D9488;
+    --accent: #0284C7;
+    --accent-bg: #E0F2FE;
+    --accent-hover: #0369A1;
     
     --tinggi: #E11D48;
     --tinggi-bg: #FFF1F2;
@@ -20,57 +20,86 @@
     --rendah: #059669;
     --rendah-bg: #ECFDF5;
     
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --radius: 8px;
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --radius: 12px;
   }
 
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink); }
 
   #app-root {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     min-height: 100vh;
     padding: 24px 16px 60px;
   }
   
-  .wrap { max-width: 840px; margin: 0 auto; }
+  .wrap { max-width: 820px; margin: 0 auto; }
 
-  /* Masthead */
+  /* Masthead / Header Logo */
   .masthead {
     display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
+    margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
   }
   .brand-group { display: flex; align-items: center; gap: 14px; }
-  .brand-logo { height: 44px; width: auto; object-fit: contain; }
-  .brand-title h1 { font-size: 20px; font-weight: 700; margin: 0; color: var(--ink); letter-spacing: -0.02em; }
-  .brand-title .unit { font-size: 12px; color: var(--ink-soft); font-weight: 500; margin-top: 2px; }
+  .brand-logo { height: 46px; width: auto; object-fit: contain; }
+  .brand-title h1 { font-size: 20px; font-weight: 700; margin: 0; color: var(--ink); }
+  .brand-title .unit { font-size: 12px; color: var(--ink-soft); font-weight: 500; }
 
-  /* Summary Grid - 4 Kartu Statistik */
-  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 20px; }
+  /* WIDGET KALENDER DASHBOARD (Sesuai Desain Gambar) */
+  .calendar-card {
+    background: #E5E7EB; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 20px; margin-bottom: 24px; box-shadow: var(--shadow-sm); color: #1F2937;
+  }
+  .cal-top-header {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 16px; font-weight: 600; color: #111827; padding-bottom: 12px; margin-bottom: 12px;
+    border-bottom: 1px solid #D1D5DB;
+  }
+  .cal-month-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+  }
+  .cal-month-title { font-size: 15px; font-weight: 700; color: #111827; }
+  .cal-nav-btns { display: flex; gap: 8px; }
+  .cal-nav-btn {
+    background: transparent; border: none; font-size: 14px; cursor: pointer; color: #4B5563; padding: 2px 6px;
+  }
+  .cal-nav-btn:hover { color: #111827; }
+
+  .cal-grid-embedded {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center;
+  }
+  .cal-head-cell {
+    font-size: 13px; font-weight: 700; color: #374151; padding: 6px 0;
+  }
+  .cal-date-cell {
+    padding: 8px 0; font-size: 14px; font-weight: 500; color: #1F2937;
+    border-radius: 50%; width: 36px; height: 36px; margin: 0 auto;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; position: relative; transition: all 0.2s;
+  }
+  .cal-date-cell:hover { background: #D1D5DB; }
+  .cal-date-cell.other-month { color: #9CA3AF; }
+  .cal-date-cell.selected {
+    background: #0284C7 !important; color: #FFFFFF !important; font-weight: 700;
+  }
+  .cal-date-cell.has-tasks::after {
+    content: ""; display: block; width: 4px; height: 4px; background: #0284C7;
+    border-radius: 50%; position: absolute; bottom: 3px;
+  }
+  .cal-date-cell.selected.has-tasks::after { background: #FFFFFF; }
+  .cal-date-cell.has-high::after { background: var(--tinggi); }
+
+  /* Stats Summary Cards */
+  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px; }
   .stat-card {
     background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 14px; box-shadow: var(--shadow-sm);
+    padding: 14px 16px; box-shadow: var(--shadow-sm);
   }
-  .stat-card .num { font-size: 24px; font-weight: 800; color: var(--ink); line-height: 1; letter-spacing: -0.03em; }
-  .stat-card .lbl { font-size: 12px; font-weight: 500; color: var(--ink-soft); margin-top: 6px; }
+  .stat-card .num { font-size: 24px; font-weight: 800; color: var(--ink); }
+  .stat-card .lbl { font-size: 12px; font-weight: 500; color: var(--ink-soft); margin-top: 4px; }
   .stat-card.tinggi .num { color: var(--tinggi); }
-  .stat-card.proses .num { color: var(--accent); }
-  .stat-card.selesai .num { color: var(--rendah); }
-
-  /* Chart Panel */
-  .chart-panel {
-    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 16px; margin-bottom: 20px; box-shadow: var(--shadow-sm);
-  }
-  .chart-panel h3 { font-size: 14px; font-weight: 700; margin: 0 0 12px; color: var(--ink); }
-  .chart-bars { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; padding-right: 4px; }
-  .chart-row { display: flex; align-items: center; gap: 10px; font-size: 12px; }
-  .chart-label { width: 140px; font-weight: 600; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .chart-bar-bg { flex: 1; background: #F1F5F9; height: 16px; border-radius: 4px; overflow: hidden; position: relative; }
-  .chart-bar-fill { background: var(--accent); height: 100%; border-radius: 4px; transition: width 0.3s; }
-  .chart-val { width: 28px; text-align: right; font-weight: 700; color: var(--ink); font-family: monospace; }
 
   /* Toolbar */
   .toolbar {
@@ -79,46 +108,35 @@
   }
   .toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
   .filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .filter-group { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-soft); font-weight: 500; }
+  .filter-group { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-soft); }
 
   select {
-    font-size: 13px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px;
-    background: var(--panel); color: var(--ink); outline: none; transition: border-color 0.2s;
-    max-width: 200px;
+    font-size: 13px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px;
+    background: var(--panel); color: var(--ink); outline: none; max-width: 180px;
   }
-  select:focus { border-color: var(--accent); }
 
   button { font-family: inherit; cursor: pointer; border: none; font-size: 13px; font-weight: 600; border-radius: 6px; transition: all 0.2s; }
-  
   .btn-primary { background: var(--accent); color: #fff; padding: 8px 16px; }
   .btn-primary:hover { background: var(--accent-hover); }
-  
   .btn-secondary { background: var(--panel); border: 1px solid var(--border); color: var(--ink); padding: 8px 14px; }
-  .btn-secondary:hover { background: #F1F5F9; border-color: var(--border-hover); }
-  
+  .btn-secondary:hover { background: #F8FAFC; }
   .btn-text { background: none; color: var(--ink-soft); font-weight: 500; text-decoration: underline; padding: 4px; }
-  .btn-text:hover { color: var(--tinggi); }
 
-  /* Form Container */
+  /* Form */
   .form-panel {
     background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 20px; margin-bottom: 24px; box-shadow: var(--shadow-md); display: none;
   }
   .form-panel.open { display: block; }
-  .form-panel h2 { font-size: 15px; font-weight: 700; margin: 0 0 16px; color: var(--ink); }
+  .form-panel h2 { font-size: 15px; font-weight: 700; margin: 0 0 16px; }
   .field-row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
   .field { flex: 1; min-width: 160px; display: flex; flex-direction: column; gap: 6px; }
   .field label { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
   .field input, .field select, .field textarea {
-    font-family: inherit; font-size: 13px; padding: 9px 12px; border: 1px solid var(--border);
-    border-radius: 6px; background: #FFF; color: var(--ink); outline: none; transition: border-color 0.2s;
+    font-family: inherit; font-size: 13px; padding: 8px 12px; border: 1px solid var(--border);
+    border-radius: 6px; outline: none;
   }
-  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
-  .field textarea { resize: vertical; min-height: 60px; }
-  
-  .coords-row { display: flex; gap: 8px; }
-  .btn-geo { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--border); padding: 8px 12px; white-space: nowrap; }
-  .btn-geo:hover { background: #CCFBF1; }
+  .field textarea { resize: vertical; min-height: 55px; }
 
   /* Cards Ticket */
   .ticket {
@@ -130,25 +148,24 @@
   .ticket.tinggi::before { background: var(--tinggi); }
   .ticket.sedang::before { background: var(--sedang); }
   .ticket.rendah::before { background: var(--rendah); }
-  .ticket.selesai { opacity: 0.6; }
+  .ticket.selesai { opacity: 0.65; }
 
   .ticket-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
   .ticket-id { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
-  .ticket-cust { font-size: 16px; font-weight: 700; color: var(--ink); margin-top: 2px; }
+  .ticket-cust { font-size: 15px; font-weight: 700; color: var(--ink); margin-top: 2px; }
   
-  .ticket-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; text-transform: uppercase; }
+  .ticket-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; }
   .badge-tinggi { background: var(--tinggi-bg); color: var(--tinggi); }
   .badge-sedang { background: var(--sedang-bg); color: var(--sedang); }
   .badge-rendah { background: var(--rendah-bg); color: var(--rendah); }
 
-  .case-tag { background: #F1F5F9; color: #334155; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-right: 6px; display: inline-block; }
+  .case-tag { background: #F1F5F9; color: #334155; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-right: 6px; }
   .ticket-meta { font-size: 13px; color: var(--ink-soft); font-weight: 500; }
-  .ticket-desc { font-size: 14px; color: var(--ink); line-height: 1.5; }
+  .ticket-desc { font-size: 13.5px; color: var(--ink); line-height: 1.4; }
 
-  /* Schedule Box */
   .schedule-box {
     background: #F8FAFC; border: 1px solid var(--border); border-radius: 6px;
-    padding: 10px 12px; font-size: 12px; display: flex; flex-direction: column; gap: 4px;
+    padding: 8px 12px; font-size: 12px; display: flex; flex-direction: column; gap: 4px;
   }
   .schedule-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
   .schedule-title { font-weight: 700; color: var(--accent); }
@@ -157,77 +174,23 @@
   .deadline-warning { background: var(--sedang-bg); color: var(--sedang); }
   .deadline-overdue { background: var(--tinggi-bg); color: var(--tinggi); }
 
-  /* Mini Map Container */
-  .ticket-map-container { width: 100%; height: 140px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-top: 4px; z-index: 1; }
+  .ticket-map-container { width: 100%; height: 130px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-top: 4px; z-index: 1; }
   .ticket-loc { font-size: 12px; display: flex; gap: 12px; margin-top: 4px; }
   .ticket-loc a { color: var(--accent); text-decoration: none; font-weight: 600; }
 
   .ticket-actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
   .ticket-actions button { font-size: 12px; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: #FFF; color: var(--ink-soft); }
-  .ticket-actions button:hover { background: #F1F5F9; color: var(--ink); }
   .ticket-actions button.progress { border-color: var(--accent); color: var(--accent); }
   .ticket-actions button.done { border-color: var(--rendah); color: var(--rendah); }
   .ticket-actions button.del { margin-left: auto; border-color: transparent; color: var(--ink-muted); }
   .ticket-actions button.del:hover { color: var(--tinggi); background: var(--tinggi-bg); }
 
-  .section-head { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-soft); margin: 24px 0 12px; display: flex; align-items: center; gap: 8px; }
+  .section-head {
+    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--ink-soft); margin: 20px 0 12px; display: flex; align-items: center; gap: 8px;
+  }
   .section-head .count { background: #E2E8F0; color: var(--ink); font-size: 11px; font-weight: 700; border-radius: 12px; padding: 2px 8px; }
-  .section-head.first { margin-top: 0; }
-
-  .empty { text-align: center; padding: 32px 16px; color: var(--ink-soft); font-size: 13px; border: 1px dashed var(--border); border-radius: var(--radius); background: var(--panel); }
-
-  /* ===== POP-UP KALENDER GAYA MOBILE / HP ===== */
-  .modal-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); display: none;
-    align-items: flex-end; justify-content: center; z-index: 9999;
-  }
-  @media(min-width: 640px) {
-    .modal-overlay { align-items: center; padding: 16px; }
-  }
-  .modal-overlay.open { display: flex; }
-  
-  .mobile-calendar-card {
-    background: var(--panel); width: 100%; max-width: 420px;
-    border-top-left-radius: 20px; border-top-right-radius: 20px;
-    padding: 20px; box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto;
-    animation: slideUp 0.25s ease-out;
-  }
-  @media(min-width: 640px) {
-    .mobile-calendar-card { border-radius: 20px; }
-  }
-  @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
-  }
-
-  .mobile-cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-  .mobile-cal-header h2 { font-size: 16px; font-weight: 700; margin: 0; }
-  .mobile-cal-header .close-btn { background: #F1F5F9; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; color: var(--ink-soft); cursor: pointer; display: flex; align-items: center; justify-content: center; }
-
-  .mobile-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 10px; }
-  .mobile-cal-day { text-align: center; font-size: 11px; font-weight: 700; color: var(--ink-muted); text-transform: uppercase; padding-bottom: 6px; }
-  .mobile-cal-cell {
-    aspect-ratio: 1; border-radius: 10px; background: #F8FAFC; border: 1px solid var(--border);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    cursor: pointer; position: relative; transition: all 0.15s;
-  }
-  .mobile-cal-cell:hover { border-color: var(--accent); background: var(--accent-bg); }
-  .mobile-cal-cell.today { border-color: var(--accent); font-weight: bold; color: var(--accent); }
-  .mobile-cal-cell.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .mobile-cal-num { font-size: 13px; font-weight: 600; }
-  .mobile-cal-dots { display: flex; gap: 2px; margin-top: 3px; }
-  .mobile-cal-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
-  .mobile-cal-dot.tinggi { background: var(--tinggi); }
-  .mobile-cal-cell.selected .mobile-cal-dot { background: #FFF; }
-
-  .mobile-details-list { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 14px; }
-  .mobile-details-title { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 10px; }
-  .mobile-task-card {
-    background: #F8FAFC; border-left: 3px solid var(--accent); padding: 8px 10px; border-radius: 6px;
-    margin-bottom: 6px; font-size: 12px;
-  }
-  .mobile-task-card.tinggi { border-left-color: var(--tinggi); }
+  .empty { text-align: center; padding: 24px; color: var(--ink-soft); font-size: 13px; border: 1px dashed var(--border); border-radius: var(--radius); background: var(--panel); }
 </style>
 
 <!-- Leaflet Map CSS & JS -->
@@ -303,8 +266,9 @@
   let storageOk = true;
   let activeMaps = {};
   
-  let calendarModalOpen = false;
-  let selectedCalDateKey = null;
+  // Tanggal Aktif Kalender (Default: Hari Ini)
+  let selectedDate = new Date();
+  let viewMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
 
   function catInfo(key){
     return CATEGORIES.find(c => c.key === key) || { key: key||"OTHERS", label: key||"Lainnya", weight: 1 };
@@ -330,7 +294,7 @@
 
   function fmtWait(item){
     const hrs = hoursWaiting(item);
-    if (hrs < 1) return Math.round(hrs*60) + "m menunggu";
+    if (hrs < 1) return Math.round(hrs*60) + " menit menunggu";
     const h = Math.floor(hrs);
     const m = Math.round((hrs - h) * 60);
     return h + "j " + (m>0? m+"m ":"") + "menunggu";
@@ -372,10 +336,10 @@
 
     if (diffMs < 0) {
       statusClass = "deadline-overdue";
-      statusText = `Terlambat (${Math.abs(diffDays)} h)`;
+      statusText = `Terlambat (${Math.abs(diffDays)} hari)`;
     } else if (diffDays <= 3) {
       statusClass = "deadline-warning";
-      statusText = `Mendesak (${diffDays} h lagi)`;
+      statusText = `Mendesak (${diffDays} hari lagi)`;
     }
 
     return {
@@ -386,7 +350,9 @@
     };
   }
 
+  // LOGIKA ALOKASI JADWAL KALENDER & CARRY-OVER OTOMATIS
   function calculateCalendarSchedule(){
+    // HANYA ambil komplain yang BELUM SELESAI (Kasus Selesai tidak ditampilkan di kalender lagi)
     const pendingItems = complaints
       .filter(c => c.status !== "selesai")
       .sort((a,b) => {
@@ -396,9 +362,10 @@
         return new Date(a.receivedAt) - new Date(b.receivedAt);
       });
 
-    const dateMap = {};
+    const dateMap = {}; 
     const itemScheduledDateMap = {};
     
+    // Mulai alokasi dari HARI INI (Carry-over otomatis jika komplain kemarin belum selesai)
     let currentDate = new Date();
     currentDate.setHours(0,0,0,0);
 
@@ -408,11 +375,13 @@
       const recDate = new Date(item.receivedAt);
       recDate.setHours(0,0,0,0);
 
+      // Jika tanggal komplain diterima lebih baru dari tanggal alokasi saat ini
       if (recDate > currentDate) {
         currentDate = new Date(recDate);
         countInCurrentDay = 0;
       }
 
+      // Jika kuota 5 komplain tercapai, pindah ke tanggal berikutnya
       if (countInCurrentDay >= MAX_PER_DAY) {
         currentDate.setDate(currentDate.getDate() + 1);
         countInCurrentDay = 0;
@@ -578,24 +547,6 @@
     const timeInput = el("input", { type:"datetime-local", value: editing ? toLocalInput(editing.receivedAt) : nowLocalInputValue() });
     const urgentCheck = el("input", { type:"checkbox", checked: editing && editing.urgent ? "checked" : null });
     const coordsInput = el("input", { type:"text", placeholder:"-6.1783, 106.6319 (opsional)", value: editing ? (editing.coords||"") : "" });
-    
-    const geoBtn = el("button", { type:"button", class:"btn-geo", onclick: () => {
-      if(!navigator.geolocation){ alert("Perangkat ini tidak mendukung GPS."); return; }
-      geoBtn.disabled = true;
-      geoBtn.textContent = "Mengambil...";
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          coordsInput.value = pos.coords.latitude.toFixed(6) + ", " + pos.coords.longitude.toFixed(6);
-          geoBtn.disabled = false;
-          geoBtn.textContent = "📍 Lokasi Saat Ini";
-        },
-        () => {
-          alert("Tidak bisa mengambil lokasi. Pastikan izin GPS diaktifkan.");
-          geoBtn.disabled = false;
-          geoBtn.textContent = "📍 Lokasi Saat Ini";
-        }
-      );
-    }}, "📍 Lokasi Saat Ini");
 
     return el("div", { class:"form-panel open" },
       el("h2", {}, editing ? "Ubah Komplain " + editing.id : "Tambah Komplain Baru"),
@@ -611,7 +562,7 @@
         el("div", { class:"field" }, el("label", {}, "Deskripsi"), descInput),
         el("div", { class:"field" },
           el("label", {}, "Koordinat Lokasi"),
-          el("div", { class:"coords-row" }, coordsInput, geoBtn)
+          coordsInput
         ),
       ),
       el("label", { style: "display:flex; align-items:center; gap:8px; font-size:13px; margin: 8px 0 16px; cursor:pointer;" }, 
@@ -635,6 +586,97 @@
           editingId = null;
         }}, editing ? "Simpan Perubahan" : "Simpan Komplain"),
         el("button", { class:"btn-secondary", onclick: () => { formOpen = false; editingId = null; render(); } }, "Batal")
+      )
+    );
+  }
+
+  // WIDGET KALENDER EMBEDDED PADA DASHBOARD
+  function renderDashboardCalendar(dateMap){
+    const selectedKey = formatDateKey(selectedDate);
+    const dayName = selectedDate.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long" });
+
+    const year = viewMonth.getFullYear();
+    const month = viewMonth.getMonth();
+    const monthTitle = viewMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const prevMonthLastDay = new Date(year, month, 0).getDate();
+    const startDayOfWeek = firstDay.getDay();
+
+    const dateCells = [];
+
+    // Hari dari bulan sebelumnya
+    for(let i = startDayOfWeek - 1; i >= 0; i--){
+      const prevDate = prevMonthLastDay - i;
+      dateCells.push({ dayNum: prevDate, isOtherMonth: true });
+    }
+
+    // Hari dari bulan berjalan
+    for(let d = 1; d <= lastDay.getDate(); d++){
+      const fullDate = new Date(year, month, d);
+      const key = formatDateKey(fullDate);
+      const tasks = dateMap[key] || [];
+      const isSelected = key === selectedKey;
+      const hasHigh = tasks.some(t => urgencyLevel(t) === "tinggi");
+
+      dateCells.push({
+        dayNum: d,
+        fullDate,
+        key,
+        isSelected,
+        hasTasks: tasks.length > 0,
+        hasHigh,
+        isOtherMonth: false
+      });
+    }
+
+    // Hari dari bulan berikutnya untuk melengkapi grid
+    const remainingSlots = 42 - dateCells.length;
+    for(let i = 1; i <= remainingSlots; i++){
+      dateCells.push({ dayNum: i, isOtherMonth: true });
+    }
+
+    return el("div", { class: "calendar-card" },
+      // Header Atas (Tuesday, 15 September)
+      el("div", { class: "cal-top-header" },
+        el("span", {}, dayName),
+        el("span", { style: "font-size:12px; color:#6B7280; font-weight:normal;" }, "▾")
+      ),
+      // Navigator Bulan (September 2026 ▲ ▼)
+      el("div", { class: "cal-month-nav" },
+        el("span", { class: "cal-month-title" }, monthTitle),
+        el("div", { class: "cal-nav-btns" },
+          el("button", { class: "cal-nav-btn", onclick: () => {
+            viewMonth.setMonth(viewMonth.getMonth() - 1);
+            render();
+          }}, "▲"),
+          el("button", { class: "cal-nav-btn", onclick: () => {
+            viewMonth.setMonth(viewMonth.getMonth() + 1);
+            render();
+          }}, "▼")
+        )
+      ),
+      // Grid Hari & Tanggal
+      el("div", { class: "cal-grid-embedded" },
+        ...["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(h => el("div", { class: "cal-head-cell" }, h)),
+        ...dateCells.map(c => {
+          if (c.isOtherMonth) {
+            return el("div", { class: "cal-date-cell other-month" }, String(c.dayNum));
+          }
+          let classes = "cal-date-cell";
+          if (c.isSelected) classes += " selected";
+          if (c.hasTasks) classes += " has-tasks";
+          if (c.hasHigh) classes += " has-high";
+
+          return el("div", {
+            class: classes,
+            onclick: () => {
+              selectedDate = c.fullDate;
+              render();
+            }
+          }, String(c.dayNum));
+        })
       )
     );
   }
@@ -697,117 +739,6 @@
     );
   }
 
-  // GRAFIK CASE
-  function renderChartPanel(){
-    const counts = {};
-    complaints.forEach(item => {
-      counts[item.category] = (counts[item.category] || 0) + 1;
-    });
-
-    const activeCases = CATEGORIES
-      .map(c => ({ key: c.key, label: c.label, count: counts[c.key] || 0 }))
-      .filter(c => c.count > 0)
-      .sort((a,b) => b.count - a.count);
-
-    if(activeCases.length === 0) return el("div");
-
-    const maxVal = Math.max(...activeCases.map(c => c.count), 1);
-
-    return el("div", { class: "chart-panel" },
-      el("h3", {}, "Grafik Jumlah Komplain Berdasarkan CASE"),
-      el("div", { class: "chart-bars" },
-        ...activeCases.map(c => {
-          const pct = Math.round((c.count / maxVal) * 100);
-          return el("div", { class: "chart-row" },
-            el("span", { class: "chart-label", title: `[${c.key}] ${c.label}` }, `[${c.key}] ${c.label}`),
-            el("div", { class: "chart-bar-bg" },
-              el("div", { class: "chart-bar-fill", style: `width: ${pct}%;` })
-            ),
-            el("span", { class: "chart-val" }, String(c.count))
-          );
-        })
-      )
-    );
-  }
-
-  // POP-UP KALENDER MOBILE / HP OVERLAY
-  function renderCalendarModal(dateMap){
-    if(!calendarModalOpen) return el("div");
-
-    const today = new Date();
-    const currYear = today.getFullYear();
-    const currMonth = today.getMonth();
-
-    const firstDay = new Date(currYear, currMonth, 1);
-    const lastDay = new Date(currYear, currMonth + 1, 0);
-    const startDayOfWeek = firstDay.getDay();
-
-    const days = [];
-    for(let i=0; i<startDayOfWeek; i++){
-      days.push(null);
-    }
-    for(let d=1; d<=lastDay.getDate(); d++){
-      days.push(new Date(currYear, currMonth, d));
-    }
-
-    const selectedItems = selectedCalDateKey && dateMap[selectedCalDateKey] ? dateMap[selectedCalDateKey] : [];
-
-    return el("div", { class: "modal-overlay open", onclick: (e) => {
-      if(e.target.classList.contains("modal-overlay")){
-        calendarModalOpen = false;
-        render();
-      }
-    }},
-      el("div", { class: "mobile-calendar-card" },
-        el("div", { class: "mobile-cal-header" },
-          el("h2", {}, today.toLocaleString('id-ID', { month: 'long', year: 'numeric' })),
-          el("button", { class: "close-btn", onclick: () => { calendarModalOpen = false; render(); } }, "×")
-        ),
-        
-        // Grid HP Kalender
-        el("div", { class: "mobile-cal-grid" },
-          ...["M", "S", "S", "R", "K", "J", "S"].map(h => el("div", { class: "mobile-cal-day" }, h)),
-          ...days.map(dObj => {
-            if(!dObj) return el("div", { style: "visibility:hidden;" });
-
-            const key = formatDateKey(dObj);
-            const items = dateMap[key] || [];
-            const isToday = formatDateKey(today) === key;
-            const isSelected = selectedCalDateKey === key;
-            const hasHighPriority = items.some(x => urgencyLevel(x) === "tinggi");
-
-            return el("div", {
-              class: `mobile-cal-cell ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}`,
-              onclick: () => { selectedCalDateKey = key; render(); }
-            },
-              el("span", { class: "mobile-cal-num" }, String(dObj.getDate())),
-              items.length > 0 ? el("div", { class: "mobile-cal-dots" },
-                el("div", { class: `mobile-cal-dot ${hasHighPriority ? 'tinggi' : ''}` })
-              ) : null
-            );
-          })
-        ),
-
-        // Detail Rincian Tugas per Tanggal
-        selectedCalDateKey ? el("div", { class: "mobile-details-list" },
-          el("div", { class: "mobile-details-title" }, `Tugas Tanggal ${selectedCalDateKey} (${selectedItems.length} Kasus):`),
-          selectedItems.length === 0 
-            ? el("div", { style: "font-size:12px; color:var(--ink-soft);" }, "Tidak ada komplain dijadwalkan pada tanggal ini.")
-            : el("div", {},
-                ...selectedItems.map(item => {
-                  const lvl = urgencyLevel(item);
-                  return el("div", { class: `mobile-task-card ${lvl}` },
-                    el("strong", {}, `${item.id} - ${item.customer}`),
-                    el("div", {}, `[${item.category}] ${catInfo(item.category).label}`),
-                    el("div", { style:"font-size:11px; color:var(--ink-soft); margin-top:2px;" }, `Area: ${item.area || '-'} | Diterima: ${fmtDateOnly(new Date(item.receivedAt))}`)
-                  );
-                })
-              )
-        ) : null
-      )
-    );
-  }
-
   function initMaps(){
     Object.keys(activeMaps).forEach(id => {
       activeMaps[id].remove();
@@ -864,8 +795,7 @@
 
     const openAll = base.filter(c => c.status !== "selesai");
     const tinggiCount = openAll.filter(c => urgencyLevel(c) === "tinggi").length;
-    const prosesCount = base.filter(c => c.status === "proses").length;
-    const selesaiCount = base.filter(c => c.status === "selesai").length;
+    const oldestHrs = openAll.length ? Math.max(...openAll.map(hoursWaiting)) : 0;
 
     const section = (title, items, isFirst) => el("div", {},
       el("div", { class:"section-head" + (isFirst ? " first" : "") }, title, el("span", { class:"count" }, String(items.length))),
@@ -875,7 +805,7 @@
     );
 
     const wrap = el("div", { class:"wrap" },
-      // Header
+      // Masthead Header
       el("div", { class:"masthead" },
         el("div", { class:"brand-group" },
           el("img", { 
@@ -890,22 +820,20 @@
         )
       ),
 
-      // Summary 4 Statistik
+      // Embedded Kalender Widget di Dashboard
+      renderDashboardCalendar(dateMap),
+
+      // Summary Cards
       el("div", { class:"summary" },
-        el("div", { class:"stat-card" }, el("div", { class:"num" }, String(complaints.length)), el("div", { class:"lbl" }, "Total Komplain")),
-        el("div", { class:"stat-card proses" }, el("div", { class:"num" }, String(prosesCount)), el("div", { class:"lbl" }, "Sedang Berjalan")),
-        el("div", { class:"stat-card selesai" }, el("div", { class:"num" }, String(selesaiCount)), el("div", { class:"lbl" }, "Komplain Selesai")),
-        el("div", { class:"stat-card tinggi" }, el("div", { class:"num" }, String(tinggiCount)), el("div", { class:"lbl" }, "Prioritas Tinggi"))
+        el("div", { class:"stat-card tinggi" }, el("div", { class:"num" }, String(tinggiCount)), el("div", { class:"lbl" }, "Prioritas Tinggi")),
+        el("div", { class:"stat-card" }, el("div", { class:"num" }, String(openAll.length)), el("div", { class:"lbl" }, "Belum Selesai")),
+        el("div", { class:"stat-card" }, el("div", { class:"num" }, oldestHrs >= 1 ? Math.round(oldestHrs)+"j" : "<1j"), el("div", { class:"lbl" }, "Menunggu Lama")),
       ),
 
-      // Grafik Case
-      renderChartPanel(),
-
-      // Toolbar Filter & Aksi
+      // Toolbar Controls
       el("div", { class:"toolbar" },
         el("div", { class:"toolbar-actions" },
-          el("button", { class:"btn-primary", onclick: () => { formOpen = !formOpen; if(!formOpen) editingId=null; render(); } }, formOpen ? "Tutup Form" : "+ Tambah Komplain"),
-          el("button", { class:"btn-secondary", onclick: () => { calendarModalOpen = true; render(); } }, "📱 Kalender Pengerjaan")
+          el("button", { class:"btn-primary", onclick: () => { formOpen = !formOpen; if(!formOpen) editingId=null; render(); } }, formOpen ? "Tutup Form" : "+ Tambah Komplain")
         ),
         el("div", { class:"filters" },
           el("div", { class:"filter-group" },
@@ -929,7 +857,7 @@
       section("Belum Dikerjakan", belum, true),
       section("Sedang Dikerjakan", proses, false),
       section("Selesai", selesai, false),
-      el("div", { class:"foot-actions" },
+      el("div", { style: "text-align:center; margin-top:24px;" },
         el("button", { class:"btn-text", onclick: async () => {
           if(confirm("Hapus semua data komplain dari server?")){
             for(const c of complaints){
@@ -942,7 +870,6 @@
     );
 
     root.appendChild(wrap);
-    root.appendChild(renderCalendarModal(dateMap));
 
     if(!storageOk){
       const warn = el("div", { style:"margin-top:12px; font-size:12px; color:var(--tinggi); text-align:center;" }, "Tidak bisa terhubung ke database. Periksa konfigurasi SUPABASE_URL / SUPABASE_ANON_KEY.");
