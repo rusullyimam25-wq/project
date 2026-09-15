@@ -146,9 +146,11 @@
   .btn-primary:hover { background: var(--accent-hover); }
   .btn-secondary { background: var(--panel); border: 1px solid var(--border); color: var(--ink); padding: 8px 14px; }
   .btn-secondary:hover { background: #F8FAFC; }
+  .btn-email { background: #8B5CF6; color: #FFF; padding: 9px 18px; box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2); }
+  .btn-email:hover { background: #7C3AED; }
   .btn-text { background: none; color: var(--ink-soft); font-weight: 500; text-decoration: underline; padding: 4px; }
 
-  /* Form Panel */
+  /* Form & Email Receiver Panels */
   .form-panel {
     background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 20px; margin-bottom: 24px; box-shadow: var(--shadow-md); display: none;
@@ -188,6 +190,7 @@
 
   .case-tag { background: #E0F2FE; color: #0369A1; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
   .area-tag { background: #FEF3C7; color: #92400E; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
+  .email-source-tag { background: #F3E8FF; color: #6B21A8; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
   
   .ticket-meta { font-size: 13px; color: var(--ink-soft); font-weight: 500; }
   .ticket-desc { font-size: 13.5px; color: var(--ink); line-height: 1.4; }
@@ -303,6 +306,9 @@
   
   let selectedDate = null;
   let viewMonth = new Date();
+  let formOpen = false;
+  let emailModalOpen = false;
+  let editingId = null;
 
   function catInfo(key){
     return CATEGORIES.find(c => c.key === key) || { key: key||"OTHERS", label: key||"Lainnya", weight: 1 };
@@ -384,12 +390,11 @@
     };
   }
 
-  // ALOKASI KALENDER DENGAN PENGELOMPOKAN WILAYAH/AREA (LOCALITY CLUSTERING)
+  // ALOKASI KALENDER DENGAN CLUSTERING AREA + PRIORITAS
   function calculateCalendarSchedule(){
     const dateMap = {}; 
     const itemScheduledDateMap = {};
 
-    // 1. Kasus SELESAI dikunci pada tanggal selesainya
     const completedItems = complaints.filter(c => c.status === "selesai");
     completedItems.forEach(item => {
       const dateKey = formatDateKey(new Date(item.receivedAt));
@@ -398,7 +403,6 @@
       itemScheduledDateMap[item.id] = new Date(item.receivedAt);
     });
 
-    // 2. Ambil semua kasus BELUM SELESAI
     let unassigned = complaints
       .filter(c => c.status !== "selesai")
       .sort((a,b) => {
@@ -411,7 +415,6 @@
     let currentDate = new Date();
     currentDate.setHours(0,0,0,0);
 
-    // Proses pengelompokan area dan alokasi harian (Maksimal 5 Komplain per Hari)
     while (unassigned.length > 0) {
       const dateKey = formatDateKey(currentDate);
       if (!dateMap[dateKey]) dateMap[dateKey] = [];
@@ -423,11 +426,9 @@
         continue;
       }
 
-      // Ambil tiket urutan pertama (memiliki prioritas/waktu tunggu tertinggi)
       const seedItem = unassigned[0];
       const targetArea = (seedItem.area || "TANPA-AREA").trim().toLowerCase();
 
-      // Cari tiket lain yang BERADA DI AREA YANG SAMA untuk menghemat rute perjalanan
       const sameAreaItems = [];
       const otherAreaItems = [];
 
@@ -440,17 +441,14 @@
         }
       });
 
-      // Ambil tiket di area yang sama sebanyak kuota harian yang tersedia
       const batchForToday = sameAreaItems.slice(0, availableSlots);
       const remainingSameArea = sameAreaItems.slice(availableSlots);
 
-      // Masukkan ke jadwal hari ini
       batchForToday.forEach(item => {
         dateMap[dateKey].push(item);
         itemScheduledDateMap[item.id] = new Date(currentDate);
       });
 
-      // Sisa tiket yang belum terjadwal digabungkan kembali untuk iterasi berikutnya
       unassigned = [...remainingSameArea, ...otherAreaItems].sort((a,b) => {
         const scoreA = priorityScore(a);
         const scoreB = priorityScore(b);
@@ -458,7 +456,6 @@
         return new Date(a.receivedAt) - new Date(b.receivedAt);
       });
 
-      // Jika kuota hari ini penuh, pindah ke tanggal berikutnya
       if (dateMap[dateKey].length >= MAX_PER_DAY) {
         currentDate.setDate(currentDate.getDate() + 1);
       }
@@ -573,6 +570,34 @@
     await load();
   }
 
+  // LOKAL EMAIL PARSER (Memproses Isi Teks Email ke Data Komplain)
+  async function processInboundEmail(emailRawText) {
+    const parseField = (pattern) => {
+      const match = emailRawText.match(pattern);
+      return match ? match[1].trim() : null;
+    };
+
+    const customer = parseField(/Pelanggan\s*:\s*(.*)/i) || "Pelanggan Forward Email";
+    const area = parseField(/Area\s*:\s*(.*)/i) || "Cikupa";
+    const category = parseField(/Jenis Case\s*:\s*(.*)/i) || "KBSM";
+    const coords = parseField(/Koordinat\s*:\s*(.*)/i) || "-6.1783, 106.6319";
+    const desc = parseField(/Deskripsi\s*:\s*(.*)/i) || emailRawText.slice(0, 150);
+    const urgentFlag = parseField(/Urgent\s*:\s*(.*)/i);
+    const isUrgent = urgentFlag ? urgentFlag.toLowerCase().includes("ya") : false;
+
+    const newComplaint = {
+      customer,
+      area,
+      category: category.toUpperCase(),
+      desc: desc + " [Diterima via Email Forward]",
+      receivedAt: new Date().toISOString(),
+      urgent: isUrgent,
+      coords
+    };
+
+    await addComplaint(newComplaint);
+  }
+
   function el(tag, attrs, ...children){
     const e = document.createElement(tag);
     if(attrs) for(const k in attrs){
@@ -592,9 +617,6 @@
     d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
     return d.toISOString().slice(0,16);
   }
-
-  let formOpen = false;
-  let editingId = null;
 
   function renderForm(){
     if(!formOpen) return el("div");
@@ -656,7 +678,38 @@
     );
   }
 
-  // GRAFIK DISTRIBUSI CASE
+  // PANEL SIMULATOR INBOUND EMAIL PARSER
+  function renderEmailParserModal(){
+    if(!emailModalOpen) return el("div");
+
+    const defaultEmailContent = 
+`FW: [KOMPLAIN PELANGGAN]
+Pelanggan : Bambang Wijaya
+ID Pelanggan : PLG-99882
+Area : Cikupa
+Jenis Case : KBSM
+Koordinat : -6.2231, 106.5134
+Urgent : Ya
+Deskripsi : Terjadi kebocoran pada sambungan pipa sebelum meteran air. Air meluber ke pekarangan rumah.`;
+
+    const emailTextArea = el("textarea", { style: "width:100%; height:140px; font-family:monospace; font-size:12px; padding:10px; border:1px solid var(--border); border-radius:6px;" }, defaultEmailContent);
+
+    return el("div", { class:"form-panel open", style: "background:#F3E8FF; border-color:#C084FC;" },
+      el("h2", { style:"color:#6B21A8; margin-top:0;" }, "📧 Simulator Webhook Forward Email"),
+      el("p", { style:"font-size:12px; color:#581C87; margin-bottom:12px;" }, 
+        "Petugas menerima email lalu meneruskannya. Email Receiver Parser akan membaca teks secara otomatis:"
+      ),
+      emailTextArea,
+      el("div", { style:"display:flex; gap:8px; margin-top:12px;" },
+        el("button", { class:"btn-email", onclick: async () => {
+          await processInboundEmail(emailTextArea.value);
+          emailModalOpen = false;
+        }}, "📥 Simulasikan Email Masuk"),
+        el("button", { class:"btn-secondary", onclick: () => { emailModalOpen = false; render(); } }, "Tutup")
+      )
+    );
+  }
+
   function renderCaseChart(){
     const counts = {};
     complaints.forEach(c => {
@@ -695,7 +748,6 @@
     );
   }
 
-  // SIDEBAR KALENDER
   function renderSidebarCalendar(dateMap){
     const selectedKey = selectedDate ? formatDateKey(selectedDate) : null;
     const headerTitle = selectedDate ? selectedDate.toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short" }) : "Semua Tanggal";
@@ -797,6 +849,7 @@
     const deadlineInfo = getDeadlineInfo(item);
     const mapContainerId = "map-" + item.id;
     const caseDetails = catInfo(item.category);
+    const isFromEmail = item.desc && item.desc.includes("Email");
 
     const scheduledDateObj = itemScheduledDateMap[item.id];
     const scheduledText = scheduledDateObj ? fmtDateOnly(scheduledDateObj) : "-";
@@ -812,6 +865,7 @@
       el("div", { class:"ticket-meta" }, 
         el("span", { class:"case-tag" }, caseDetails.key),
         item.area ? el("span", { class:"area-tag" }, `📍 ${item.area}`) : null,
+        isFromEmail ? el("span", { class:"email-source-tag" }, "📧 Email Integrasi") : null,
         " ", caseDetails.label
       ),
       item.desc ? el("div", { class:"ticket-desc" }, item.desc) : null,
@@ -892,7 +946,6 @@
 
     const getScheduledOrder = (items) => {
       return [...items].sort((a,b) => {
-        // Urutkan berdasarkan Area terlebih dahulu agar grup area terlihat rapi di list
         const areaA = (a.area || "").toLowerCase();
         const areaB = (b.area || "").toLowerCase();
         if (areaA !== areaB) return areaA.localeCompare(areaB);
@@ -951,7 +1004,8 @@
 
           el("div", { class:"toolbar" },
             el("div", { class:"toolbar-actions" },
-              el("button", { class:"btn-primary", onclick: () => { formOpen = !formOpen; if(!formOpen) editingId=null; render(); } }, formOpen ? "Tutup Form" : "+ Tambah Komplain")
+              el("button", { class:"btn-primary", onclick: () => { formOpen = !formOpen; emailModalOpen = false; if(!formOpen) editingId=null; render(); } }, formOpen ? "Tutup Form" : "+ Manual Komplain"),
+              el("button", { class:"btn-email", onclick: () => { emailModalOpen = !emailModalOpen; formOpen = false; render(); } }, "📧 Simulasikan Forward Email")
             ),
             el("div", { class:"filters" },
               el("div", { class:"filter-group" },
@@ -972,6 +1026,7 @@
           ),
 
           renderForm(),
+          renderEmailParserModal(),
 
           selectedDate ? el("div", { class: "filter-date-banner" },
             el("span", {}, `📅 Menampilkan Kasus Tanggal: ${fmtDateOnly(selectedDate)}`),
