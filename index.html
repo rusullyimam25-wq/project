@@ -146,8 +146,10 @@
   .btn-primary:hover { background: var(--accent-hover); }
   .btn-secondary { background: var(--panel); border: 1px solid var(--border); color: var(--ink); padding: 8px 14px; }
   .btn-secondary:hover { background: #F8FAFC; }
-  .btn-email { background: #8B5CF6; color: #FFF; padding: 9px 18px; box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2); }
+  .btn-email { background: #8B5CF6; color: #FFF; padding: 9px 16px; box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2); }
   .btn-email:hover { background: #7C3AED; }
+  .btn-excel { background: #10B981; color: #FFF; padding: 9px 16px; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2); }
+  .btn-excel:hover { background: #059669; }
   .btn-text { background: none; color: var(--ink-soft); font-weight: 500; text-decoration: underline; padding: 4px; }
 
   /* Form & Email Receiver Panels */
@@ -181,6 +183,7 @@
   .ticket-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
   .ticket-id { font-size: 12px; font-weight: 700; color: var(--accent); }
   .ticket-cust { font-size: 15px; font-weight: 700; color: var(--ink); margin-top: 2px; }
+  .ticket-meter { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
   
   .ticket-badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; }
   .badge-tinggi { background: var(--tinggi-bg); color: var(--tinggi); }
@@ -193,6 +196,7 @@
   .email-source-tag { background: #F3E8FF; color: #6B21A8; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
   
   .ticket-meta { font-size: 13px; color: var(--ink-soft); font-weight: 500; }
+  .ticket-address { font-size: 12.5px; color: #475569; background: #F8FAFC; padding: 6px 10px; border-radius: 6px; border-left: 3px solid var(--accent); margin-top: 2px; }
   .ticket-desc { font-size: 13.5px; color: var(--ink); line-height: 1.4; }
 
   .schedule-box {
@@ -230,6 +234,9 @@
     display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
   }
 </style>
+
+<!-- SheetJS untuk Export ke Excel -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <!-- Leaflet Map CSS & JS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -390,7 +397,6 @@
     };
   }
 
-  // ALOKASI KALENDER DENGAN CLUSTERING AREA + PRIORITAS
   function calculateCalendarSchedule(){
     const dateMap = {}; 
     const itemScheduledDateMap = {};
@@ -464,10 +470,72 @@
     return { dateMap, itemScheduledDateMap };
   }
 
+  // EXPORT EXCEL (LENGKAP DENGAN FIELD BARU)
+  function exportToExcel(itemsToExport, itemScheduledDateMap) {
+    if (!itemsToExport || itemsToExport.length === 0) {
+      alert("Tidak ada data komplain untuk diunduh.");
+      return;
+    }
+
+    const excelData = itemsToExport.map(item => {
+      const caseDetails = catInfo(item.category);
+      const level = urgencyLevel(item);
+      const deadlineInfo = getDeadlineInfo(item);
+      const schedDate = itemScheduledDateMap[item.id];
+
+      return {
+        "ID Work Order": item.id,
+        "Nama Pelanggan": item.customer || "-",
+        "ID Meter / Langganan": item.meterId || "-",
+        "Alamat Lengkap": item.address || "-",
+        "Area / Zona": item.area || "-",
+        "Kode CASE": item.category,
+        "Kategori Keluhan": caseDetails.label,
+        "Deskripsi": item.desc || "-",
+        "Waktu Diterima": fmtDateTime(new Date(item.receivedAt)),
+        "Jadwal Pengerjaan": schedDate ? fmtDateOnly(schedDate) : "-",
+        "Batas SLA (14 Hari)": deadlineInfo.deadlineText,
+        "Status SLA": deadlineInfo.statusText,
+        "Tingkat Prioritas": level.toUpperCase(),
+        "Status Pengerjaan": item.status === "selesai" ? "Selesai" : item.status === "proses" ? "Sedang Diproses" : "Belum Dikerjakan",
+        "Koordinat Lokasi": item.coords || "-"
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    const colWidths = [
+      { wch: 15 }, // WO ID
+      { wch: 22 }, // Nama
+      { wch: 18 }, // ID Meter
+      { wch: 35 }, // Alamat
+      { wch: 15 }, // Area
+      { wch: 12 }, // CASE
+      { wch: 32 }, // Kategori
+      { wch: 38 }, // Deskripsi
+      { wch: 20 }, // Diterima
+      { wch: 18 }, // Jadwal
+      { wch: 20 }, // SLA
+      { wch: 18 }, // Status SLA
+      { wch: 15 }, // Prioritas
+      { wch: 18 }, // Status
+      { wch: 22 }  // Coords
+    ];
+    worksheet['!cols'] = colWidths;
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Komplain");
+
+    const dateStr = formatDateKey(new Date());
+    XLSX.writeFile(workbook, `Laporan_Minor_Repair_${dateStr}.xlsx`);
+  }
+
   function rowToItem(row){
     return {
       id: row.id,
       customer: row.customer,
+      meterId: row.meter_id || "",
+      address: row.address || "",
       area: row.area,
       category: row.category,
       desc: row.description,
@@ -483,6 +551,8 @@
     return {
       id: item.id,
       customer: item.customer,
+      meter_id: item.meterId,
+      address: item.address,
       area: item.area,
       category: item.category,
       description: item.desc,
@@ -511,6 +581,8 @@
     const item = {
       id: "WO-" + Date.now().toString().slice(-6),
       customer: data.customer,
+      meterId: data.meterId,
+      address: data.address,
       area: data.area,
       category: data.category,
       desc: data.desc,
@@ -533,6 +605,8 @@
     try{
       const { error } = await sb.from(TABLE).update({
         customer: data.customer,
+        meter_id: data.meterId,
+        address: data.address,
         area: data.area,
         category: data.category,
         description: data.desc,
@@ -570,26 +644,30 @@
     await load();
   }
 
-  // LOKAL EMAIL PARSER (Memproses Isi Teks Email ke Data Komplain)
+  // EMAIL PARSER DENGAN EKSTRAKSI NAMA, ID METER, DAN ALAMAT SECARA TERPISAH
   async function processInboundEmail(emailRawText) {
     const parseField = (pattern) => {
       const match = emailRawText.match(pattern);
       return match ? match[1].trim() : null;
     };
 
-    const customer = parseField(/Pelanggan\s*:\s*(.*)/i) || "Pelanggan Forward Email";
+    const customer = parseField(/Nama Pelanggan\s*:\s*(.*)/i) || parseField(/Pelanggan\s*:\s*(.*)/i) || "Pelanggan Email";
+    const meterId = parseField(/ID Meter\s*:\s*(.*)/i) || parseField(/ID Pelanggan\s*:\s*(.*)/i) || "-";
+    const address = parseField(/Alamat\s*:\s*(.*)/i) || "-";
     const area = parseField(/Area\s*:\s*(.*)/i) || "Cikupa";
     const category = parseField(/Jenis Case\s*:\s*(.*)/i) || "KBSM";
-    const coords = parseField(/Koordinat\s*:\s*(.*)/i) || "-6.1783, 106.6319";
+    const coords = parseField(/Koordinat\s*:\s*(.*)/i) || "";
     const desc = parseField(/Deskripsi\s*:\s*(.*)/i) || emailRawText.slice(0, 150);
     const urgentFlag = parseField(/Urgent\s*:\s*(.*)/i);
     const isUrgent = urgentFlag ? urgentFlag.toLowerCase().includes("ya") : false;
 
     const newComplaint = {
       customer,
+      meterId,
+      address,
       area,
       category: category.toUpperCase(),
-      desc: desc + " [Diterima via Email Forward]",
+      desc: desc + " [Via Email Forward]",
       receivedAt: new Date().toISOString(),
       urgent: isUrgent,
       coords
@@ -628,8 +706,10 @@
       return d.toISOString().slice(0,16);
     };
 
-    const customerInput = el("input", { type:"text", placeholder:"Nama pelanggan / ID langganan", value: editing ? editing.customer : "" });
-    const areaInput = el("input", { type:"text", placeholder:"Area / zona (Contoh: Serpong, Cikupa)", value: editing ? editing.area : "" });
+    const customerInput = el("input", { type:"text", placeholder:"Nama Pelanggan (Contoh: Bambang Wijaya)", value: editing ? editing.customer : "" });
+    const meterIdInput = el("input", { type:"text", placeholder:"ID Meter / Langganan (Contoh: PLG-99882)", value: editing ? editing.meterId : "" });
+    const addressInput = el("input", { type:"text", placeholder:"Alamat Lengkap Pelanggan", value: editing ? editing.address : "" });
+    const areaInput = el("input", { type:"text", placeholder:"Area / Zona (Contoh: Cikupa)", value: editing ? editing.area : "" });
     const catSelect = el("select", {},
       ...CATEGORIES.map(c => el("option", { value: c.key, selected: editing && editing.category===c.key ? "selected" : null }, `[${c.key}] ${c.label}`))
     );
@@ -642,7 +722,11 @@
     return el("div", { class:"form-panel open" },
       el("h2", {}, editing ? "Ubah Komplain " + editing.id : "Tambah Komplain Baru"),
       el("div", { class:"field-row" },
-        el("div", { class:"field" }, el("label", {}, "Pelanggan"), customerInput),
+        el("div", { class:"field" }, el("label", {}, "Nama Pelanggan"), customerInput),
+        el("div", { class:"field" }, el("label", {}, "ID Meter / Langganan"), meterIdInput),
+      ),
+      el("div", { class:"field-row" },
+        el("div", { class:"field" }, el("label", {}, "Alamat Lengkap"), addressInput),
         el("div", { class:"field" }, el("label", {}, "Area / Zona (Wilayah)"), areaInput),
       ),
       el("div", { class:"field-row" },
@@ -661,6 +745,8 @@
           if(!customerInput.value.trim()){ customerInput.focus(); return; }
           const data = {
             customer: customerInput.value.trim(),
+            meterId: meterIdInput.value.trim(),
+            address: addressInput.value.trim(),
             area: areaInput.value.trim(),
             category: catSelect.value,
             desc: descInput.value.trim(),
@@ -678,26 +764,26 @@
     );
   }
 
-  // PANEL SIMULATOR INBOUND EMAIL PARSER
   function renderEmailParserModal(){
     if(!emailModalOpen) return el("div");
 
     const defaultEmailContent = 
 `FW: [KOMPLAIN PELANGGAN]
-Pelanggan : Bambang Wijaya
-ID Pelanggan : PLG-99882
+Nama Pelanggan : Bambang Wijaya
+ID Meter : PLG-99882
+Alamat : Jl. Raya Serang Km 14 No. 25, Cikupa
 Area : Cikupa
 Jenis Case : KBSM
 Koordinat : -6.2231, 106.5134
 Urgent : Ya
-Deskripsi : Terjadi kebocoran pada sambungan pipa sebelum meteran air. Air meluber ke pekarangan rumah.`;
+Deskripsi : Kebocoran pada sambungan pipa sebelum meteran air. Air meluber ke pekarangan rumah.`;
 
-    const emailTextArea = el("textarea", { style: "width:100%; height:140px; font-family:monospace; font-size:12px; padding:10px; border:1px solid var(--border); border-radius:6px;" }, defaultEmailContent);
+    const emailTextArea = el("textarea", { style: "width:100%; height:150px; font-family:monospace; font-size:12px; padding:10px; border:1px solid var(--border); border-radius:6px;" }, defaultEmailContent);
 
     return el("div", { class:"form-panel open", style: "background:#F3E8FF; border-color:#C084FC;" },
       el("h2", { style:"color:#6B21A8; margin-top:0;" }, "📧 Simulator Webhook Forward Email"),
       el("p", { style:"font-size:12px; color:#581C87; margin-bottom:12px;" }, 
-        "Petugas menerima email lalu meneruskannya. Email Receiver Parser akan membaca teks secara otomatis:"
+        "Petugas meneruskan email komplain. Parser akan mengekstrak Nama, ID Meter, Alamat, dan Area secara terpisah:"
       ),
       emailTextArea,
       el("div", { style:"display:flex; gap:8px; margin-top:12px;" },
@@ -858,16 +944,18 @@ Deskripsi : Terjadi kebocoran pada sambungan pipa sebelum meteran air. Air melub
       el("div", { class:"ticket-top" },
         el("div", {},
           el("div", { class:"ticket-id" }, item.id),
-          el("div", { class:"ticket-cust" }, item.customer)
+          el("div", { class:"ticket-cust" }, item.customer),
+          item.meterId ? el("div", { class:"ticket-meter" }, `ID Meter: ${item.meterId}`) : null
         ),
         el("span", { class:`ticket-badge ${isDone ? 'badge-selesai' : 'badge-' + level}` }, isDone ? "Selesai" : badgeText)
       ),
       el("div", { class:"ticket-meta" }, 
         el("span", { class:"case-tag" }, caseDetails.key),
-        item.area ? el("span", { class:"area-tag" }, `📍 ${item.area}`) : null,
+        item.area ? el("span", { class:"area-tag" }, `📍 Area: ${item.area}`) : null,
         isFromEmail ? el("span", { class:"email-source-tag" }, "📧 Email Integrasi") : null,
         " ", caseDetails.label
       ),
+      item.address ? el("div", { class:"ticket-address" }, `🏠 ${item.address}`) : null,
       item.desc ? el("div", { class:"ticket-desc" }, item.desc) : null,
       
       el("div", { class:"schedule-box" },
@@ -1005,7 +1093,8 @@ Deskripsi : Terjadi kebocoran pada sambungan pipa sebelum meteran air. Air melub
           el("div", { class:"toolbar" },
             el("div", { class:"toolbar-actions" },
               el("button", { class:"btn-primary", onclick: () => { formOpen = !formOpen; emailModalOpen = false; if(!formOpen) editingId=null; render(); } }, formOpen ? "Tutup Form" : "+ Manual Komplain"),
-              el("button", { class:"btn-email", onclick: () => { emailModalOpen = !emailModalOpen; formOpen = false; render(); } }, "📧 Simulasikan Forward Email")
+              el("button", { class:"btn-email", onclick: () => { emailModalOpen = !emailModalOpen; formOpen = false; render(); } }, "📧 Simulasikan Email"),
+              el("button", { class:"btn-excel", onclick: () => exportToExcel(base, itemScheduledDateMap) }, "📊 Export Excel")
             ),
             el("div", { class:"filters" },
               el("div", { class:"filter-group" },
