@@ -34,9 +34,9 @@
     padding: 24px 16px 60px;
   }
   
-  .wrap { max-width: 820px; margin: 0 auto; }
+  .wrap { max-width: 1140px; margin: 0 auto; }
 
-  /* Header Logo */
+  /* Masthead Header */
   .masthead {
     display: flex; justify-content: space-between; align-items: center;
     margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
@@ -46,36 +46,41 @@
   .brand-title h1 { font-size: 20px; font-weight: 700; margin: 0; color: var(--ink); }
   .brand-title .unit { font-size: 12px; color: var(--ink-soft); font-weight: 500; }
 
-  /* WIDGET KALENDER DASHBOARD */
+  /* LAYOUT 2 KOLOM (DASHBOARD & SIDEBAR) */
+  .dashboard-grid {
+    display: grid; grid-template-columns: 1fr 340px; gap: 20px;
+  }
+  @media (max-width: 900px) {
+    .dashboard-grid { grid-template-columns: 1fr; }
+  }
+
+  /* WIDGET KALENDER SIDEBAR */
   .calendar-card {
     background: #E5E7EB; border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 16px 20px; margin-bottom: 24px; box-shadow: var(--shadow-sm); color: #1F2937;
+    padding: 16px; box-shadow: var(--shadow-sm); color: #1F2937; position: sticky; top: 20px;
   }
   .cal-top-header {
     display: flex; justify-content: space-between; align-items: center;
-    font-size: 16px; font-weight: 600; color: #111827; padding-bottom: 12px; margin-bottom: 12px;
+    font-size: 15px; font-weight: 600; color: #111827; padding-bottom: 10px; margin-bottom: 10px;
     border-bottom: 1px solid #D1D5DB;
   }
   .cal-month-nav {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 16px;
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
   }
-  .cal-month-title { font-size: 15px; font-weight: 700; color: #111827; }
-  .cal-nav-btns { display: flex; gap: 8px; }
+  .cal-month-title { font-size: 14px; font-weight: 700; color: #111827; }
+  .cal-nav-btns { display: flex; gap: 6px; }
   .cal-nav-btn {
-    background: transparent; border: none; font-size: 14px; cursor: pointer; color: #4B5563; padding: 2px 6px;
+    background: transparent; border: none; font-size: 13px; cursor: pointer; color: #4B5563; padding: 2px 4px;
   }
   .cal-nav-btn:hover { color: #111827; }
 
   .cal-grid-embedded {
-    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center;
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center;
   }
-  .cal-head-cell {
-    font-size: 13px; font-weight: 700; color: #374151; padding: 6px 0;
-  }
+  .cal-head-cell { font-size: 12px; font-weight: 700; color: #374151; padding: 4px 0; }
   .cal-date-cell {
-    padding: 8px 0; font-size: 14px; font-weight: 500; color: #1F2937;
-    border-radius: 50%; width: 36px; height: 36px; margin: 0 auto;
+    padding: 6px 0; font-size: 13px; font-weight: 500; color: #1F2937;
+    border-radius: 50%; width: 32px; height: 32px; margin: 0 auto;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     cursor: pointer; position: relative; transition: all 0.2s;
   }
@@ -86,11 +91,23 @@
   }
   .cal-date-cell.has-tasks::after {
     content: ""; display: block; width: 4px; height: 4px; background: #0284C7;
-    border-radius: 50%; position: absolute; bottom: 3px;
+    border-radius: 50%; position: absolute; bottom: 2px;
   }
   .cal-date-cell.selected.has-tasks::after { background: #FFFFFF; }
   .cal-date-cell.has-high::after { background: var(--tinggi); }
   .cal-date-cell.all-done::after { background: var(--rendah); }
+
+  /* GRAFIK COMPLAINT CASE (Chart Box) */
+  .chart-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px; margin-bottom: 20px; box-shadow: var(--shadow-sm);
+  }
+  .chart-card h3 { font-size: 14px; font-weight: 700; margin: 0 0 12px; color: var(--ink); }
+  .chart-list { display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; padding-right: 4px; }
+  .chart-item { font-size: 12px; }
+  .chart-label { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 3px; color: var(--ink-soft); }
+  .chart-bar-bg { background: #E2E8F0; border-radius: 4px; height: 8px; width: 100%; overflow: hidden; }
+  .chart-bar-fill { background: var(--accent); height: 100%; border-radius: 4px; transition: width 0.3s; }
 
   /* Stats Summary Cards */
   .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px; }
@@ -113,7 +130,7 @@
 
   select {
     font-size: 13px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px;
-    background: var(--panel); color: var(--ink); outline: none; max-width: 180px;
+    background: var(--panel); color: var(--ink); outline: none; max-width: 170px;
   }
 
   button { font-family: inherit; cursor: pointer; border: none; font-size: 13px; font-weight: 600; border-radius: 6px; transition: all 0.2s; }
@@ -123,7 +140,7 @@
   .btn-secondary:hover { background: #F8FAFC; }
   .btn-text { background: none; color: var(--ink-soft); font-weight: 500; text-decoration: underline; padding: 4px; }
 
-  /* Form */
+  /* Form Panel */
   .form-panel {
     background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 20px; margin-bottom: 24px; box-shadow: var(--shadow-md); display: none;
@@ -193,6 +210,12 @@
   }
   .section-head .count { background: #E2E8F0; color: var(--ink); font-size: 11px; font-weight: 700; border-radius: 12px; padding: 2px 8px; }
   .empty { text-align: center; padding: 24px; color: var(--ink-soft); font-size: 13px; border: 1px dashed var(--border); border-radius: var(--radius); background: var(--panel); }
+  
+  .filter-date-banner {
+    background: var(--accent-bg); border: 1px solid var(--accent); color: var(--accent-hover);
+    padding: 8px 12px; border-radius: 6px; font-size: 13px; font-weight: 600;
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+  }
 </style>
 
 <!-- Leaflet Map CSS & JS -->
@@ -268,8 +291,8 @@
   let storageOk = true;
   let activeMaps = {};
   
-  let selectedDate = new Date();
-  let viewMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+  let selectedDate = null; // Filter tanggal kalender (jika null, tampilkan semua)
+  let viewMonth = new Date();
 
   function catInfo(key){
     return CATEGORIES.find(c => c.key === key) || { key: key||"OTHERS", label: key||"Lainnya", weight: 1 };
@@ -351,12 +374,12 @@
     };
   }
 
-  // ALOKASI KALENDER (Mempertahankan Kasus Selesai Pada Tanggalnya & Rollover Kasus Belum Selesai)
+  // ALOKASI JADWAL KALENDER
   function calculateCalendarSchedule(){
     const dateMap = {}; 
     const itemScheduledDateMap = {};
 
-    // 1. Masukkan kasus yang SUDAH SELESAI ke tanggal diterima/selesainya (Tetap ada di kalender)
+    // 1. Kasus SELESAI tetap berada pada tanggal penyelesaiannya
     const completedItems = complaints.filter(c => c.status === "selesai");
     completedItems.forEach(item => {
       const dateKey = formatDateKey(new Date(item.receivedAt));
@@ -365,7 +388,7 @@
       itemScheduledDateMap[item.id] = new Date(item.receivedAt);
     });
 
-    // 2. Alokasikan kasus yang BELUM SELESAI (Carry-Over ke hari ini & berurutan)
+    // 2. Kasus BELUM SELESAI dialokasikan berurutan dari HARI INI
     const pendingItems = complaints
       .filter(c => c.status !== "selesai")
       .sort((a,b) => {
@@ -594,10 +617,46 @@
     );
   }
 
-  // WIDGET KALENDER EMBEDDED
-  function renderDashboardCalendar(dateMap){
-    const selectedKey = formatDateKey(selectedDate);
-    const dayName = selectedDate.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long" });
+  // WIDGET GRAFIK DISTRIBUSI CASE
+  function renderCaseChart(){
+    const counts = {};
+    complaints.forEach(c => {
+      counts[c.category] = (counts[c.category] || 0) + 1;
+    });
+
+    const activeCases = Object.keys(counts).map(key => ({
+      key,
+      count: counts[key],
+      label: catInfo(key).label
+    })).sort((a,b) => b.count - a.count);
+
+    if (activeCases.length === 0) return el("div");
+
+    const maxCount = Math.max(...activeCases.map(x => x.count));
+
+    return el("div", { class: "chart-card" },
+      el("h3", {}, "📊 Jumlah Komplain Berdasarkan CASE"),
+      el("div", { class: "chart-list" },
+        ...activeCases.map(item => {
+          const pct = Math.round((item.count / maxCount) * 100);
+          return el("div", { class: "chart-item" },
+            el("div", { class: "chart-label" },
+              el("span", {}, `[${item.key}] ${item.label}`),
+              el("span", {}, `${item.count} kasus`)
+            ),
+            el("div", { class: "chart-bar-bg" },
+              el("div", { class: "chart-bar-fill", style: `width: ${pct}%` })
+            )
+          );
+        })
+      )
+    );
+  }
+
+  // WIDGET KALENDER SIDEBAR
+  function renderSidebarCalendar(dateMap){
+    const selectedKey = selectedDate ? formatDateKey(selectedDate) : null;
+    const headerTitle = selectedDate ? selectedDate.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" }) : "Semua Tanggal";
 
     const year = viewMonth.getFullYear();
     const month = viewMonth.getMonth();
@@ -641,8 +700,11 @@
 
     return el("div", { class: "calendar-card" },
       el("div", { class: "cal-top-header" },
-        el("span", {}, dayName),
-        el("span", { style: "font-size:12px; color:#6B7280;" }, "▾")
+        el("span", {}, headerTitle),
+        selectedDate ? el("button", { 
+          style: "font-size:11px; background:none; border:none; color:var(--accent); cursor:pointer; font-weight:600;",
+          onclick: () => { selectedDate = null; render(); }
+        }, "Reset Filter") : null
       ),
       el("div", { class: "cal-month-nav" },
         el("span", { class: "cal-month-title" }, monthTitle),
@@ -672,7 +734,11 @@
           return el("div", {
             class: classes,
             onclick: () => {
-              selectedDate = c.fullDate;
+              if (selectedDate && formatDateKey(selectedDate) === c.key) {
+                selectedDate = null; // Toggle reset jika diklik ulang
+              } else {
+                selectedDate = c.fullDate;
+              }
               render();
             }
           }, String(c.dayNum));
@@ -771,7 +837,16 @@
 
     const { dateMap, itemScheduledDateMap } = calculateCalendarSchedule();
 
-    const base = categoryFilter === "semua" ? complaints : complaints.filter(c => c.category === categoryFilter);
+    let base = categoryFilter === "semua" ? complaints : complaints.filter(c => c.category === categoryFilter);
+
+    // Filter tambahan apabila tanggal di kalender diklik
+    if (selectedDate) {
+      const selKey = formatDateKey(selectedDate);
+      base = base.filter(item => {
+        const schedDate = itemScheduledDateMap[item.id];
+        return schedDate && formatDateKey(schedDate) === selKey;
+      });
+    }
 
     const getScheduledOrder = (items) => {
       return [...items].sort((a,b) => {
@@ -791,14 +866,14 @@
     const proses = sortedByMode(base.filter(c => c.status === "proses"));
     const selesai = base.filter(c => c.status === "selesai").sort((a,b) => new Date(b.receivedAt) - new Date(a.receivedAt));
 
-    const openAll = base.filter(c => c.status !== "selesai");
+    const openAll = complaints.filter(c => c.status !== "selesai");
     const tinggiCount = openAll.filter(c => urgencyLevel(c) === "tinggi").length;
     const oldestHrs = openAll.length ? Math.max(...openAll.map(hoursWaiting)) : 0;
 
     const section = (title, items, isFirst) => el("div", {},
       el("div", { class:"section-head" + (isFirst ? " first" : "") }, title, el("span", { class:"count" }, String(items.length))),
       items.length === 0
-        ? el("div", { class:"empty" }, "Tidak ada komplain di kategori ini.")
+        ? el("div", { class:"empty" }, "Tidak ada komplain di seksi ini.")
         : el("div", {}, ...items.map((item) => renderTicket(item, itemScheduledDateMap)))
     );
 
@@ -817,41 +892,59 @@
         )
       ),
 
-      renderDashboardCalendar(dateMap),
+      // GRID LAYOUT 2 KOLOM (KIRI: DASHBOARD, KANAN: SIDEBAR KALENDER)
+      el("div", { class: "dashboard-grid" },
+        // Kolom Kiri: Stats, Grafik, Toolbar & List Komplain
+        el("div", {},
+          el("div", { class:"summary" },
+            el("div", { class:"stat-card tinggi" }, el("div", { class:"num" }, String(tinggiCount)), el("div", { class:"lbl" }, "Prioritas Tinggi")),
+            el("div", { class:"stat-card" }, el("div", { class:"num" }, String(openAll.length)), el("div", { class:"lbl" }, "Belum Selesai")),
+            el("div", { class:"stat-card" }, el("div", { class:"num" }, oldestHrs >= 1 ? Math.round(oldestHrs)+"j" : "<1j"), el("div", { class:"lbl" }, "Menunggu Lama")),
+          ),
 
-      el("div", { class:"summary" },
-        el("div", { class:"stat-card tinggi" }, el("div", { class:"num" }, String(tinggiCount)), el("div", { class:"lbl" }, "Prioritas Tinggi")),
-        el("div", { class:"stat-card" }, el("div", { class:"num" }, String(openAll.length)), el("div", { class:"lbl" }, "Belum Selesai")),
-        el("div", { class:"stat-card" }, el("div", { class:"num" }, oldestHrs >= 1 ? Math.round(oldestHrs)+"j" : "<1j"), el("div", { class:"lbl" }, "Menunggu Lama")),
-      ),
+          renderCaseChart(),
 
-      el("div", { class:"toolbar" },
-        el("div", { class:"toolbar-actions" },
-          el("button", { class:"btn-primary", onclick: () => { formOpen = !formOpen; if(!formOpen) editingId=null; render(); } }, formOpen ? "Tutup Form" : "+ Tambah Komplain")
-        ),
-        el("div", { class:"filters" },
-          el("div", { class:"filter-group" },
-            "CASE:",
-            el("select", { onchange: (e) => { categoryFilter = e.target.value; render(); } },
-              el("option", { value:"semua", selected: categoryFilter==="semua" ? "selected" : null }, "Semua CASE"),
-              ...CATEGORIES.map(c => el("option", { value: c.key, selected: categoryFilter===c.key ? "selected" : null }, `[${c.key}] ${c.label}`))
+          el("div", { class:"toolbar" },
+            el("div", { class:"toolbar-actions" },
+              el("button", { class:"btn-primary", onclick: () => { formOpen = !formOpen; if(!formOpen) editingId=null; render(); } }, formOpen ? "Tutup Form" : "+ Tambah Komplain")
+            ),
+            el("div", { class:"filters" },
+              el("div", { class:"filter-group" },
+                "CASE:",
+                el("select", { onchange: (e) => { categoryFilter = e.target.value; render(); } },
+                  el("option", { value:"semua", selected: categoryFilter==="semua" ? "selected" : null }, "Semua CASE"),
+                  ...CATEGORIES.map(c => el("option", { value: c.key, selected: categoryFilter===c.key ? "selected" : null }, `[${c.key}] ${c.label}`))
+                )
+              ),
+              el("div", { class:"filter-group" },
+                "Urutkan:",
+                el("select", { onchange: (e) => { sortMode = e.target.value; render(); } },
+                  el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "Prioritas Utama"),
+                  el("option", { value:"waktu", selected: sortMode==="waktu" ? "selected" : null }, "Waktu Diterima")
+                )
+              )
             )
           ),
-          el("div", { class:"filter-group" },
-            "Urutkan:",
-            el("select", { onchange: (e) => { sortMode = e.target.value; render(); } },
-              el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "Prioritas Utama"),
-              el("option", { value:"waktu", selected: sortMode==="waktu" ? "selected" : null }, "Waktu Diterima")
-            )
-          )
+
+          renderForm(),
+
+          selectedDate ? el("div", { class: "filter-date-banner" },
+            el("span", {}, `📅 Menampilkan Kasus Tanggal: ${fmtDateOnly(selectedDate)}`),
+            el("button", { class: "btn-text", style: "color:var(--accent); font-size:12px;", onclick: () => { selectedDate = null; render(); } }, "Tampilkan Semua")
+          ) : null,
+
+          section("Belum Dikerjakan", belum, true),
+          section("Sedang Dikerjakan", proses, false),
+          section("Selesai", selesai, false)
+        ),
+
+        // Kolom Kanan: Sidebar Widget Kalender
+        el("div", {},
+          renderSidebarCalendar(dateMap)
         )
       ),
 
-      renderForm(),
-      section("Belum Dikerjakan", belum, true),
-      section("Sedang Dikerjakan", proses, false),
-      section("Selesai", selesai, false),
-      el("div", { style: "text-align:center; margin-top:24px;" },
+      el("div", { style: "text-align:center; margin-top:32px;" },
         el("button", { class:"btn-text", onclick: async () => {
           if(confirm("Hapus semua data komplain dari server?")){
             for(const c of complaints){
