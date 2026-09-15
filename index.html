@@ -37,13 +37,15 @@
   
   .wrap { max-width: 800px; margin: 0 auto; }
 
-  /* Header Header */
+  /* Masthead / Header dengan Logo */
   .masthead {
-    display: flex; justify-content: space-between; align-items: flex-end;
-    margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
   }
-  .masthead h1 { font-size: 22px; font-weight: 700; margin: 0; color: var(--ink); letter-spacing: -0.02em; }
-  .masthead .unit { font-size: 13px; color: var(--ink-soft); font-weight: 500; }
+  .brand-group { display: flex; align-items: center; gap: 14px; }
+  .brand-logo { height: 48px; width: auto; object-fit: contain; }
+  .brand-title h1 { font-size: 20px; font-weight: 700; margin: 0; color: var(--ink); letter-spacing: -0.02em; }
+  .brand-title .unit { font-size: 12px; color: var(--ink-soft); font-weight: 500; margin-top: 2px; }
 
   /* Stats Grid */
   .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
@@ -139,7 +141,7 @@
   .ticket-meta { font-size: 13px; color: var(--ink-soft); font-weight: 500; }
   .ticket-desc { font-size: 14px; color: var(--ink); line-height: 1.5; }
 
-  /* Schedule Box Inside Card */
+  /* Schedule Box */
   .schedule-box {
     background: #F8FAFC; border: 1px solid var(--border); border-radius: 6px;
     padding: 10px 12px; font-size: 12px; display: flex; flex-direction: column; gap: 4px;
@@ -842,9 +844,19 @@
     );
 
     const wrap = el("div", { class:"wrap" },
+      // Masthead dengan Logo Aetra Air Tangerang
       el("div", { class:"masthead" },
-        el("h1", {}, "Papan Kerja Komplain"),
-        el("span", { class:"unit" }, "Aetra Air Tangerang")
+        el("div", { class:"brand-group" },
+          el("img", { 
+            class: "brand-logo", 
+            src: "https://aetraairtangerang.co.id/wp-content/uploads/2021/03/logo-aetra.png", 
+            alt: "Logo Aetra Air Tangerang" 
+          }),
+          el("div", { class:"brand-title" },
+            el("h1", {}, "Papan Kerja Minor Repair"),
+            el("span", { class:"unit" }, "Aetra Air Tangerang")
+          )
+        )
       ),
       el("div", { class:"summary" },
         el("div", { class:"stat-card tinggi" }, el("div", { class:"num" }, String(tinggiCount)), el("div", { class:"lbl" }, "Prioritas Tinggi")),
