@@ -48,7 +48,7 @@
   .toolbar .filters{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
   .toolbar .sortmode{ font-size: 12.5px; color: var(--ink-soft); }
   .toolbar select{
-    font-size: 12.5px; padding: 4px 6px; border:1px solid var(--line); border-radius:3px; background: var(--panel); color: var(--ink); max-width: 220px;
+    font-size: 12.5px; padding: 4px 6px; border:1px solid var(--line); border-radius:3px; background: var(--panel); color: var(--ink); max-width: 200px;
   }
   button{ font-family: inherit; cursor:pointer; border:none; }
   .btn-primary{
@@ -56,7 +56,7 @@
   }
   .btn-primary:active{ opacity:0.85; }
   .btn-ghost{
-    background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 7px 12px; border-radius:4px; font-size: 13px;
+    background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 7px 12px; border-radius:4px; font-size: 13px; font-weight:600;
   }
   .btn-text{ background:none; color: var(--ink-soft); font-size: 12.5px; text-decoration: underline; padding:2px; }
 
@@ -102,7 +102,7 @@
   .ticket-desc{ font-size: 13.5px; color: var(--ink); line-height: 1.4; }
   .ticket-wait{ font-size: 12px; color: var(--ink-soft); font-family:"IBM Plex Mono", monospace; }
   
-  /* Kalender & Deadline Box */
+  /* Kalender Box Tiket */
   .schedule-box {
     background: #F8FAFA;
     border: 1px dashed var(--line);
@@ -163,6 +163,51 @@
   }
 
   .foot-actions{ text-align:center; margin-top: 24px; }
+
+  /* ===== MODAL POP-UP KALENDER ===== */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(22, 35, 44, 0.6); display: none;
+    align-items: center; justify-content: center; z-index: 9999; padding: 16px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-content {
+    background: var(--panel); border-radius: 8px; width: 100%; max-width: 720px;
+    max-height: 90vh; overflow-y: auto; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--line); padding-bottom: 10px; margin-bottom: 16px; }
+  .modal-header h2 { font-size: 18px; margin: 0; }
+  .modal-close { background: none; border: none; font-size: 20px; font-weight: bold; color: var(--ink-soft); cursor: pointer; }
+  
+  .calendar-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 10px;
+  }
+  .cal-day-head {
+    text-align: center; font-size: 12px; font-weight: bold; color: var(--ink-soft); padding: 4px 0;
+  }
+  .cal-cell {
+    background: #FCFDFC; border: 1px solid var(--line); border-radius: 4px; min-height: 80px; padding: 6px;
+    display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: background 0.2s;
+  }
+  .cal-cell:hover { background: #F0F4F3; }
+  .cal-cell.today { border-color: var(--accent); background: #EBF2F4; }
+  .cal-cell.other-month { opacity: 0.35; }
+  .cal-date-num { font-size: 12px; font-weight: bold; font-family: "IBM Plex Mono", monospace; }
+  .cal-count-badge {
+    background: var(--accent); color: #fff; font-size: 10px; font-weight: bold;
+    padding: 2px 4px; border-radius: 4px; margin-top: 4px; text-align: center;
+  }
+  .cal-count-badge.tinggi { background: var(--tinggi); }
+  
+  .selected-day-details {
+    margin-top: 16px; border-top: 1px dashed var(--line); padding-top: 12px;
+  }
+  .selected-day-details h3 { font-size: 14px; margin: 0 0 8px; color: var(--accent); }
+  .cal-item-mini {
+    background: #F8FAFA; border-left: 3px solid var(--accent); padding: 6px 8px; margin-bottom: 6px; font-size: 12px; border-radius: 2px;
+  }
+  .cal-item-mini.tinggi { border-left-color: var(--tinggi); }
+  .cal-item-mini.sedang { border-left-color: var(--sedang); }
 </style>
 
 <!-- Leaflet Map CSS & JS -->
@@ -179,9 +224,7 @@
 
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // DAFTAR CASE SESUAI DENGAN TABEL GAMBAR
   const CATEGORIES = [
-    // Kolom 1
     { key: "BPPD", label: "Biaya Penambahan Pipa Dinas", weight: 2 },
     { key: "BPPDIND", label: "Biaya Penambahan Pipa Dinas Industri", weight: 3 },
     { key: "INFO-PLG", label: "Info ke Pelanggan", weight: 1 },
@@ -206,8 +249,6 @@
     { key: "KPAP", label: "Perubahan Alamat Premise", weight: 1 },
     { key: "KPAT", label: "Perubahan Alamat Billing", weight: 1 },
     { key: "KPCT", label: "Pengajuan Cicilan Tagihan", weight: 1 },
-    
-    // Kolom 2
     { key: "KPDB", label: "Double Bayar", weight: 2 },
     { key: "KPGP", label: "Permintaan Balik Nama", weight: 1 },
     { key: "KPKT", label: "Penyambungan Kembali Akibat Tunggakkan", weight: 3 },
@@ -234,12 +275,16 @@
   ];
 
   const SLA_DAYS = 14;
+  const MAX_PER_DAY = 5; // Kuota 5 kasus per hari
 
   let complaints = [];
   let sortMode = "prioritas";
   let categoryFilter = "semua";
   let storageOk = true;
   let activeMaps = {};
+  
+  let calendarModalOpen = false;
+  let selectedCalDateKey = null;
 
   function catInfo(key){
     return CATEGORIES.find(c => c.key === key) || { key: key||"OTHERS", label: key||"Lainnya", weight: 1 };
@@ -275,6 +320,17 @@
     return dateObj.toLocaleString("id-ID", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
   }
 
+  function fmtDateOnly(dateObj){
+    return dateObj.toLocaleString("id-ID", { day:"2-digit", month:"short", year:"numeric" });
+  }
+
+  function formatDateKey(d){
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   function parseCoords(str){
     if(!str) return null;
     const parts = str.split(",").map(p => parseFloat(p.trim()));
@@ -308,6 +364,52 @@
       statusClass,
       statusText
     };
+  }
+
+  // ALOKASI JADWAL KALENDER (Max 5 komplain / hari)
+  function calculateCalendarSchedule(){
+    const pendingItems = complaints
+      .filter(c => c.status !== "selesai")
+      .sort((a,b) => {
+        const scoreA = priorityScore(a);
+        const scoreB = priorityScore(b);
+        if (scoreB !== scoreA) return scoreB - scoreA;
+        return new Date(a.receivedAt) - new Date(b.receivedAt);
+      });
+
+    const dateMap = {}; // Key: "YYYY-MM-DD", Value: [item1, item2, ...]
+    const itemScheduledDateMap = {}; // Key: item.id, Value: Date
+    
+    let currentDate = new Date(); // Mulai dari hari ini
+    currentDate.setHours(0,0,0,0);
+
+    let countInCurrentDay = 0;
+
+    pendingItems.forEach(item => {
+      const recDate = new Date(item.receivedAt);
+      recDate.setHours(0,0,0,0);
+
+      // Jika tanggal diterima komplain lebih baru dari tanggal pengerjaan saat ini, majukan tanggal
+      if (recDate > currentDate) {
+        currentDate = new Date(recDate);
+        countInCurrentDay = 0;
+      }
+
+      // Jika kuota 5 komplain pada tanggal ini penuh, pindah ke hari berikutnya
+      if (countInCurrentDay >= MAX_PER_DAY) {
+        currentDate.setDate(currentDate.getDate() + 1);
+        countInCurrentDay = 0;
+      }
+
+      const dateKey = formatDateKey(currentDate);
+      if (!dateMap[dateKey]) dateMap[dateKey] = [];
+      dateMap[dateKey].push(item);
+
+      itemScheduledDateMap[item.id] = new Date(currentDate);
+      countInCurrentDay++;
+    });
+
+    return { dateMap, itemScheduledDateMap };
   }
 
   function rowToItem(row){
@@ -451,8 +553,6 @@
 
     const customerInput = el("input", { type:"text", placeholder:"Nama pelanggan / ID langganan", value: editing ? editing.customer : "" });
     const areaInput = el("input", { type:"text", placeholder:"Area / zona", value: editing ? editing.area : "" });
-    
-    // Select Opsi CASE
     const catSelect = el("select", {},
       ...CATEGORIES.map(c => el("option", { value: c.key, selected: editing && editing.category===c.key ? "selected" : null }, `[${c.key}] ${c.label}`))
     );
@@ -520,7 +620,7 @@
     );
   }
 
-  function renderTicket(item, index, scheduleOrderMap){
+  function renderTicket(item, itemScheduledDateMap){
     const level = urgencyLevel(item);
     const badgeText = level === "tinggi" ? "Tinggi" : level === "sedang" ? "Sedang" : "Rendah";
     const isDone = item.status === "selesai";
@@ -529,12 +629,13 @@
     const mapContainerId = "map-" + item.id;
     const caseDetails = catInfo(item.category);
 
-    const scheduleNum = scheduleOrderMap[item.id] ? `Urutan Kerja #${scheduleOrderMap[item.id]}` : null;
+    const scheduledDateObj = itemScheduledDateMap[item.id];
+    const scheduledText = scheduledDateObj ? fmtDateOnly(scheduledDateObj) : "-";
 
     return el("div", { class: "ticket " + level + (isDone ? " selesai" : "") },
       el("div", { class:"ticket-top" },
         el("div", {},
-          el("div", { class:"ticket-id" }, item.id + (scheduleNum ? " · " + scheduleNum : "")),
+          el("div", { class:"ticket-id" }, item.id),
           el("div", { class:"ticket-cust" }, item.customer)
         ),
         el("span", { class:"ticket-badge badge-" + level }, badgeText)
@@ -545,10 +646,10 @@
       ),
       item.desc ? el("div", { class:"ticket-desc" }, item.desc) : null,
       
-      // Box Kalender & Deadline Pengerjaan
+      // Box Kalender & Schedule
       el("div", { class:"schedule-box" },
         el("div", { class:"schedule-row" },
-          el("span", { class:"schedule-title" }, "📅 Jadwal Kalender Penanganan:"),
+          el("span", { class:"schedule-title" }, `📅 Jadwal Kerja: ${scheduledText}`),
           el("span", { class:`deadline-tag ${deadlineInfo.statusClass}` }, deadlineInfo.statusText)
         ),
         el("div", { style:"color:var(--ink-soft);" }, `Diterima: ${deadlineInfo.receivedText}`),
@@ -573,6 +674,84 @@
         isDone ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Buka lagi") : null,
         el("button", { class:"edit", onclick: () => { editingId = item.id; formOpen = true; render(); window.scrollTo({top:0, behavior:"smooth"}); } }, "Edit"),
         el("button", { class:"del", onclick: () => removeComplaint(item.id) }, "Hapus")
+      )
+    );
+  }
+
+  // MODAL KALENDER POP-UP
+  function renderCalendarModal(dateMap){
+    if(!calendarModalOpen) return el("div");
+
+    const today = new Date();
+    const currYear = today.getFullYear();
+    const currMonth = today.getMonth();
+
+    const firstDay = new Date(currYear, currMonth, 1);
+    const lastDay = new Date(currYear, currMonth + 1, 0);
+    const startDayOfWeek = firstDay.getDay(); // 0 = Minggu
+
+    const days = [];
+    for(let i=0; i<startDayOfWeek; i++){
+      days.push(null);
+    }
+    for(let d=1; d<=lastDay.getDate(); d++){
+      days.push(new Date(currYear, currMonth, d));
+    }
+
+    const selectedItems = selectedCalDateKey && dateMap[selectedCalDateKey] ? dateMap[selectedCalDateKey] : [];
+
+    return el("div", { class: "modal-overlay open", onclick: (e) => {
+      if(e.target.classList.contains("modal-overlay")){
+        calendarModalOpen = false;
+        render();
+      }
+    }},
+      el("div", { class: "modal-content" },
+        el("div", { class: "modal-header" },
+          el("h2", {}, `Kalender Pengerjaan Komplain (${today.toLocaleString('id-ID', { month: 'long', year: 'numeric' })})`),
+          el("button", { class: "modal-close", onclick: () => { calendarModalOpen = false; render(); } }, "×")
+        ),
+        el("div", { style: "font-size: 12.5px; color: var(--ink-soft); margin-bottom: 8px;" },
+          "* Komplain otomatis dibagi maksimal 5 kasus per hari berdasarkan prioritas tinggi dan tanggal diterima."
+        ),
+        
+        // Grid Kalender
+        el("div", { class: "calendar-grid" },
+          ...["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"].map(h => el("div", { class: "cal-day-head" }, h)),
+          ...days.map(dObj => {
+            if(!dObj) return el("div", { class: "cal-cell other-month" });
+
+            const key = formatDateKey(dObj);
+            const items = dateMap[key] || [];
+            const isToday = formatDateKey(today) === key;
+            const hasHighPriority = items.some(x => urgencyLevel(x) === "tinggi");
+
+            return el("div", {
+              class: `cal-cell ${isToday ? 'today' : ''}`,
+              onclick: () => { selectedCalDateKey = key; render(); }
+            },
+              el("div", { class: "cal-date-num" }, String(dObj.getDate())),
+              items.length > 0 ? el("div", { class: `cal-count-badge ${hasHighPriority ? 'tinggi' : ''}` }, `${items.length} Kasus`) : null
+            );
+          })
+        ),
+
+        // Detail Rincian Kasus per Tanggal
+        selectedCalDateKey ? el("div", { class: "selected-day-details" },
+          el("h3", {}, `Daftar Tugas (${selectedCalDateKey}): ${selectedItems.length} Kasus`),
+          selectedItems.length === 0 
+            ? el("div", { style: "font-size:12px; color:var(--ink-soft);" }, "Tidak ada kasus dijadwalkan pada tanggal ini.")
+            : el("div", {},
+                ...selectedItems.map(item => {
+                  const lvl = urgencyLevel(item);
+                  return el("div", { class: `cal-item-mini ${lvl}` },
+                    el("strong", {}, `${item.id} - ${item.customer}`),
+                    el("div", {}, `[${item.category}] ${catInfo(item.category).label}`),
+                    el("div", { style:"font-size:11px; color:var(--ink-soft);" }, `Area: ${item.area || '-'} | Diterima: ${fmtDateOnly(new Date(item.receivedAt))}`)
+                  );
+                })
+              )
+        ) : null
       )
     );
   }
@@ -609,9 +788,10 @@
     const root = document.getElementById("app-root");
     root.innerHTML = "";
 
+    const { dateMap, itemScheduledDateMap } = calculateCalendarSchedule();
+
     const base = categoryFilter === "semua" ? complaints : complaints.filter(c => c.category === categoryFilter);
 
-    // Pengurutan Utama Kalender Pengerjaan: Prioritas Tinggi -> Waktu Diterima Terlama
     const getScheduledOrder = (items) => {
       return [...items].sort((a,b) => {
         const scoreA = priorityScore(a);
@@ -630,13 +810,6 @@
     const proses = sortedByMode(base.filter(c => c.status === "proses"));
     const selesai = base.filter(c => c.status === "selesai").sort((a,b) => new Date(b.receivedAt) - new Date(a.receivedAt));
 
-    // Urutan Kerja Kalender Keseluruhan
-    const allPendingScheduled = getScheduledOrder(complaints.filter(c => c.status !== "selesai"));
-    const scheduleOrderMap = {};
-    allPendingScheduled.forEach((item, index) => {
-      scheduleOrderMap[item.id] = index + 1;
-    });
-
     const openAll = base.filter(c => c.status !== "selesai");
     const tinggiCount = openAll.filter(c => urgencyLevel(c) === "tinggi").length;
     const oldestHrs = openAll.length ? Math.max(...openAll.map(hoursWaiting)) : 0;
@@ -645,7 +818,7 @@
       el("div", { class:"section-head" + (isFirst ? " first" : "") }, title, el("span", { class:"count" }, String(items.length))),
       items.length === 0
         ? el("div", { class:"empty" }, "Tidak ada komplain di kolom ini.")
-        : el("div", {}, ...items.map((item, idx) => renderTicket(item, idx, scheduleOrderMap)))
+        : el("div", {}, ...items.map((item) => renderTicket(item, itemScheduledDateMap)))
     );
 
     const wrap = el("div", { class:"wrap" },
@@ -659,7 +832,10 @@
         el("div", { class:"stat" }, el("div", { class:"num" }, oldestHrs >= 1 ? Math.round(oldestHrs)+"j" : "<1j"), el("div", { class:"lbl" }, "Menunggu paling lama")),
       ),
       el("div", { class:"toolbar" },
-        el("button", { class:"btn-primary", onclick: () => { formOpen = !formOpen; if(!formOpen) editingId=null; render(); } }, formOpen ? "Tutup form" : "+ Tambah komplain"),
+        el("div", { style:"display:flex; gap:8px;" },
+          el("button", { class:"btn-primary", onclick: () => { formOpen = !formOpen; if(!formOpen) editingId=null; render(); } }, formOpen ? "Tutup form" : "+ Tambah komplain"),
+          el("button", { class:"btn-ghost", onclick: () => { calendarModalOpen = true; render(); } }, "📅 Buka Kalender Pengerjaan")
+        ),
         el("div", { class:"filters" },
           el("div", { class:"sortmode" },
             "Filter CASE: ",
@@ -694,6 +870,7 @@
     );
 
     root.appendChild(wrap);
+    root.appendChild(renderCalendarModal(dateMap));
 
     if(!storageOk){
       const warn = el("div", { style:"margin-top:10px; font-size:12px; color:#C1440E; text-align:center;" }, "Tidak bisa terhubung ke database. Periksa konfigurasi SUPABASE_URL / SUPABASE_ANON_KEY.");
