@@ -48,7 +48,7 @@
   .toolbar .filters{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
   .toolbar .sortmode{ font-size: 12.5px; color: var(--ink-soft); }
   .toolbar select{
-    font-size: 12.5px; padding: 4px 6px; border:1px solid var(--line); border-radius:3px; background: var(--panel); color: var(--ink);
+    font-size: 12.5px; padding: 4px 6px; border:1px solid var(--line); border-radius:3px; background: var(--panel); color: var(--ink); max-width: 220px;
   }
   button{ font-family: inherit; cursor:pointer; border:none; }
   .btn-primary{
@@ -97,7 +97,8 @@
   .badge-rendah{ background: var(--rendah-bg); color: var(--rendah); }
 
   .ticket-cust{ font-size: 15.5px; font-weight: 600; }
-  .ticket-meta{ font-size: 12.5px; color: var(--ink-soft); }
+  .ticket-meta{ font-size: 12.5px; color: var(--ink-soft); font-weight: 500; }
+  .case-tag { background: #E2E8F0; color: #1E293B; font-family: "IBM Plex Mono", monospace; padding: 1px 5px; border-radius: 3px; font-size: 11px; font-weight: 700; }
   .ticket-desc{ font-size: 13.5px; color: var(--ink); line-height: 1.4; }
   .ticket-wait{ font-size: 12px; color: var(--ink-soft); font-family:"IBM Plex Mono", monospace; }
   
@@ -178,16 +179,61 @@
 
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  // DAFTAR CASE SESUAI DENGAN TABEL GAMBAR
   const CATEGORIES = [
-    { key: "tidak_ada_air", label: "Tidak ada air", weight: 5 },
-    { key: "kebocoran_besar", label: "Kebocoran pipa (besar)", weight: 5 },
-    { key: "kualitas_air", label: "Kualitas air keruh/bau", weight: 4 },
-    { key: "kebocoran_kecil", label: "Kebocoran pipa (kecil)", weight: 3 },
-    { key: "tekanan_rendah", label: "Tekanan rendah", weight: 2 },
-    { key: "lainnya", label: "Lainnya", weight: 1 },
+    // Kolom 1
+    { key: "BPPD", label: "Biaya Penambahan Pipa Dinas", weight: 2 },
+    { key: "BPPDIND", label: "Biaya Penambahan Pipa Dinas Industri", weight: 3 },
+    { key: "INFO-PLG", label: "Info ke Pelanggan", weight: 1 },
+    { key: "KATM", label: "Air Tidak Mengalir Domestic", weight: 5 },
+    { key: "KATMIND", label: "Air Tidak Mengalir Industri", weight: 5 },
+    { key: "KATR", label: "Air Kotor Domestic", weight: 4 },
+    { key: "KATRIND", label: "Air Kotor Industri", weight: 4 },
+    { key: "KBBP", label: "Sudah Bayar Belum Pasang Meter", weight: 3 },
+    { key: "KBGL", label: "Bekas Galian", weight: 2 },
+    { key: "KBSM", label: "Bocor Sebelum Meter", weight: 5 },
+    { key: "KBSMIND", label: "Bocor Sebelum Meter Industri", weight: 5 },
+    { key: "KBTR", label: "Belum Menerima Tagihan", weight: 2 },
+    { key: "KBTT", label: "Sudah Bayar Tapi di Tagih", weight: 2 },
+    { key: "KILL", label: "Illegal Consumption", weight: 4 },
+    { key: "KKMR", label: "Kran Meter Rusak", weight: 3 },
+    { key: "KKMRIND", label: "Kran Meter Rusak Industri", weight: 3 },
+    { key: "KLBC", label: "Pipa Jaringan Bocor", weight: 5 },
+    { key: "KMAL", label: "Meter Air Lepas", weight: 4 },
+    { key: "KMALIND", label: "Meter Air Lepas Industri", weight: 4 },
+    { key: "KMDT", label: "Meter Dipasang Terbalik", weight: 3 },
+    { key: "KMTA", label: "Meter Tidak Ada", weight: 3 },
+    { key: "KPAP", label: "Perubahan Alamat Premise", weight: 1 },
+    { key: "KPAT", label: "Perubahan Alamat Billing", weight: 1 },
+    { key: "KPCT", label: "Pengajuan Cicilan Tagihan", weight: 1 },
+    
+    // Kolom 2
+    { key: "KPDB", label: "Double Bayar", weight: 2 },
+    { key: "KPGP", label: "Permintaan Balik Nama", weight: 1 },
+    { key: "KPKT", label: "Penyambungan Kembali Akibat Tunggakkan", weight: 3 },
+    { key: "KPMR", label: "Meter Rusak", weight: 3 },
+    { key: "KPMRIND", label: "Meter Rusak Industri", weight: 4 },
+    { key: "KPPA", label: "Revisi Nama", weight: 1 },
+    { key: "KPPM", label: "Perilaku Pembaca Meter", weight: 2 },
+    { key: "KPPR", label: "Pipa Dinas Rusak", weight: 4 },
+    { key: "KPPS", label: "Permintaan Pemutusan Sambungan", weight: 2 },
+    { key: "KPPSIND", label: "Permintaan Pemutusan Sambungan Industri", weight: 3 },
+    { key: "KPSB", label: "Salah Bayar", weight: 2 },
+    { key: "KPSM", label: "Petugas Penyegelan", weight: 2 },
+    { key: "KRMT", label: "Permintaan Relokasi Meter (teknis)", weight: 3 },
+    { key: "KRPR", label: "Rekening Pembayaran Rendah", weight: 1 },
+    { key: "KRPT", label: "Rekening Pembayaran Tinggi", weight: 2 },
+    { key: "KSPM", label: "Meter Tertukar", weight: 3 },
+    { key: "KTST", label: "Tidak Sesuai Tarif", weight: 2 },
+    { key: "KTST-RC", label: "Tidak Sesuai Tarif - Re Class", weight: 2 },
+    { key: "LAPUL", label: "Lapor Ulang", weight: 3 },
+    { key: "PPMI", label: "Permintaan Penyesuaian Meter Industri", weight: 3 },
+    { key: "TERAREQ", label: "Tera Meter Request", weight: 2 },
+    { key: "TR09", label: "Pindah Meter", weight: 3 },
+    { key: "TR09IND", label: "Pindah Meter Industri", weight: 3 }
   ];
 
-  const SLA_DAYS = 14; // Maksimal batas waktu penanganan (14 Hari)
+  const SLA_DAYS = 14;
 
   let complaints = [];
   let sortMode = "prioritas";
@@ -196,7 +242,7 @@
   let activeMaps = {};
 
   function catInfo(key){
-    return CATEGORIES.find(c => c.key === key) || CATEGORIES[CATEGORIES.length-1];
+    return CATEGORIES.find(c => c.key === key) || { key: key||"OTHERS", label: key||"Lainnya", weight: 1 };
   }
 
   function urgencyLevel(item){
@@ -213,8 +259,8 @@
 
   function priorityScore(item){
     const w = item.urgent ? 5 : catInfo(item.category).weight;
-    const hrs = Math.min(hoursWaiting(item), 336); // Maksimal pembobotan jam hingga 14 hari (336 jam)
-    return w * 100 + hrs; // Prioritas jenis/urgent paling mendominasi, disusul lamanya menunggu
+    const hrs = Math.min(hoursWaiting(item), 336);
+    return w * 100 + hrs;
   }
 
   function fmtWait(item){
@@ -238,7 +284,6 @@
     return null;
   }
 
-  // ==== Logika Kalender & Tenggat (14 Hari) ====
   function getDeadlineInfo(item){
     const start = new Date(item.receivedAt);
     const deadline = new Date(start.getTime() + SLA_DAYS * 24 * 60 * 60 * 1000);
@@ -406,13 +451,17 @@
 
     const customerInput = el("input", { type:"text", placeholder:"Nama pelanggan / ID langganan", value: editing ? editing.customer : "" });
     const areaInput = el("input", { type:"text", placeholder:"Area / zona", value: editing ? editing.area : "" });
+    
+    // Select Opsi CASE
     const catSelect = el("select", {},
-      ...CATEGORIES.map(c => el("option", { value: c.key, selected: editing && editing.category===c.key ? "selected" : null }, c.label))
+      ...CATEGORIES.map(c => el("option", { value: c.key, selected: editing && editing.category===c.key ? "selected" : null }, `[${c.key}] ${c.label}`))
     );
-    const descInput = el("textarea", { placeholder:"Detail komplain dari email..." }, editing ? editing.desc : "");
+
+    const descInput = el("textarea", { placeholder:"Detail komplain dari email/pelanggan..." }, editing ? editing.desc : "");
     const timeInput = el("input", { type:"datetime-local", value: editing ? toLocalInput(editing.receivedAt) : nowLocalInputValue() });
     const urgentCheck = el("input", { type:"checkbox", checked: editing && editing.urgent ? "checked" : null });
     const coordsInput = el("input", { type:"text", placeholder:"-6.1783, 106.6319 (opsional)", value: editing ? (editing.coords||"") : "" });
+    
     const geoBtn = el("button", { type:"button", class:"btn-geo", onclick: () => {
       if(!navigator.geolocation){ alert("Perangkat ini tidak mendukung GPS."); return; }
       geoBtn.disabled = true;
@@ -438,7 +487,7 @@
         el("div", { class:"field" }, el("label", {}, "Area / zona"), areaInput),
       ),
       el("div", { class:"field-row" },
-        el("div", { class:"field" }, el("label", {}, "Jenis keluhan"), catSelect),
+        el("div", { class:"field" }, el("label", {}, "Jenis CASE Keluhan"), catSelect),
         el("div", { class:"field" }, el("label", {}, "Waktu komplain diterima"), timeInput),
       ),
       el("div", { class:"field-row" },
@@ -478,8 +527,8 @@
     const coordsObj = parseCoords(item.coords);
     const deadlineInfo = getDeadlineInfo(item);
     const mapContainerId = "map-" + item.id;
+    const caseDetails = catInfo(item.category);
 
-    // Nomor urut jadwal kerja jika belum selesai
     const scheduleNum = scheduleOrderMap[item.id] ? `Urutan Kerja #${scheduleOrderMap[item.id]}` : null;
 
     return el("div", { class: "ticket " + level + (isDone ? " selesai" : "") },
@@ -490,7 +539,10 @@
         ),
         el("span", { class:"ticket-badge badge-" + level }, badgeText)
       ),
-      el("div", { class:"ticket-meta" }, [item.area, catInfo(item.category).label].filter(Boolean).join(" · ")),
+      el("div", { class:"ticket-meta" }, 
+        el("span", { class:"case-tag" }, caseDetails.key),
+        " ", caseDetails.label, item.area ? " · " + item.area : ""
+      ),
       item.desc ? el("div", { class:"ticket-desc" }, item.desc) : null,
       
       // Box Kalender & Deadline Pengerjaan
@@ -546,7 +598,7 @@
         }).addTo(map);
 
         L.marker([coords.lat, coords.lng]).addTo(map)
-          .bindPopup(`<b>${item.customer}</b><br>${item.area}`);
+          .bindPopup(`<b>${item.customer}</b><br>[${item.category}]`);
 
         activeMaps[item.id] = map;
       }
@@ -578,7 +630,7 @@
     const proses = sortedByMode(base.filter(c => c.status === "proses"));
     const selesai = base.filter(c => c.status === "selesai").sort((a,b) => new Date(b.receivedAt) - new Date(a.receivedAt));
 
-    // Membuat Map Urutan Pengerjaan Kalender
+    // Urutan Kerja Kalender Keseluruhan
     const allPendingScheduled = getScheduledOrder(complaints.filter(c => c.status !== "selesai"));
     const scheduleOrderMap = {};
     allPendingScheduled.forEach((item, index) => {
@@ -610,16 +662,16 @@
         el("button", { class:"btn-primary", onclick: () => { formOpen = !formOpen; if(!formOpen) editingId=null; render(); } }, formOpen ? "Tutup form" : "+ Tambah komplain"),
         el("div", { class:"filters" },
           el("div", { class:"sortmode" },
-            "Jenis: ",
+            "Filter CASE: ",
             el("select", { onchange: (e) => { categoryFilter = e.target.value; render(); } },
-              el("option", { value:"semua", selected: categoryFilter==="semua" ? "selected" : null }, "Semua"),
-              ...CATEGORIES.map(c => el("option", { value: c.key, selected: categoryFilter===c.key ? "selected" : null }, c.label))
+              el("option", { value:"semua", selected: categoryFilter==="semua" ? "selected" : null }, "-- Semua CASE --"),
+              ...CATEGORIES.map(c => el("option", { value: c.key, selected: categoryFilter===c.key ? "selected" : null }, `[${c.key}] ${c.label}`))
             )
           ),
           el("div", { class:"sortmode" },
             "Urutkan: ",
             el("select", { onchange: (e) => { sortMode = e.target.value; render(); } },
-              el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "Urutan Kalender (Prioritas & Lama)"),
+              el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "Urutan Kalender (Prioritas)"),
               el("option", { value:"waktu", selected: sortMode==="waktu" ? "selected" : null }, "Waktu Diterima")
             )
           )
