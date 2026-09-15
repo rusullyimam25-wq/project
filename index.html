@@ -55,7 +55,7 @@
     .dashboard-grid { grid-template-columns: 1fr; }
   }
 
-  /* Widget Kalender Sidebar Berwarna */
+  /* Widget Kalender Sidebar */
   .calendar-card {
     background: #0F172A; border-radius: var(--radius);
     padding: 18px; box-shadow: var(--shadow-md); color: #F8FAFC; position: sticky; top: 20px;
@@ -187,6 +187,8 @@
   .badge-selesai { background: #E2E8F0; color: #475569; }
 
   .case-tag { background: #E0F2FE; color: #0369A1; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
+  .area-tag { background: #FEF3C7; color: #92400E; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
+  
   .ticket-meta { font-size: 13px; color: var(--ink-soft); font-weight: 500; }
   .ticket-desc { font-size: 13.5px; color: var(--ink); line-height: 1.4; }
 
@@ -382,10 +384,12 @@
     };
   }
 
+  // ALOKASI KALENDER DENGAN PENGELOMPOKAN WILAYAH/AREA (LOCALITY CLUSTERING)
   function calculateCalendarSchedule(){
     const dateMap = {}; 
     const itemScheduledDateMap = {};
 
+    // 1. Kasus SELESAI dikunci pada tanggal selesainya
     const completedItems = complaints.filter(c => c.status === "selesai");
     completedItems.forEach(item => {
       const dateKey = formatDateKey(new Date(item.receivedAt));
@@ -394,7 +398,8 @@
       itemScheduledDateMap[item.id] = new Date(item.receivedAt);
     });
 
-    const pendingItems = complaints
+    // 2. Ambil semua kasus BELUM SELESAI
+    let unassigned = complaints
       .filter(c => c.status !== "selesai")
       .sort((a,b) => {
         const scoreA = priorityScore(a);
@@ -406,29 +411,58 @@
     let currentDate = new Date();
     currentDate.setHours(0,0,0,0);
 
-    let countInCurrentDay = (dateMap[formatDateKey(currentDate)] || []).length;
-
-    pendingItems.forEach(item => {
-      const recDate = new Date(item.receivedAt);
-      recDate.setHours(0,0,0,0);
-
-      if (recDate > currentDate) {
-        currentDate = new Date(recDate);
-        countInCurrentDay = (dateMap[formatDateKey(currentDate)] || []).length;
-      }
-
-      if (countInCurrentDay >= MAX_PER_DAY) {
-        currentDate.setDate(currentDate.getDate() + 1);
-        countInCurrentDay = (dateMap[formatDateKey(currentDate)] || []).length;
-      }
-
+    // Proses pengelompokan area dan alokasi harian (Maksimal 5 Komplain per Hari)
+    while (unassigned.length > 0) {
       const dateKey = formatDateKey(currentDate);
       if (!dateMap[dateKey]) dateMap[dateKey] = [];
-      dateMap[dateKey].push(item);
 
-      itemScheduledDateMap[item.id] = new Date(currentDate);
-      countInCurrentDay++;
-    });
+      let availableSlots = MAX_PER_DAY - dateMap[dateKey].length;
+
+      if (availableSlots <= 0) {
+        currentDate.setDate(currentDate.getDate() + 1);
+        continue;
+      }
+
+      // Ambil tiket urutan pertama (memiliki prioritas/waktu tunggu tertinggi)
+      const seedItem = unassigned[0];
+      const targetArea = (seedItem.area || "TANPA-AREA").trim().toLowerCase();
+
+      // Cari tiket lain yang BERADA DI AREA YANG SAMA untuk menghemat rute perjalanan
+      const sameAreaItems = [];
+      const otherAreaItems = [];
+
+      unassigned.forEach(item => {
+        const itemArea = (item.area || "TANPA-AREA").trim().toLowerCase();
+        if (itemArea === targetArea) {
+          sameAreaItems.push(item);
+        } else {
+          otherAreaItems.push(item);
+        }
+      });
+
+      // Ambil tiket di area yang sama sebanyak kuota harian yang tersedia
+      const batchForToday = sameAreaItems.slice(0, availableSlots);
+      const remainingSameArea = sameAreaItems.slice(availableSlots);
+
+      // Masukkan ke jadwal hari ini
+      batchForToday.forEach(item => {
+        dateMap[dateKey].push(item);
+        itemScheduledDateMap[item.id] = new Date(currentDate);
+      });
+
+      // Sisa tiket yang belum terjadwal digabungkan kembali untuk iterasi berikutnya
+      unassigned = [...remainingSameArea, ...otherAreaItems].sort((a,b) => {
+        const scoreA = priorityScore(a);
+        const scoreB = priorityScore(b);
+        if (scoreB !== scoreA) return scoreB - scoreA;
+        return new Date(a.receivedAt) - new Date(b.receivedAt);
+      });
+
+      // Jika kuota hari ini penuh, pindah ke tanggal berikutnya
+      if (dateMap[dateKey].length >= MAX_PER_DAY) {
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+    }
 
     return { dateMap, itemScheduledDateMap };
   }
@@ -573,7 +607,7 @@
     };
 
     const customerInput = el("input", { type:"text", placeholder:"Nama pelanggan / ID langganan", value: editing ? editing.customer : "" });
-    const areaInput = el("input", { type:"text", placeholder:"Area / zona", value: editing ? editing.area : "" });
+    const areaInput = el("input", { type:"text", placeholder:"Area / zona (Contoh: Serpong, Cikupa)", value: editing ? editing.area : "" });
     const catSelect = el("select", {},
       ...CATEGORIES.map(c => el("option", { value: c.key, selected: editing && editing.category===c.key ? "selected" : null }, `[${c.key}] ${c.label}`))
     );
@@ -587,7 +621,7 @@
       el("h2", {}, editing ? "Ubah Komplain " + editing.id : "Tambah Komplain Baru"),
       el("div", { class:"field-row" },
         el("div", { class:"field" }, el("label", {}, "Pelanggan"), customerInput),
-        el("div", { class:"field" }, el("label", {}, "Area / Zona"), areaInput),
+        el("div", { class:"field" }, el("label", {}, "Area / Zona (Wilayah)"), areaInput),
       ),
       el("div", { class:"field-row" },
         el("div", { class:"field" }, el("label", {}, "Jenis CASE Keluhan"), catSelect),
@@ -622,7 +656,7 @@
     );
   }
 
-  // WIDGET GRAFIK DISTRIBUSI CASE (Lengkap dengan Jumlah Total Komplain)
+  // GRAFIK DISTRIBUSI CASE
   function renderCaseChart(){
     const counts = {};
     complaints.forEach(c => {
@@ -777,7 +811,8 @@
       ),
       el("div", { class:"ticket-meta" }, 
         el("span", { class:"case-tag" }, caseDetails.key),
-        " ", caseDetails.label, item.area ? " · " + item.area : ""
+        item.area ? el("span", { class:"area-tag" }, `📍 ${item.area}`) : null,
+        " ", caseDetails.label
       ),
       item.desc ? el("div", { class:"ticket-desc" }, item.desc) : null,
       
@@ -857,6 +892,11 @@
 
     const getScheduledOrder = (items) => {
       return [...items].sort((a,b) => {
+        // Urutkan berdasarkan Area terlebih dahulu agar grup area terlihat rapi di list
+        const areaA = (a.area || "").toLowerCase();
+        const areaB = (b.area || "").toLowerCase();
+        if (areaA !== areaB) return areaA.localeCompare(areaB);
+
         const scoreA = priorityScore(a);
         const scoreB = priorityScore(b);
         if (scoreB !== scoreA) return scoreB - scoreA;
@@ -901,7 +941,6 @@
 
       el("div", { class: "dashboard-grid" },
         el("div", {},
-          // Ringkasan Statistik
           el("div", { class:"summary" },
             el("div", { class:"stat-card tinggi" }, el("div", { class:"num" }, String(tinggiCount)), el("div", { class:"lbl" }, "Prioritas Tinggi")),
             el("div", { class:"stat-card" }, el("div", { class:"num" }, String(openAll.length)), el("div", { class:"lbl" }, "Belum Selesai")),
@@ -925,7 +964,7 @@
               el("div", { class:"filter-group" },
                 "Urutkan:",
                 el("select", { onchange: (e) => { sortMode = e.target.value; render(); } },
-                  el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "Prioritas Utama"),
+                  el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "Prioritas Utama (Area-based)"),
                   el("option", { value:"waktu", selected: sortMode==="waktu" ? "selected" : null }, "Waktu Diterima")
                 )
               )
