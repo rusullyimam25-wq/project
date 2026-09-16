@@ -193,7 +193,7 @@
 
   .case-tag { background: #E0F2FE; color: #0369A1; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
   .area-tag { background: #FEF3C7; color: #92400E; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
-  .score-badge { background: #1E293B; color: #F8FAFC; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
+  .score-badge { background: #1E293B; color: #38BDF8; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
   .email-source-tag { background: #F3E8FF; color: #6B21A8; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
   
   .ticket-meta { font-size: 13px; color: var(--ink-soft); font-weight: 500; }
@@ -254,53 +254,53 @@
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const CATEGORIES = [
-    { key: "BPPD", label: "Biaya Penambahan Pipa Dinas", opRisk: 1, custImpact: 1 },
-    { key: "BPPDIND", label: "Biaya Penambahan Pipa Dinas Industri", opRisk: 2, custImpact: 2 },
-    { key: "INFO-PLG", label: "Info ke Pelanggan", opRisk: 1, custImpact: 1 },
-    { key: "KATM", label: "Air Tidak Mengalir Domestic", opRisk: 3, custImpact: 3 },
-    { key: "KATMIND", label: "Air Tidak Mengalir Industri", opRisk: 3, custImpact: 3 },
-    { key: "KATR", label: "Air Kotor Domestic", opRisk: 2, custImpact: 3 },
-    { key: "KATRIND", label: "Air Kotor Industri", opRisk: 3, custImpact: 3 },
-    { key: "KBBP", label: "Sudah Bayar Belum Pasang Meter", opRisk: 1, custImpact: 2 },
-    { key: "KBGL", label: "Bekas Galian", opRisk: 2, custImpact: 1 },
-    { key: "KBSM", label: "Bocor Sebelum Meter", opRisk: 3, custImpact: 3 },
-    { key: "KBSMIND", label: "Bocor Sebelum Meter Industri", opRisk: 3, custImpact: 3 },
-    { key: "KBTR", label: "Belum Menerima Tagihan", opRisk: 1, custImpact: 1 },
-    { key: "KBTT", label: "Sudah Bayar Tapi di Tagih", opRisk: 1, custImpact: 1 },
-    { key: "KILL", label: "Illegal Consumption", opRisk: 3, custImpact: 2 },
-    { key: "KKMR", label: "Kran Meter Rusak", opRisk: 2, custImpact: 2 },
-    { key: "KKMRIND", label: "Kran Meter Rusak Industri", opRisk: 2, custImpact: 3 },
-    { key: "KLBC", label: "Pipa Jaringan Bocor", opRisk: 3, custImpact: 3 },
-    { key: "KMAL", label: "Meter Air Lepas", opRisk: 2, custImpact: 2 },
-    { key: "KMALIND", label: "Meter Air Lepas Industri", opRisk: 3, custImpact: 3 },
-    { key: "KMDT", label: "Meter Dipasang Terbalik", opRisk: 2, custImpact: 2 },
-    { key: "KMTA", label: "Meter Tidak Ada", opRisk: 2, custImpact: 2 },
-    { key: "KPAP", label: "Perubahan Alamat Premise", opRisk: 1, custImpact: 1 },
-    { key: "KPAT", label: "Perubahan Alamat Billing", opRisk: 1, custImpact: 1 },
-    { key: "KPCT", label: "Pengajuan Cicilan Tagihan", opRisk: 1, custImpact: 1 },
-    { key: "KPDB", label: "Double Bayar", opRisk: 1, custImpact: 1 },
-    { key: "KPGP", label: "Permintaan Balik Nama", opRisk: 1, custImpact: 1 },
-    { key: "KPKT", label: "Penyambungan Kembali Akibat Tunggakkan", opRisk: 2, custImpact: 2 },
-    { key: "KPMR", label: "Meter Rusak", opRisk: 2, custImpact: 2 },
-    { key: "KPMRIND", label: "Meter Rusak Industri", opRisk: 3, custImpact: 3 },
-    { key: "KPPA", label: "Revisi Nama", opRisk: 1, custImpact: 1 },
-    { key: "KPPM", label: "Perilaku Pembaca Meter", opRisk: 1, custImpact: 1 },
-    { key: "KPPR", label: "Pipa Dinas Rusak", opRisk: 3, custImpact: 2 },
-    { key: "KPPS", label: "Permintaan Pemutusan Sambungan", opRisk: 1, custImpact: 1 },
-    { key: "KPPSIND", label: "Permintaan Pemutusan Sambungan Industri", opRisk: 2, custImpact: 2 },
-    { key: "KPSB", label: "Salah Bayar", opRisk: 1, custImpact: 1 },
-    { key: "KPSM", label: "Petugas Penyegelan", opRisk: 1, custImpact: 1 },
-    { key: "KRMT", label: "Permintaan Relokasi Meter (teknis)", opRisk: 2, custImpact: 1 },
-    { key: "KRPR", label: "Rekening Pembayaran Rendah", opRisk: 1, custImpact: 1 },
-    { key: "KRPT", label: "Rekening Pembayaran Tinggi", opRisk: 1, custImpact: 1 },
-    { key: "KSPM", label: "Meter Tertukar", opRisk: 2, custImpact: 2 },
-    { key: "KTST", label: "Tidak Sesuai Tarif", opRisk: 1, custImpact: 1 },
-    { key: "KTST-RC", label: "Tidak Sesuai Tarif - Re Class", opRisk: 1, custImpact: 1 },
-    { key: "LAPUL", label: "Lapor Ulang", opRisk: 2, custImpact: 2 },
-    { key: "PPMI", label: "Permintaan Penyesuaian Meter Industri", opRisk: 2, custImpact: 2 },
-    { key: "TERAREQ", label: "Tera Meter Request", opRisk: 1, custImpact: 1 },
-    { key: "TR09", label: "Pindah Meter", opRisk: 2, custImpact: 1 },
-    { key: "TR09IND", label: "Pindah Meter Industri", weight: 2, opRisk: 2, custImpact: 2 }
+    { key: "BPPD", label: "Biaya Penambahan Pipa Dinas", opRisk: 1, custImpact: 1, keywords: ["biaya", "pipa dinas"] },
+    { key: "BPPDIND", label: "Biaya Penambahan Pipa Dinas Industri", opRisk: 2, custImpact: 2, keywords: ["pipa industri"] },
+    { key: "INFO-PLG", label: "Info ke Pelanggan", opRisk: 1, custImpact: 1, keywords: ["info", "tanya"] },
+    { key: "KATM", label: "Air Tidak Mengalir Domestic", opRisk: 3, custImpact: 3, keywords: ["tidak mengalir", "mati", "tidak keluar", "kering"] },
+    { key: "KATMIND", label: "Air Tidak Mengalir Industri", opRisk: 3, custImpact: 3, keywords: ["air mati industri", "pabrik kering"] },
+    { key: "KATR", label: "Air Kotor Domestic", opRisk: 2, custImpact: 3, keywords: ["kotor", "keruh", "berbau", "hitam", "kuning"] },
+    { key: "KATRIND", label: "Air Kotor Industri", opRisk: 3, custImpact: 3, keywords: ["kotor industri"] },
+    { key: "KBBP", label: "Sudah Bayar Belum Pasang Meter", opRisk: 1, custImpact: 2, keywords: ["belum pasang", "sudah bayar"] },
+    { key: "KBGL", label: "Bekas Galian", opRisk: 2, custImpact: 1, keywords: ["galian", "lubang", "tanah"] },
+    { key: "KBSM", label: "Bocor Sebelum Meter", opRisk: 3, custImpact: 3, keywords: ["bocor sebelum meter", "bocor sebelum", "pipa bocor"] },
+    { key: "KBSMIND", label: "Bocor Sebelum Meter Industri", opRisk: 3, custImpact: 3, keywords: ["bocor meter industri"] },
+    { key: "KBTR", label: "Belum Menerima Tagihan", opRisk: 1, custImpact: 1, keywords: ["belum terima tagihan"] },
+    { key: "KBTT", label: "Sudah Bayar Tapi di Tagih", opRisk: 1, custImpact: 1, keywords: ["sudah bayar ditagih"] },
+    { key: "KILL", label: "Illegal Consumption", opRisk: 3, custImpact: 2, keywords: ["ilegal", "pencurian", "bypass"] },
+    { key: "KKMR", label: "Kran Meter Rusak", opRisk: 2, custImpact: 2, keywords: ["kran rusak", "kran patah"] },
+    { key: "KKMRIND", label: "Kran Meter Rusak Industri", opRisk: 2, custImpact: 3, keywords: ["kran industri"] },
+    { key: "KLBC", label: "Pipa Jaringan Bocor", opRisk: 3, custImpact: 3, keywords: ["jaringan bocor", "pipa induk bocor", "bocor di jalan"] },
+    { key: "KMAL", label: "Meter Air Lepas", opRisk: 2, custImpact: 2, keywords: ["meter lepas", "copot"] },
+    { key: "KMALIND", label: "Meter Air Lepas Industri", opRisk: 3, custImpact: 3, keywords: ["meter lepas industri"] },
+    { key: "KMDT", label: "Meter Dipasang Terbalik", opRisk: 2, custImpact: 2, keywords: ["terbalik"] },
+    { key: "KMTA", label: "Meter Tidak Ada", opRisk: 2, custImpact: 2, keywords: ["meter hilang"] },
+    { key: "KPAP", label: "Perubahan Alamat Premise", opRisk: 1, custImpact: 1, keywords: ["pindah alamat"] },
+    { key: "KPAT", label: "Perubahan Alamat Billing", opRisk: 1, custImpact: 1, keywords: ["alamat billing"] },
+    { key: "KPCT", label: "Pengajuan Cicilan Tagihan", opRisk: 1, custImpact: 1, keywords: ["cicil"] },
+    { key: "KPDB", label: "Double Bayar", opRisk: 1, custImpact: 1, keywords: ["double bayar"] },
+    { key: "KPGP", label: "Permintaan Balik Nama", opRisk: 1, custImpact: 1, keywords: ["balik nama"] },
+    { key: "KPKT", label: "Penyambungan Kembali Akibat Tunggakkan", opRisk: 2, custImpact: 2, keywords: ["sambung kembali"] },
+    { key: "KPMR", label: "Meter Rusak", opRisk: 2, custImpact: 2, keywords: ["meter rusak", "meter mati", "angka tidak jalan"] },
+    { key: "KPMRIND", label: "Meter Rusak Industri", opRisk: 3, custImpact: 3, keywords: ["meter rusak industri"] },
+    { key: "KPPA", label: "Revisi Nama", opRisk: 1, custImpact: 1, keywords: ["revisi nama"] },
+    { key: "KPPM", label: "Perilaku Pembaca Meter", opRisk: 1, custImpact: 1, keywords: ["petugas"] },
+    { key: "KPPR", label: "Pipa Dinas Rusak", opRisk: 3, custImpact: 2, keywords: ["pipa dinas rusak"] },
+    { key: "KPPS", label: "Permintaan Pemutusan Sambungan", opRisk: 1, custImpact: 1, keywords: ["putus"] },
+    { key: "KPPSIND", label: "Permintaan Pemutusan Sambungan Industri", opRisk: 2, custImpact: 2, keywords: ["putus industri"] },
+    { key: "KPSB", label: "Salah Bayar", opRisk: 1, custImpact: 1, keywords: ["salah bayar"] },
+    { key: "KPSM", label: "Petugas Penyegelan", opRisk: 1, custImpact: 1, keywords: ["segel"] },
+    { key: "KRMT", label: "Permintaan Relokasi Meter (teknis)", opRisk: 2, custImpact: 1, keywords: ["relokasi meter", "geser meter"] },
+    { key: "KRPR", label: "Rekening Pembayaran Rendah", opRisk: 1, custImpact: 1, keywords: ["tagihan rendah"] },
+    { key: "KRPT", label: "Rekening Pembayaran Tinggi", opRisk: 1, custImpact: 1, keywords: ["tagihan tinggi", "lonjak"] },
+    { key: "KSPM", label: "Meter Tertukar", opRisk: 2, custImpact: 2, keywords: ["tertukar"] },
+    { key: "KTST", label: "Tidak Sesuai Tarif", opRisk: 1, custImpact: 1, keywords: ["tarif"] },
+    { key: "KTST-RC", label: "Tidak Sesuai Tarif - Re Class", opRisk: 1, custImpact: 1, keywords: ["reclass"] },
+    { key: "LAPUL", label: "Lapor Ulang", opRisk: 2, custImpact: 2, keywords: ["lapor ulang"] },
+    { key: "PPMI", label: "Permintaan Penyesuaian Meter Industri", opRisk: 2, custImpact: 2, keywords: ["penyesuaian meter"] },
+    { key: "TERAREQ", label: "Tera Meter Request", opRisk: 1, custImpact: 1, keywords: ["tera meter"] },
+    { key: "TR09", label: "Pindah Meter", opRisk: 2, custImpact: 1, keywords: ["pindah meter"] },
+    { key: "TR09IND", label: "Pindah Meter Industri", opRisk: 2, custImpact: 2, keywords: ["pindah meter industri"] }
   ];
 
   const SLA_DAYS = 14;
@@ -319,20 +319,16 @@
   let editingId = null;
 
   function catInfo(key){
-    return CATEGORIES.find(c => c.key === key) || { key: key||"OTHERS", label: key||"Lainnya", opRisk: 1, custImpact: 1 };
+    return CATEGORIES.find(c => c.key === key) || { key: key||"OTHERS", label: key||"Lainnya", opRisk: 1, custImpact: 1, keywords:[] };
   }
 
-  // --- LOGIKA SKORING URGENSI MULTIDIMENSI ---
+  // LOGIKA SKORING URGENSI MULTIDIMENSI
   function computeUrgencyMetrics(item) {
     const cInfo = catInfo(item.category);
 
-    // 1. Dampak Operasional (Bobot 35%) - Nilai 1-3
     const scoreOpRisk = item.urgent ? 3 : (cInfo.opRisk || 1);
-
-    // 2. Dampak Pelanggan (Bobot 30%) - Nilai 1-3
     const scoreCustImpact = item.urgent ? 3 : (cInfo.custImpact || 1);
 
-    // 3. Sisa Batas SLA (Bobot 20%) - Nilai 1-3
     const start = new Date(item.receivedAt);
     const deadline = new Date(start.getTime() + SLA_DAYS * 24 * 60 * 60 * 1000);
     const diffDays = Math.ceil((deadline - new Date()) / (1000 * 60 * 60 * 24));
@@ -340,24 +336,21 @@
     if (diffDays <= 3) scoreSla = 3;
     else if (diffDays <= 7) scoreSla = 2;
 
-    // 4. Segmen Tipe Pelanggan (Bobot 15%) - Nilai 1-3
     const isIndustrial = (item.category && item.category.endsWith("IND")) || 
                          (item.customer && item.customer.toLowerCase().includes("pt.")) ||
                          (item.customer && item.customer.toLowerCase().includes("cv."));
     const scoreCustType = isIndustrial ? 3 : 2;
 
-    // RUMUS SKOR TOTAL (1.00 - 3.00)
     const totalScore = (scoreOpRisk * 0.35) + (scoreCustImpact * 0.30) + (scoreSla * 0.20) + (scoreCustType * 0.15);
     const roundedScore = Math.round(totalScore * 100) / 100;
 
-    // Klasifikasi Kategori Akhir
     let level = "rendah";
     if (roundedScore >= 2.40) level = "tinggi";
     else if (roundedScore >= 1.70) level = "sedang";
 
     return {
       score: roundedScore,
-      level: level // "tinggi" (URGENT), "sedang" (MEDIUM), "rendah" (LOW)
+      level: level
     };
   }
 
@@ -434,6 +427,7 @@
     };
   }
 
+  // ALOKASI JADWAL KALENDER BERDASARKAN URUTAN SKOR BERAT + CLUSTERING AREA
   function calculateCalendarSchedule(){
     const dateMap = {}; 
     const itemScheduledDateMap = {};
@@ -507,7 +501,7 @@
     return { dateMap, itemScheduledDateMap };
   }
 
-  // EXPORT EXCEL DENGAN NILAI SKOR URGENSI
+  // EXPORT EXCEL
   function exportToExcel(itemsToExport, itemScheduledDateMap) {
     if (!itemsToExport || itemsToExport.length === 0) {
       alert("Tidak ada data komplain untuk diunduh.");
@@ -543,22 +537,9 @@
     const worksheet = XLSX.utils.json_to_sheet(excelData);
 
     const colWidths = [
-      { wch: 15 }, // WO ID
-      { wch: 22 }, // Nama
-      { wch: 18 }, // ID Meter
-      { wch: 35 }, // Alamat
-      { wch: 15 }, // Area
-      { wch: 12 }, // CASE
-      { wch: 32 }, // Kategori
-      { wch: 14 }, // Skor
-      { wch: 16 }, // Kategori Urgensi
-      { wch: 38 }, // Deskripsi
-      { wch: 20 }, // Diterima
-      { wch: 18 }, // Jadwal
-      { wch: 20 }, // SLA
-      { wch: 18 }, // Status SLA
-      { wch: 18 }, // Status
-      { wch: 22 }  // Coords
+      { wch: 15 }, { wch: 22 }, { wch: 18 }, { wch: 35 }, { wch: 15 },
+      { wch: 12 }, { wch: 32 }, { wch: 14 }, { wch: 16 }, { wch: 38 },
+      { wch: 20 }, { wch: 18 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 22 }
     ];
     worksheet['!cols'] = colWidths;
 
@@ -683,6 +664,7 @@
     await load();
   }
 
+  // AUTOMATIC EMAIL TO CASE CONVERTER ENGINE
   async function processInboundEmail(emailRawText) {
     const parseField = (pattern) => {
       const match = emailRawText.match(pattern);
@@ -693,19 +675,26 @@
     const meterId = parseField(/ID Meter\s*:\s*(.*)/i) || parseField(/ID Pelanggan\s*:\s*(.*)/i) || "-";
     const address = parseField(/Alamat\s*:\s*(.*)/i) || "-";
     const area = parseField(/Area\s*:\s*(.*)/i) || "Cikupa";
-    const category = parseField(/Jenis Case\s*:\s*(.*)/i) || "KBSM";
     const coords = parseField(/Koordinat\s*:\s*(.*)/i) || "";
     const desc = parseField(/Deskripsi\s*:\s*(.*)/i) || emailRawText.slice(0, 150);
     const urgentFlag = parseField(/Urgent\s*:\s*(.*)/i);
     const isUrgent = urgentFlag ? urgentFlag.toLowerCase().includes("ya") : false;
+
+    // DETEKSI JENIS CASE SECARA OTOMATIS BERDASARKAN KATA KUNCI DI EMAIL
+    let detectedCategory = parseField(/Jenis Case\s*:\s*(.*)/i);
+    if (!detectedCategory || !CATEGORIES.some(c => c.key === detectedCategory.toUpperCase())) {
+      const lowerText = (desc + " " + emailRawText).toLowerCase();
+      let matched = CATEGORIES.find(c => c.keywords.some(kw => lowerText.includes(kw)));
+      detectedCategory = matched ? matched.key : "KBSM";
+    }
 
     const newComplaint = {
       customer,
       meterId,
       address,
       area,
-      category: category.toUpperCase(),
-      desc: desc + " [Via Email Forward]",
+      category: detectedCategory.toUpperCase(),
+      desc: desc + " [Konversi Email Otomatis]",
       receivedAt: new Date().toISOString(),
       urgent: isUrgent,
       coords
@@ -776,7 +765,7 @@
         el("div", { class:"field" }, el("label", {}, "Koordinat Lokasi"), coordsInput),
       ),
       el("label", { style: "display:flex; align-items:center; gap:8px; font-size:13px; margin: 8px 0 16px; cursor:pointer;" }, 
-        urgentCheck, "Tandai mendesak (Menaikkan Skor Urgensi)"
+        urgentCheck, "Tandai mendesak (Prioritas Utama)"
       ),
       el("div", { style: "display:flex; gap:8px;" },
         el("button", { class:"btn-primary", onclick: () => {
@@ -806,29 +795,28 @@
     if(!emailModalOpen) return el("div");
 
     const defaultEmailContent = 
-`FW: [KOMPLAIN PELANGGAN]
+`FW: [LAPORAN KELUHAN AIR MATI]
 Nama Pelanggan : Bambang Wijaya
 ID Meter : PLG-99882
 Alamat : Jl. Raya Serang Km 14 No. 25, Cikupa
 Area : Cikupa
-Jenis Case : KBSM
 Koordinat : -6.2231, 106.5134
 Urgent : Ya
-Deskripsi : Kebocoran pada sambungan pipa sebelum meteran air. Air meluber ke pekarangan rumah.`;
+Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor deras. Mohon segera diperbaiki.`;
 
     const emailTextArea = el("textarea", { style: "width:100%; height:150px; font-family:monospace; font-size:12px; padding:10px; border:1px solid var(--border); border-radius:6px;" }, defaultEmailContent);
 
     return el("div", { class:"form-panel open", style: "background:#F3E8FF; border-color:#C084FC;" },
-      el("h2", { style:"color:#6B21A8; margin-top:0;" }, "📧 Simulator Webhook Forward Email"),
+      el("h2", { style:"color:#6B21A8; margin-top:0;" }, "🔄 Engine Konversi Email Langsung Ke CASE"),
       el("p", { style:"font-size:12px; color:#581C87; margin-bottom:12px;" }, 
-        "Teks email akan diekstrak dan dihitung skor urgensinya secara otomatis:"
+        "Sistem akan membaca teks email, memilah data pelanggan, dan mencocokkan jenis CASE secara otomatis:"
       ),
       emailTextArea,
       el("div", { style:"display:flex; gap:8px; margin-top:12px;" },
         el("button", { class:"btn-email", onclick: async () => {
           await processInboundEmail(emailTextArea.value);
           emailModalOpen = false;
-        }}, "📥 Simulasikan Email Masuk"),
+        }}, "⚡ Konversi Sekarang"),
         el("button", { class:"btn-secondary", onclick: () => { emailModalOpen = false; render(); } }, "Tutup")
       )
     );
@@ -974,7 +962,7 @@ Deskripsi : Kebocoran pada sambungan pipa sebelum meteran air. Air meluber ke pe
     const deadlineInfo = getDeadlineInfo(item);
     const mapContainerId = "map-" + item.id;
     const caseDetails = catInfo(item.category);
-    const isFromEmail = item.desc && item.desc.includes("Email");
+    const isFromEmail = item.desc && item.desc.includes("Konversi");
 
     const scheduledDateObj = itemScheduledDateMap[item.id];
     const scheduledText = scheduledDateObj ? fmtDateOnly(scheduledDateObj) : "-";
@@ -1072,15 +1060,17 @@ Deskripsi : Kebocoran pada sambungan pipa sebelum meteran air. Air meluber ke pe
       });
     }
 
+    // URUTKAN DAFTAR BERDASARKAN SKOR URGENSI TERTINGGI KE TERENDAH
     const getScheduledOrder = (items) => {
       return [...items].sort((a,b) => {
+        const scoreA = priorityScore(a);
+        const scoreB = priorityScore(b);
+        if (scoreB !== scoreA) return scoreB - scoreA;
+        
         const areaA = (a.area || "").toLowerCase();
         const areaB = (b.area || "").toLowerCase();
         if (areaA !== areaB) return areaA.localeCompare(areaB);
 
-        const scoreA = priorityScore(a);
-        const scoreB = priorityScore(b);
-        if (scoreB !== scoreA) return scoreB - scoreA;
         return new Date(a.receivedAt) - new Date(b.receivedAt);
       });
     };
@@ -1133,7 +1123,7 @@ Deskripsi : Kebocoran pada sambungan pipa sebelum meteran air. Air meluber ke pe
           el("div", { class:"toolbar" },
             el("div", { class:"toolbar-actions" },
               el("button", { class:"btn-primary", onclick: () => { formOpen = !formOpen; emailModalOpen = false; if(!formOpen) editingId=null; render(); } }, formOpen ? "Tutup Form" : "+ Manual Komplain"),
-              el("button", { class:"btn-email", onclick: () => { emailModalOpen = !emailModalOpen; formOpen = false; render(); } }, "📧 Simulasikan Email"),
+              el("button", { class:"btn-email", onclick: () => { emailModalOpen = !emailModalOpen; formOpen = false; render(); } }, "🔄 Konversi Email Ke Case"),
               el("button", { class:"btn-excel", onclick: () => exportToExcel(base, itemScheduledDateMap) }, "📊 Export Excel")
             ),
             el("div", { class:"filters" },
@@ -1147,7 +1137,7 @@ Deskripsi : Kebocoran pada sambungan pipa sebelum meteran air. Air meluber ke pe
               el("div", { class:"filter-group" },
                 "Urutkan:",
                 el("select", { onchange: (e) => { sortMode = e.target.value; render(); } },
-                  el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "Prioritas Utama (Area-based)"),
+                  el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "Urutan Skor Urgensi (Tinggi-Rendah)"),
                   el("option", { value:"waktu", selected: sortMode==="waktu" ? "selected" : null }, "Waktu Diterima")
                 )
               )
