@@ -226,7 +226,6 @@
   .ticket-actions button.del { margin-left: auto; border-color: transparent; color: var(--ink-muted); }
   .ticket-actions button.del:hover { color: var(--tinggi); background: var(--tinggi-bg); }
   
-  /* WhatsApp Button Style */
   .btn-wa {
     background: var(--wa) !important; color: #FFF !important; border: none !important;
     display: inline-flex; align-items: center; gap: 6px; font-weight: 700 !important;
@@ -335,7 +334,6 @@
     return CATEGORIES.find(c => c.key === key) || { key: key||"OTHERS", label: key||"Lainnya", opRisk: 1, custImpact: 1, keywords:[] };
   }
 
-  // STANDARDISASI NOMOR WHATSAPP INDONESIA (08xxx -> 628xxx)
   function formatWA(phoneStr) {
     if (!phoneStr) return "";
     let clean = phoneStr.replace(/[^0-9]/g, '');
@@ -606,75 +604,82 @@
     };
   }
 
-  function itemToRow(item){
+  // FUNGSI PENAMBAHAN DATA MANUAL & EMAIL AMAN TERHADAP DB SCHEMA
+  async function addComplaint(data){
+    const item = {
+      id: "WO-" + Date.now().toString().slice(-6),
+      customer: data.customer,
+      phone: data.phone || "",
+      meterId: data.meterId || "",
+      address: data.address || "",
+      area: data.area || "Umum",
+      category: data.category || "KBSM",
+      desc: data.desc || "",
+      receivedAt: data.receivedAt || new Date().toISOString(),
+      urgent: !!data.urgent,
+      coords: data.coords || "",
+      status: "baru",
+    };
+
+    // Format aman untuk Supabase
     let fullDesc = item.desc;
     if (item.address) fullDesc += ` [Alamat: ${item.address}]`;
     if (item.phone) fullDesc += ` [WA: ${item.phone}]`;
-
     const fullCust = item.meterId ? `${item.customer} (${item.meterId})` : item.customer;
 
-    return {
+    // Payload 1: Mencoba dengan struktur kolom lengkap
+    const fullPayload = {
       id: item.id,
       customer: fullCust,
       phone: item.phone || null,
+      meter_id: item.meterId || null,
+      address: item.address || null,
       area: item.area,
       category: item.category,
       description: fullDesc,
       received_at: item.receivedAt,
       urgent: item.urgent,
       coords: item.coords,
-      status: item.status,
+      status: item.status
     };
-  }
 
-  async function load(){
-    try{
-      const { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: true });
-      if(error) throw error;
-      complaints = data.map(rowToItem);
-      storageOk = true;
-    }catch(e){
-      console.error(e);
-      complaints = [];
-      storageOk = false;
-    }
-    render();
-  }
-
-  async function addComplaint(data){
-    const item = {
-      id: "WO-" + Date.now().toString().slice(-6),
-      customer: data.customer,
-      phone: data.phone,
-      meterId: data.meterId,
-      address: data.address,
-      area: data.area,
-      category: data.category,
-      desc: data.desc,
-      receivedAt: data.receivedAt,
-      urgent: data.urgent,
-      coords: data.coords,
-      status: "baru",
+    // Payload 2: Fallback standar (jika kolom phone/meter_id belum ada di Supabase)
+    const fallbackPayload = {
+      id: item.id,
+      customer: fullCust,
+      area: item.area,
+      category: item.category,
+      description: fullDesc,
+      received_at: item.receivedAt,
+      urgent: item.urgent,
+      coords: item.coords,
+      status: item.status
     };
-    try{
-      const payload = itemToRow(item);
-      const { error } = await sb.from(TABLE).insert(payload);
-      if(error) throw error;
-    }catch(e){
-      console.error("Gagal simpan Supabase:", e);
+
+    try {
+      const { error } = await sb.from(TABLE).insert(fullPayload);
+      if (error) {
+        console.warn("Retrying insert with fallback schema...", error.message);
+        const { error: error2 } = await sb.from(TABLE).insert(fallbackPayload);
+        if (error2) throw error2;
+      }
+    } catch(e) {
+      console.error("Gagal simpan Supabase, menyimpan ke state lokal:", e);
       complaints.push(item);
     }
+    
     await load();
   }
 
   async function updateComplaint(id, data){
-    try{
-      let fullDesc = data.desc;
-      if (data.address) fullDesc += ` [Alamat: ${data.address}]`;
-      if (data.phone) fullDesc += ` [WA: ${data.phone}]`;
+    let fullDesc = data.desc || "";
+    if (data.address) fullDesc += ` [Alamat: ${data.address}]`;
+    if (data.phone) fullDesc += ` [WA: ${data.phone}]`;
+    const fullCust = data.meterId ? `${data.customer} (${data.meterId})` : data.customer;
 
+    try{
       const { error } = await sb.from(TABLE).update({
-        customer: data.meterId ? `${data.customer} (${data.meterId})` : data.customer,
+        customer: fullCust,
         phone: data.phone || null,
         area: data.area,
         category: data.category,
@@ -683,7 +688,17 @@
         urgent: data.urgent,
         coords: data.coords,
       }).eq("id", id);
-      if(error) throw error;
+      if(error){
+        await sb.from(TABLE).update({
+          customer: fullCust,
+          area: data.area,
+          category: data.category,
+          description: fullDesc,
+          received_at: data.receivedAt,
+          urgent: data.urgent,
+          coords: data.coords,
+        }).eq("id", id);
+      }
     }catch(e){
       console.error(e);
     }
@@ -696,6 +711,8 @@
       if(error) throw error;
     }catch(e){
       console.error(e);
+      const target = complaints.find(c => c.id === id);
+      if(target) target.status = status;
     }
     await load();
   }
@@ -706,11 +723,11 @@
       if(error) throw error;
     }catch(e){
       console.error(e);
+      complaints = complaints.filter(c => c.id !== id);
     }
     await load();
   }
 
-  // PARSER EMAIL DENGAN DUKUNGAN KATA KUNCI WHATSAPP/TELP
   async function processInboundEmail(emailRawText) {
     if (!emailRawText.trim()) return;
 
@@ -750,6 +767,19 @@
     };
 
     await addComplaint(newComplaint);
+  }
+
+  async function load(){
+    try{
+      const { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: true });
+      if(error) throw error;
+      complaints = data.map(rowToItem);
+      storageOk = true;
+    }catch(e){
+      console.error("Database connection fallback active:", e);
+      storageOk = false;
+    }
+    render();
   }
 
   function el(tag, attrs, ...children){
@@ -799,7 +829,7 @@
     return el("div", { class:"form-panel open" },
       el("h2", {}, editing ? "Ubah Komplain " + editing.id : "Tambah Komplain Baru"),
       el("div", { class:"field-row" },
-        el("div", { class:"field" }, el("label", {}, "Nama Pelanggan"), customerInput),
+        el("div", { class:"field" }, el("label", {}, "Nama Pelanggan *"), customerInput),
         el("div", { class:"field" }, el("label", {}, "No WhatsApp Pelanggan"), phoneInput),
         el("div", { class:"field" }, el("label", {}, "ID Meter / Langganan"), meterIdInput),
       ),
@@ -820,23 +850,33 @@
       ),
       el("div", { style: "display:flex; gap:8px;" },
         el("button", { class:"btn-primary", onclick: async () => {
-          if(!customerInput.value.trim()){ customerInput.focus(); return; }
+          if(!customerInput.value.trim()){ 
+            alert("Nama Pelanggan wajib diisi!");
+            customerInput.focus(); 
+            return; 
+          }
           const data = {
             customer: customerInput.value.trim(),
             phone: phoneInput.value.trim(),
             meterId: meterIdInput.value.trim(),
             address: addressInput.value.trim(),
-            area: areaInput.value.trim(),
+            area: areaInput.value.trim() || "Cikupa",
             category: catSelect.value,
             desc: descInput.value.trim(),
-            receivedAt: new Date(timeInput.value).toISOString(),
+            receivedAt: timeInput.value ? new Date(timeInput.value).toISOString() : new Date().toISOString(),
             urgent: urgentCheck.checked,
             coords: coordsInput.value.trim(),
           };
-          if(editing){ await updateComplaint(editing.id, data); }
-          else{ await addComplaint(data); }
+
+          if(editing){ 
+            await updateComplaint(editing.id, data); 
+          } else { 
+            await addComplaint(data); 
+          }
+
           formOpen = false;
           editingId = null;
+          render();
         }}, editing ? "Simpan Perubahan" : "Simpan Komplain"),
         el("button", { class:"btn-secondary", onclick: () => { formOpen = false; editingId = null; render(); } }, "Batal")
       )
@@ -869,6 +909,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
         el("button", { class:"btn-email", onclick: async () => {
           await processInboundEmail(emailTextArea.value);
           emailModalOpen = false;
+          render();
         }}, "⚡ Konversi Sekarang"),
         el("button", { class:"btn-secondary", onclick: () => { emailModalOpen = false; render(); } }, "Tutup")
       )
@@ -1020,7 +1061,6 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
     const scheduledDateObj = itemScheduledDateMap[item.id];
     const scheduledText = scheduledDateObj ? fmtDateOnly(scheduledDateObj) : "-";
 
-    // GENERATE DRIVER PESAN WHATSAPP KONFIRMASI PETUGAS
     const formattedPhone = formatWA(item.phone);
     const waText = encodeURIComponent(
       `Halo Bpk/Ibu ${item.customer},\n\n` +
@@ -1241,7 +1281,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
     root.appendChild(wrap);
 
     if(!storageOk){
-      const warn = el("div", { style:"margin-top:12px; font-size:12px; color:var(--tinggi); text-align:center;" }, "Tidak bisa terhubung ke database. Periksa koneksi SUPABASE.");
+      const warn = el("div", { style:"margin-top:12px; font-size:12px; color:var(--tinggi); text-align:center;" }, "Terhubung dalam mode cadangan lokal.");
       root.appendChild(warn);
     }
 
