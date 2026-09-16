@@ -20,6 +20,10 @@
     --rendah: #10B981;
     --rendah-bg: #ECFDF5;
     
+    --wa: #25D366;
+    --wa-bg: #DCF8C6;
+    --wa-hover: #1EBE5D;
+    
     --shadow-sm: 0 2px 4px rgba(148, 163, 184, 0.08);
     --shadow-md: 0 4px 12px rgba(148, 163, 184, 0.12);
     --radius: 12px;
@@ -215,12 +219,21 @@
   .ticket-loc { font-size: 12px; display: flex; gap: 12px; margin-top: 4px; }
   .ticket-loc a { color: var(--accent); text-decoration: none; font-weight: 600; }
 
-  .ticket-actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+  .ticket-actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; align-items: center; }
   .ticket-actions button { font-size: 12px; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: #FFF; color: var(--ink-soft); }
   .ticket-actions button.progress { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
   .ticket-actions button.done { border-color: var(--rendah); color: var(--rendah); background: var(--rendah-bg); }
   .ticket-actions button.del { margin-left: auto; border-color: transparent; color: var(--ink-muted); }
   .ticket-actions button.del:hover { color: var(--tinggi); background: var(--tinggi-bg); }
+  
+  /* WhatsApp Button Style */
+  .btn-wa {
+    background: var(--wa) !important; color: #FFF !important; border: none !important;
+    display: inline-flex; align-items: center; gap: 6px; font-weight: 700 !important;
+    text-decoration: none; font-size: 12px; padding: 6px 12px; border-radius: 6px;
+    transition: background 0.2s;
+  }
+  .btn-wa:hover { background: var(--wa-hover) !important; }
 
   .section-head {
     font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
@@ -320,6 +333,16 @@
 
   function catInfo(key){
     return CATEGORIES.find(c => c.key === key) || { key: key||"OTHERS", label: key||"Lainnya", opRisk: 1, custImpact: 1, keywords:[] };
+  }
+
+  // STANDARDISASI NOMOR WHATSAPP INDONESIA (08xxx -> 628xxx)
+  function formatWA(phoneStr) {
+    if (!phoneStr) return "";
+    let clean = phoneStr.replace(/[^0-9]/g, '');
+    if (clean.startsWith('0')) {
+      clean = '62' + clean.slice(1);
+    }
+    return clean;
   }
 
   function computeUrgencyMetrics(item) {
@@ -514,6 +537,7 @@
       return {
         "ID Work Order": item.id,
         "Nama Pelanggan": item.customer || "-",
+        "No WhatsApp": item.phone || "-",
         "ID Meter / Langganan": item.meterId || "-",
         "Alamat Lengkap": item.address || "-",
         "Area / Zona": item.area || "-",
@@ -534,7 +558,7 @@
     const worksheet = XLSX.utils.json_to_sheet(excelData);
 
     const colWidths = [
-      { wch: 15 }, { wch: 22 }, { wch: 18 }, { wch: 35 }, { wch: 15 },
+      { wch: 15 }, { wch: 22 }, { wch: 16 }, { wch: 18 }, { wch: 35 }, { wch: 15 },
       { wch: 12 }, { wch: 32 }, { wch: 14 }, { wch: 16 }, { wch: 38 },
       { wch: 20 }, { wch: 18 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 22 }
     ];
@@ -550,11 +574,15 @@
   function rowToItem(row){
     let extraAddr = row.address || "";
     let extraMeter = row.meter_id || "";
+    let extraPhone = row.phone || "";
 
-    // Fallback jika database belum punya kolom address/meter_id terpisah
     if (!extraAddr && row.description && row.description.includes("[Alamat:")) {
       const mAddr = row.description.match(/\[Alamat:\s*(.*?)\]/);
       if (mAddr) extraAddr = mAddr[1];
+    }
+    if (!extraPhone && row.description && row.description.includes("[WA:")) {
+      const mPhone = row.description.match(/\[WA:\s*(.*?)\]/);
+      if (mPhone) extraPhone = mPhone[1];
     }
     if (!extraMeter && row.customer && row.customer.includes("(") && row.customer.includes(")")) {
       const mId = row.customer.match(/\((.*?)\)/);
@@ -564,11 +592,12 @@
     return {
       id: row.id,
       customer: row.customer ? row.customer.replace(/\s*\(.*?\)/, '') : "",
+      phone: extraPhone,
       meterId: extraMeter,
       address: extraAddr,
       area: row.area,
       category: row.category,
-      desc: row.description ? row.description.replace(/\[Alamat:.*?\]/g, '').trim() : "",
+      desc: row.description ? row.description.replace(/\[Alamat:.*?\]/g, '').replace(/\[WA:.*?\]/g, '').trim() : "",
       receivedAt: row.received_at,
       urgent: row.urgent,
       coords: row.coords,
@@ -578,13 +607,16 @@
   }
 
   function itemToRow(item){
-    // Penanganan fleksibel untuk kompatibilitas skema database
-    const fullDesc = item.address ? `${item.desc} [Alamat: ${item.address}]` : item.desc;
+    let fullDesc = item.desc;
+    if (item.address) fullDesc += ` [Alamat: ${item.address}]`;
+    if (item.phone) fullDesc += ` [WA: ${item.phone}]`;
+
     const fullCust = item.meterId ? `${item.customer} (${item.meterId})` : item.customer;
 
     return {
       id: item.id,
       customer: fullCust,
+      phone: item.phone || null,
       area: item.area,
       category: item.category,
       description: fullDesc,
@@ -609,11 +641,11 @@
     render();
   }
 
-  // FUNGSI SIMPAN DENGAN ERROR HANDLING YANG DIPERBAIKI
   async function addComplaint(data){
     const item = {
       id: "WO-" + Date.now().toString().slice(-6),
       customer: data.customer,
+      phone: data.phone,
       meterId: data.meterId,
       address: data.address,
       area: data.area,
@@ -630,7 +662,6 @@
       if(error) throw error;
     }catch(e){
       console.error("Gagal simpan Supabase:", e);
-      // Simpan lokal jika terjadi kegagalan jaringan
       complaints.push(item);
     }
     await load();
@@ -638,11 +669,16 @@
 
   async function updateComplaint(id, data){
     try{
+      let fullDesc = data.desc;
+      if (data.address) fullDesc += ` [Alamat: ${data.address}]`;
+      if (data.phone) fullDesc += ` [WA: ${data.phone}]`;
+
       const { error } = await sb.from(TABLE).update({
         customer: data.meterId ? `${data.customer} (${data.meterId})` : data.customer,
+        phone: data.phone || null,
         area: data.area,
         category: data.category,
-        description: data.address ? `${data.desc} [Alamat: ${data.address}]` : data.desc,
+        description: fullDesc,
         received_at: data.receivedAt,
         urgent: data.urgent,
         coords: data.coords,
@@ -674,7 +710,7 @@
     await load();
   }
 
-  // PROSES KONVERSI EMAIL DENGAN MULTI-PARSING ENGINE
+  // PARSER EMAIL DENGAN DUKUNGAN KATA KUNCI WHATSAPP/TELP
   async function processInboundEmail(emailRawText) {
     if (!emailRawText.trim()) return;
 
@@ -684,6 +720,7 @@
     };
 
     const customer = parseField(/Nama Pelanggan\s*:\s*(.*)/i) || parseField(/Pelanggan\s*:\s*(.*)/i) || "Pelanggan Forward Email";
+    const phone = parseField(/No WhatsApp\s*:\s*(.*)/i) || parseField(/No Telepon\s*:\s*(.*)/i) || parseField(/No HP\s*:\s*(.*)/i) || "";
     const meterId = parseField(/ID Meter\s*:\s*(.*)/i) || parseField(/ID Pelanggan\s*:\s*(.*)/i) || "-";
     const address = parseField(/Alamat\s*:\s*(.*)/i) || "-";
     const area = parseField(/Area\s*:\s*(.*)/i) || "Cikupa";
@@ -701,6 +738,7 @@
 
     const newComplaint = {
       customer,
+      phone,
       meterId,
       address,
       area,
@@ -745,6 +783,7 @@
     };
 
     const customerInput = el("input", { type:"text", placeholder:"Nama Pelanggan", value: editing ? editing.customer : "" });
+    const phoneInput = el("input", { type:"text", placeholder:"No WhatsApp (Contoh: 081234567890)", value: editing ? editing.phone : "" });
     const meterIdInput = el("input", { type:"text", placeholder:"ID Meter / Langganan", value: editing ? editing.meterId : "" });
     const addressInput = el("input", { type:"text", placeholder:"Alamat Lengkap Pelanggan", value: editing ? editing.address : "" });
     const areaInput = el("input", { type:"text", placeholder:"Area / Zona (Contoh: Cikupa)", value: editing ? editing.area : "" });
@@ -761,6 +800,7 @@
       el("h2", {}, editing ? "Ubah Komplain " + editing.id : "Tambah Komplain Baru"),
       el("div", { class:"field-row" },
         el("div", { class:"field" }, el("label", {}, "Nama Pelanggan"), customerInput),
+        el("div", { class:"field" }, el("label", {}, "No WhatsApp Pelanggan"), phoneInput),
         el("div", { class:"field" }, el("label", {}, "ID Meter / Langganan"), meterIdInput),
       ),
       el("div", { class:"field-row" },
@@ -783,6 +823,7 @@
           if(!customerInput.value.trim()){ customerInput.focus(); return; }
           const data = {
             customer: customerInput.value.trim(),
+            phone: phoneInput.value.trim(),
             meterId: meterIdInput.value.trim(),
             address: addressInput.value.trim(),
             area: areaInput.value.trim(),
@@ -808,6 +849,7 @@
     const defaultEmailContent = 
 `FW: [LAPORAN KELUHAN AIR MATI]
 Nama Pelanggan : Bambang Wijaya
+No WhatsApp : 081298765432
 ID Meter : PLG-99882
 Alamat : Jl. Raya Serang Km 14 No. 25, Cikupa
 Area : Cikupa
@@ -820,7 +862,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
     return el("div", { class:"form-panel open", style: "background:#F3E8FF; border-color:#C084FC;" },
       el("h2", { style:"color:#6B21A8; margin-top:0;" }, "🔄 Engine Konversi Email Langsung Ke CASE"),
       el("p", { style:"font-size:12px; color:#581C87; margin-bottom:12px;" }, 
-        "Sistem akan membaca teks email, memilah data pelanggan, dan mencocokkan jenis CASE secara otomatis:"
+        "Sistem akan membaca teks email, memilah data pelanggan (Termasuk Nomor WhatsApp), dan mencocokkan jenis CASE secara otomatis:"
       ),
       emailTextArea,
       el("div", { style:"display:flex; gap:8px; margin-top:12px;" },
@@ -978,6 +1020,18 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
     const scheduledDateObj = itemScheduledDateMap[item.id];
     const scheduledText = scheduledDateObj ? fmtDateOnly(scheduledDateObj) : "-";
 
+    // GENERATE DRIVER PESAN WHATSAPP KONFIRMASI PETUGAS
+    const formattedPhone = formatWA(item.phone);
+    const waText = encodeURIComponent(
+      `Halo Bpk/Ibu ${item.customer},\n\n` +
+      `Kami dari Tim Petugas Lapangan Aetra Air Tangerang ingin mengonfirmasi terkait penanganan komplain Anda dengan data berikut:\n` +
+      `- No Work Order: ${item.id}\n` +
+      `- Keluhan: ${caseDetails.label}\n` +
+      `- Alamat: ${item.address || '-'}\n\n` +
+      `Petugas kami dijadwalkan menuju ke lokasi Anda. Mohon konfirmasinya apakah lokasi dapat diakses saat ini? Terima kasih.`
+    );
+    const waUrl = formattedPhone ? `https://wa.me/${formattedPhone}?text=${waText}` : null;
+
     return el("div", { class: "ticket " + level + (isDone ? " selesai" : "") },
       el("div", { class:"ticket-top" },
         el("div", {},
@@ -1018,6 +1072,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
         isDone ? "Status: Selesai" : fmtWait(item) + (item.status==="proses" ? " · sedang dikerjakan" : "")
       ),
       el("div", { class:"ticket-actions" },
+        waUrl ? el("a", { class:"btn-wa", href: waUrl, target:"_blank", rel:"noopener" }, "💬 WhatsApp Pelanggan") : el("span", { style:"font-size:11px; color:var(--ink-muted);" }, " (No WA tidak ada)"),
         !isDone && item.status !== "proses" ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Mulai Proses") : null,
         !isDone ? el("button", { class:"done", onclick: () => setStatus(item.id, "selesai") }, "Selesai") : null,
         isDone ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Buka Lagi") : null,
@@ -1061,10 +1116,8 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
 
     const { dateMap, itemScheduledDateMap } = calculateCalendarSchedule();
 
-    // 1. FILTER BERDASARKAN KATEGORI CASE
     let base = categoryFilter === "semua" ? complaints : complaints.filter(c => c.category === categoryFilter);
 
-    // 2. FILTER BERDASARKAN TANGGAL KALENDER
     if (selectedDate) {
       const selKey = formatDateKey(selectedDate);
       base = base.filter(item => {
@@ -1073,7 +1126,6 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
       });
     }
 
-    // 3. LOGIKA PENGURUTAN PRESISI (SCORE-BASED / WAKTU)
     const sortedByMode = (items) => {
       if (sortMode === "prioritas") {
         return [...items].sort((a,b) => {
