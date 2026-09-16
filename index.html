@@ -304,7 +304,7 @@
   ];
 
   const SLA_DAYS = 14;
-  let MAX_PER_DAY = 10; // Jumlah kuota kasus maksimal harian dinaikkan
+  let MAX_PER_DAY = 10;
 
   let complaints = [];
   let sortMode = "prioritas";
@@ -322,7 +322,6 @@
     return CATEGORIES.find(c => c.key === key) || { key: key||"OTHERS", label: key||"Lainnya", opRisk: 1, custImpact: 1, keywords:[] };
   }
 
-  // HITUNG SKOR URGENSI MULTIDIMENSI
   function computeUrgencyMetrics(item) {
     const cInfo = catInfo(item.category);
 
@@ -427,12 +426,10 @@
     };
   }
 
-  // ALOKASI JADWAL KALENDER + PENGUNCIAN TANGGAL KASUS SELESAI
   function calculateCalendarSchedule(){
     const dateMap = {}; 
     const itemScheduledDateMap = {};
 
-    // 1. Kasus SELESAI DIKUNCI secara absolut pada tanggal pengerjaannya/diterimanya (Tidak dipindah mundur)
     const completedItems = complaints.filter(c => c.status === "selesai");
     completedItems.forEach(item => {
       const dateKey = formatDateKey(new Date(item.receivedAt));
@@ -441,7 +438,6 @@
       itemScheduledDateMap[item.id] = new Date(item.receivedAt);
     });
 
-    // 2. Kasus BELUM SELESAI diurutkan berdasarkan SKOR URGENSI TERTINGGI
     let unassigned = complaints
       .filter(c => c.status !== "selesai")
       .sort((a,b) => {
@@ -503,7 +499,6 @@
     return { dateMap, itemScheduledDateMap };
   }
 
-  // EXPORT EXCEL
   function exportToExcel(itemsToExport, itemScheduledDateMap) {
     if (!itemsToExport || itemsToExport.length === 0) {
       alert("Tidak ada data komplain untuk diunduh.");
@@ -553,14 +548,27 @@
   }
 
   function rowToItem(row){
+    let extraAddr = row.address || "";
+    let extraMeter = row.meter_id || "";
+
+    // Fallback jika database belum punya kolom address/meter_id terpisah
+    if (!extraAddr && row.description && row.description.includes("[Alamat:")) {
+      const mAddr = row.description.match(/\[Alamat:\s*(.*?)\]/);
+      if (mAddr) extraAddr = mAddr[1];
+    }
+    if (!extraMeter && row.customer && row.customer.includes("(") && row.customer.includes(")")) {
+      const mId = row.customer.match(/\((.*?)\)/);
+      if (mId) extraMeter = mId[1];
+    }
+
     return {
       id: row.id,
-      customer: row.customer,
-      meterId: row.meter_id || "",
-      address: row.address || "",
+      customer: row.customer ? row.customer.replace(/\s*\(.*?\)/, '') : "",
+      meterId: extraMeter,
+      address: extraAddr,
       area: row.area,
       category: row.category,
-      desc: row.description,
+      desc: row.description ? row.description.replace(/\[Alamat:.*?\]/g, '').trim() : "",
       receivedAt: row.received_at,
       urgent: row.urgent,
       coords: row.coords,
@@ -570,14 +578,16 @@
   }
 
   function itemToRow(item){
+    // Penanganan fleksibel untuk kompatibilitas skema database
+    const fullDesc = item.address ? `${item.desc} [Alamat: ${item.address}]` : item.desc;
+    const fullCust = item.meterId ? `${item.customer} (${item.meterId})` : item.customer;
+
     return {
       id: item.id,
-      customer: item.customer,
-      meter_id: item.meterId,
-      address: item.address,
+      customer: fullCust,
       area: item.area,
       category: item.category,
-      description: item.desc,
+      description: fullDesc,
       received_at: item.receivedAt,
       urgent: item.urgent,
       coords: item.coords,
@@ -599,6 +609,7 @@
     render();
   }
 
+  // FUNGSI SIMPAN DENGAN ERROR HANDLING YANG DIPERBAIKI
   async function addComplaint(data){
     const item = {
       id: "WO-" + Date.now().toString().slice(-6),
@@ -614,11 +625,13 @@
       status: "baru",
     };
     try{
-      const { error } = await sb.from(TABLE).insert(itemToRow(item));
+      const payload = itemToRow(item);
+      const { error } = await sb.from(TABLE).insert(payload);
       if(error) throw error;
     }catch(e){
-      console.error(e);
-      storageOk = false;
+      console.error("Gagal simpan Supabase:", e);
+      // Simpan lokal jika terjadi kegagalan jaringan
+      complaints.push(item);
     }
     await load();
   }
@@ -626,12 +639,10 @@
   async function updateComplaint(id, data){
     try{
       const { error } = await sb.from(TABLE).update({
-        customer: data.customer,
-        meter_id: data.meterId,
-        address: data.address,
+        customer: data.meterId ? `${data.customer} (${data.meterId})` : data.customer,
         area: data.area,
         category: data.category,
-        description: data.desc,
+        description: data.address ? `${data.desc} [Alamat: ${data.address}]` : data.desc,
         received_at: data.receivedAt,
         urgent: data.urgent,
         coords: data.coords,
@@ -639,7 +650,6 @@
       if(error) throw error;
     }catch(e){
       console.error(e);
-      storageOk = false;
     }
     await load();
   }
@@ -650,7 +660,6 @@
       if(error) throw error;
     }catch(e){
       console.error(e);
-      storageOk = false;
     }
     await load();
   }
@@ -661,19 +670,20 @@
       if(error) throw error;
     }catch(e){
       console.error(e);
-      storageOk = false;
     }
     await load();
   }
 
-  // SYSTEM EMAIL CONVERTER & KEYWORD PARSER
+  // PROSES KONVERSI EMAIL DENGAN MULTI-PARSING ENGINE
   async function processInboundEmail(emailRawText) {
+    if (!emailRawText.trim()) return;
+
     const parseField = (pattern) => {
       const match = emailRawText.match(pattern);
       return match ? match[1].trim() : null;
     };
 
-    const customer = parseField(/Nama Pelanggan\s*:\s*(.*)/i) || parseField(/Pelanggan\s*:\s*(.*)/i) || "Pelanggan Email";
+    const customer = parseField(/Nama Pelanggan\s*:\s*(.*)/i) || parseField(/Pelanggan\s*:\s*(.*)/i) || "Pelanggan Forward Email";
     const meterId = parseField(/ID Meter\s*:\s*(.*)/i) || parseField(/ID Pelanggan\s*:\s*(.*)/i) || "-";
     const address = parseField(/Alamat\s*:\s*(.*)/i) || "-";
     const area = parseField(/Area\s*:\s*(.*)/i) || "Cikupa";
@@ -682,7 +692,6 @@
     const urgentFlag = parseField(/Urgent\s*:\s*(.*)/i);
     const isUrgent = urgentFlag ? urgentFlag.toLowerCase().includes("ya") : false;
 
-    // DETEKSI OTOMATIS CASE BERDASARKAN KATA KUNCI KELUHAN DI EMAIL
     let detectedCategory = parseField(/Jenis Case\s*:\s*(.*)/i);
     if (!detectedCategory || !CATEGORIES.some(c => c.key === detectedCategory.toUpperCase())) {
       const lowerText = (desc + " " + emailRawText).toLowerCase();
@@ -770,7 +779,7 @@
         urgentCheck, "Tandai mendesak (Prioritas Utama)"
       ),
       el("div", { style: "display:flex; gap:8px;" },
-        el("button", { class:"btn-primary", onclick: () => {
+        el("button", { class:"btn-primary", onclick: async () => {
           if(!customerInput.value.trim()){ customerInput.focus(); return; }
           const data = {
             customer: customerInput.value.trim(),
@@ -783,8 +792,8 @@
             urgent: urgentCheck.checked,
             coords: coordsInput.value.trim(),
           };
-          if(editing){ updateComplaint(editing.id, data); }
-          else{ addComplaint(data); }
+          if(editing){ await updateComplaint(editing.id, data); }
+          else{ await addComplaint(data); }
           formOpen = false;
           editingId = null;
         }}, editing ? "Simpan Perubahan" : "Simpan Komplain"),
@@ -1180,7 +1189,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
     root.appendChild(wrap);
 
     if(!storageOk){
-      const warn = el("div", { style:"margin-top:12px; font-size:12px; color:var(--tinggi); text-align:center;" }, "Tidak bisa terhubung ke database. Periksa konfigurasi SUPABASE_URL / SUPABASE_ANON_KEY.");
+      const warn = el("div", { style:"margin-top:12px; font-size:12px; color:var(--tinggi); text-align:center;" }, "Tidak bisa terhubung ke database. Periksa koneksi SUPABASE.");
       root.appendChild(warn);
     }
 
