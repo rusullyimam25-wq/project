@@ -138,7 +138,7 @@
 
   select {
     font-size: 13px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
-    background: var(--panel); color: var(--ink); outline: none; max-width: 180px; font-weight: 500;
+    background: var(--panel); color: var(--ink); outline: none; max-width: 200px; font-weight: 500;
   }
 
   button { font-family: inherit; cursor: pointer; border: none; font-size: 13px; font-weight: 600; border-radius: 8px; transition: all 0.2s; }
@@ -304,7 +304,7 @@
   ];
 
   const SLA_DAYS = 14;
-  const MAX_PER_DAY = 5;
+  let MAX_PER_DAY = 10; // Jumlah kuota kasus maksimal harian dinaikkan
 
   let complaints = [];
   let sortMode = "prioritas";
@@ -322,7 +322,7 @@
     return CATEGORIES.find(c => c.key === key) || { key: key||"OTHERS", label: key||"Lainnya", opRisk: 1, custImpact: 1, keywords:[] };
   }
 
-  // LOGIKA SKORING URGENSI MULTIDIMENSI
+  // HITUNG SKOR URGENSI MULTIDIMENSI
   function computeUrgencyMetrics(item) {
     const cInfo = catInfo(item.category);
 
@@ -427,11 +427,12 @@
     };
   }
 
-  // ALOKASI JADWAL KALENDER BERDASARKAN URUTAN SKOR BERAT + CLUSTERING AREA
+  // ALOKASI JADWAL KALENDER + PENGUNCIAN TANGGAL KASUS SELESAI
   function calculateCalendarSchedule(){
     const dateMap = {}; 
     const itemScheduledDateMap = {};
 
+    // 1. Kasus SELESAI DIKUNCI secara absolut pada tanggal pengerjaannya/diterimanya (Tidak dipindah mundur)
     const completedItems = complaints.filter(c => c.status === "selesai");
     completedItems.forEach(item => {
       const dateKey = formatDateKey(new Date(item.receivedAt));
@@ -440,6 +441,7 @@
       itemScheduledDateMap[item.id] = new Date(item.receivedAt);
     });
 
+    // 2. Kasus BELUM SELESAI diurutkan berdasarkan SKOR URGENSI TERTINGGI
     let unassigned = complaints
       .filter(c => c.status !== "selesai")
       .sort((a,b) => {
@@ -664,7 +666,7 @@
     await load();
   }
 
-  // AUTOMATIC EMAIL TO CASE CONVERTER ENGINE
+  // SYSTEM EMAIL CONVERTER & KEYWORD PARSER
   async function processInboundEmail(emailRawText) {
     const parseField = (pattern) => {
       const match = emailRawText.match(pattern);
@@ -680,7 +682,7 @@
     const urgentFlag = parseField(/Urgent\s*:\s*(.*)/i);
     const isUrgent = urgentFlag ? urgentFlag.toLowerCase().includes("ya") : false;
 
-    // DETEKSI JENIS CASE SECARA OTOMATIS BERDASARKAN KATA KUNCI DI EMAIL
+    // DETEKSI OTOMATIS CASE BERDASARKAN KATA KUNCI KELUHAN DI EMAIL
     let detectedCategory = parseField(/Jenis Case\s*:\s*(.*)/i);
     if (!detectedCategory || !CATEGORIES.some(c => c.key === detectedCategory.toUpperCase())) {
       const lowerText = (desc + " " + emailRawText).toLowerCase();
@@ -1050,8 +1052,10 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
 
     const { dateMap, itemScheduledDateMap } = calculateCalendarSchedule();
 
+    // 1. FILTER BERDASARKAN KATEGORI CASE
     let base = categoryFilter === "semua" ? complaints : complaints.filter(c => c.category === categoryFilter);
 
+    // 2. FILTER BERDASARKAN TANGGAL KALENDER
     if (selectedDate) {
       const selKey = formatDateKey(selectedDate);
       base = base.filter(item => {
@@ -1060,29 +1064,28 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
       });
     }
 
-    // URUTKAN DAFTAR BERDASARKAN SKOR URGENSI TERTINGGI KE TERENDAH
-    const getScheduledOrder = (items) => {
-      return [...items].sort((a,b) => {
-        const scoreA = priorityScore(a);
-        const scoreB = priorityScore(b);
-        if (scoreB !== scoreA) return scoreB - scoreA;
-        
-        const areaA = (a.area || "").toLowerCase();
-        const areaB = (b.area || "").toLowerCase();
-        if (areaA !== areaB) return areaA.localeCompare(areaB);
-
-        return new Date(a.receivedAt) - new Date(b.receivedAt);
-      });
-    };
-
+    // 3. LOGIKA PENGURUTAN PRESISI (SCORE-BASED / WAKTU)
     const sortedByMode = (items) => {
-      if(sortMode === "prioritas") return getScheduledOrder(items);
-      return [...items].sort((a,b) => new Date(a.receivedAt) - new Date(b.receivedAt));
+      if (sortMode === "prioritas") {
+        return [...items].sort((a,b) => {
+          const scoreA = priorityScore(a);
+          const scoreB = priorityScore(b);
+          if (scoreB !== scoreA) return scoreB - scoreA;
+          
+          const areaA = (a.area || "").toLowerCase();
+          const areaB = (b.area || "").toLowerCase();
+          if (areaA !== areaB) return areaA.localeCompare(areaB);
+
+          return new Date(a.receivedAt) - new Date(b.receivedAt);
+        });
+      } else {
+        return [...items].sort((a,b) => new Date(a.receivedAt) - new Date(b.receivedAt));
+      }
     };
 
     const belum = sortedByMode(base.filter(c => c.status === "baru"));
     const proses = sortedByMode(base.filter(c => c.status === "proses"));
-    const selesai = base.filter(c => c.status === "selesai").sort((a,b) => new Date(b.receivedAt) - new Date(a.receivedAt));
+    const selesai = sortedByMode(base.filter(c => c.status === "selesai"));
 
     const openAll = complaints.filter(c => c.status !== "selesai");
     const totalSelesai = complaints.filter(c => c.status === "selesai").length;
@@ -1137,7 +1140,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
               el("div", { class:"filter-group" },
                 "Urutkan:",
                 el("select", { onchange: (e) => { sortMode = e.target.value; render(); } },
-                  el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "Urutan Skor Urgensi (Tinggi-Rendah)"),
+                  el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "Skor Urgensi (Tinggi-Rendah)"),
                   el("option", { value:"waktu", selected: sortMode==="waktu" ? "selected" : null }, "Waktu Diterima")
                 )
               )
