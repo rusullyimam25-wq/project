@@ -1,11 +1,11 @@
 <div id="app-root"></div>
 <style>
   :root {
-    --bg: #F0F4F8;
+    --bg: #F8FAFC;
     --panel: #FFFFFF;
     --border: #E2E8F0;
     --border-hover: #CBD5E1;
-    --ink: #1E293B;
+    --ink: #0F172A;
     --ink-soft: #64748B;
     --ink-muted: #94A3B8;
     
@@ -27,8 +27,9 @@
     --resched: #7C3AED;
     --resched-bg: #F3E8FF;
     
-    --shadow-sm: 0 2px 4px rgba(148, 163, 184, 0.08);
-    --shadow-md: 0 4px 12px rgba(148, 163, 184, 0.12);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     --radius: 12px;
   }
 
@@ -41,20 +42,20 @@
     padding: 24px 16px 60px;
   }
   
-  .wrap { max-width: 1140px; margin: 0 auto; }
+  .wrap { max-width: 1180px; margin: 0 auto; }
 
   /* Header Logo */
   .masthead {
     display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 20px; padding: 12px 16px; background: var(--panel);
+    margin-bottom: 20px; padding: 14px 20px; background: var(--panel);
     border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border);
   }
   .brand-group { display: flex; align-items: center; gap: 14px; }
-  .brand-logo { height: 44px; width: auto; object-fit: contain; }
-  .brand-title h1 { font-size: 20px; font-weight: 700; margin: 0; color: var(--ink); }
-  .brand-title .unit { font-size: 12px; color: var(--accent); font-weight: 600; }
+  .brand-logo { height: 42px; width: auto; object-fit: contain; }
+  .brand-title h1 { font-size: 18px; font-weight: 800; margin: 0; color: var(--ink); letter-spacing: -0.02em; }
+  .brand-title .unit { font-size: 12px; color: var(--accent); font-weight: 700; }
 
-  /* Layout 2 Kolom */
+  /* Layout Grid */
   .dashboard-grid {
     display: grid; grid-template-columns: 1fr 340px; gap: 20px;
   }
@@ -69,7 +70,7 @@
   }
   .cal-top-header {
     display: flex; justify-content: space-between; align-items: center;
-    font-size: 15px; font-weight: 700; color: #38BDF8; padding-bottom: 10px; margin-bottom: 12px;
+    font-size: 14px; font-weight: 700; color: #38BDF8; padding-bottom: 10px; margin-bottom: 12px;
     border-bottom: 1px solid #334155;
   }
   .cal-month-nav {
@@ -85,7 +86,7 @@
   .cal-grid-embedded {
     display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center;
   }
-  .cal-head-cell { font-size: 12px; font-weight: 700; color: #94A3B8; padding: 4px 0; }
+  .cal-head-cell { font-size: 11px; font-weight: 700; color: #94A3B8; padding: 4px 0; text-transform: uppercase; }
   .cal-date-cell {
     padding: 6px 0; font-size: 13px; font-weight: 600; color: #E2E8F0;
     border-radius: 50%; width: 32px; height: 32px; margin: 0 auto;
@@ -105,20 +106,27 @@
   .cal-date-cell.has-high::after { background: var(--tinggi); }
   .cal-date-cell.all-done::after { background: var(--rendah); }
 
+  /* Kuota Control Card */
+  .quota-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px 16px; margin-top: 16px; box-shadow: var(--shadow-sm);
+  }
+  .quota-header { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--ink-soft); margin-bottom: 8px; }
+
   /* Grafik Card */
   .chart-card {
     background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 16px 20px; margin-bottom: 20px; box-shadow: var(--shadow-sm);
   }
   .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-  .chart-header h3 { font-size: 15px; font-weight: 700; margin: 0; color: var(--ink); }
-  .chart-header .total-badge { background: var(--accent-bg); color: var(--accent); font-weight: 700; font-size: 12px; padding: 4px 10px; border-radius: 20px; }
+  .chart-header h3 { font-size: 14px; font-weight: 700; margin: 0; color: var(--ink); }
+  .chart-header .total-badge { background: var(--accent-bg); color: var(--accent); font-weight: 700; font-size: 11px; padding: 4px 10px; border-radius: 20px; }
   
-  .chart-list { display: flex; flex-direction: column; gap: 10px; max-height: 220px; overflow-y: auto; padding-right: 4px; }
+  .chart-list { display: flex; flex-direction: column; gap: 10px; max-height: 200px; overflow-y: auto; padding-right: 4px; }
   .chart-item { font-size: 12px; }
   .chart-label { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 4px; color: var(--ink-soft); }
-  .chart-bar-bg { background: #F1F5F9; border-radius: 6px; height: 10px; width: 100%; overflow: hidden; }
-  .chart-bar-fill { background: linear-gradient(90deg, #3B82F6, #06B6D4); height: 100%; border-radius: 6px; transition: width 0.3s; }
+  .chart-bar-bg { background: #F1F5F9; border-radius: 6px; height: 8px; width: 100%; overflow: hidden; }
+  .chart-bar-fill { background: linear-gradient(90deg, #2563EB, #06B6D4); height: 100%; border-radius: 6px; transition: width 0.3s; }
 
   /* Stats Summary Cards */
   .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px; margin-bottom: 20px; }
@@ -126,13 +134,28 @@
     background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 16px; box-shadow: var(--shadow-sm); border-top: 4px solid var(--accent);
   }
-  .stat-card .num { font-size: 26px; font-weight: 800; color: var(--ink); }
+  .stat-card .num { font-size: 26px; font-weight: 800; color: var(--ink); letter-spacing: -0.03em; }
   .stat-card .lbl { font-size: 12px; font-weight: 600; color: var(--ink-soft); margin-top: 4px; }
   
   .stat-card.tinggi { border-top-color: var(--tinggi); }
   .stat-card.tinggi .num { color: var(--tinggi); }
   .stat-card.selesai-stat { border-top-color: var(--rendah); }
   .stat-card.selesai-stat .num { color: var(--rendah); }
+
+  /* Search & Filter Bar */
+  .search-bar {
+    display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;
+  }
+  .search-input {
+    flex: 1; min-width: 200px; padding: 9px 14px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 13px; background: var(--panel); outline: none; transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .quick-badge {
+    font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 20px; cursor: pointer;
+    background: var(--panel); border: 1px solid var(--border); color: var(--ink-soft); transition: all 0.2s;
+  }
+  .quick-badge:hover, .quick-badge.active { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
 
   /* Toolbar */
   .toolbar {
@@ -141,15 +164,15 @@
   }
   .toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
   .filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .filter-group { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-soft); font-weight: 600; }
+  .filter-group { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-soft); font-weight: 600; }
 
   select {
-    font-size: 13px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 12.5px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
     background: var(--panel); color: var(--ink); outline: none; max-width: 200px; font-weight: 500;
   }
 
-  button { font-family: inherit; cursor: pointer; border: none; font-size: 13px; font-weight: 600; border-radius: 8px; transition: all 0.2s; }
-  .btn-primary { background: var(--accent); color: #fff; padding: 9px 18px; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2); }
+  button { font-family: inherit; cursor: pointer; border: none; font-size: 12.5px; font-weight: 600; border-radius: 8px; transition: all 0.2s; }
+  .btn-primary { background: var(--accent); color: #fff; padding: 9px 16px; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2); }
   .btn-primary:hover { background: var(--accent-hover); }
   .btn-secondary { background: var(--panel); border: 1px solid var(--border); color: var(--ink); padding: 8px 14px; }
   .btn-secondary:hover { background: #F8FAFC; }
@@ -159,28 +182,30 @@
   .btn-excel:hover { background: #059669; }
   .btn-text { background: none; color: var(--ink-soft); font-weight: 500; text-decoration: underline; padding: 4px; }
 
-  /* Form & Email Receiver Panels */
+  /* Form Panels */
   .form-panel {
     background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 20px; margin-bottom: 24px; box-shadow: var(--shadow-md); display: none;
   }
   .form-panel.open { display: block; }
-  .form-panel h2 { font-size: 16px; font-weight: 700; margin: 0 0 16px; color: var(--ink); }
+  .form-panel h2 { font-size: 15px; font-weight: 700; margin: 0 0 16px; color: var(--ink); }
   .field-row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
   .field { flex: 1; min-width: 160px; display: flex; flex-direction: column; gap: 6px; }
-  .field label { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+  .field label { font-size: 11.5px; font-weight: 600; color: var(--ink-soft); }
   .field input, .field select, .field textarea {
-    font-family: inherit; font-size: 13px; padding: 9px 12px; border: 1px solid var(--border);
+    font-family: inherit; font-size: 12.5px; padding: 8px 12px; border: 1px solid var(--border);
     border-radius: 6px; outline: none;
   }
   .field textarea { resize: vertical; min-height: 55px; }
 
-  /* Cards Ticket */
+  /* Cards Ticket Modern */
   .ticket {
     background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow-sm);
     display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
   }
+  .ticket:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
   .ticket::before { content: ""; position: absolute; top: 0; left: 0; bottom: 0; width: 4px; }
   .ticket.tinggi::before { background: var(--tinggi); }
   .ticket.sedang::before { background: var(--sedang); }
@@ -192,7 +217,7 @@
   .ticket-cust { font-size: 15px; font-weight: 700; color: var(--ink); margin-top: 2px; }
   .ticket-meter { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
   
-  .ticket-badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; }
+  .ticket-badge { font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 20px; text-transform: uppercase; }
   .badge-tinggi { background: var(--tinggi-bg); color: var(--tinggi); }
   .badge-sedang { background: var(--sedang-bg); color: var(--sedang); }
   .badge-rendah { background: var(--rendah-bg); color: var(--rendah); }
@@ -203,9 +228,9 @@
   .score-badge { background: #1E293B; color: #38BDF8; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
   .resched-badge { background: var(--resched-bg); color: var(--resched); font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
   
-  .ticket-meta { font-size: 13px; color: var(--ink-soft); font-weight: 500; }
-  .ticket-address { font-size: 12.5px; color: #475569; background: #F8FAFC; padding: 6px 10px; border-radius: 6px; border-left: 3px solid var(--accent); margin-top: 2px; }
-  .ticket-desc { font-size: 13.5px; color: var(--ink); line-height: 1.4; }
+  .ticket-meta { font-size: 12.5px; color: var(--ink-soft); font-weight: 500; }
+  .ticket-address { font-size: 12px; color: #475569; background: #F8FAFC; padding: 6px 10px; border-radius: 6px; border-left: 3px solid var(--accent); margin-top: 2px; }
+  .ticket-desc { font-size: 13px; color: var(--ink); line-height: 1.4; }
 
   .schedule-box {
     background: #F8FAFC; border: 1px solid var(--border); border-radius: 8px;
@@ -213,7 +238,7 @@
   }
   .schedule-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
   .schedule-title { font-weight: 700; color: var(--accent); }
-  .deadline-tag { font-weight: 700; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+  .deadline-tag { font-weight: 700; padding: 2px 8px; border-radius: 4px; font-size: 10.5px; }
   .deadline-normal { background: #E2E8F0; color: #334155; }
   .deadline-warning { background: var(--sedang-bg); color: var(--sedang); }
   .deadline-overdue { background: var(--tinggi-bg); color: var(--tinggi); }
@@ -223,7 +248,7 @@
   .ticket-loc a { color: var(--accent); text-decoration: none; font-weight: 600; }
 
   .ticket-actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; align-items: center; }
-  .ticket-actions button { font-size: 12px; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: #FFF; color: var(--ink-soft); }
+  .ticket-actions button { font-size: 11.5px; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: #FFF; color: var(--ink-soft); }
   .ticket-actions button.progress { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
   .ticket-actions button.done { border-color: var(--rendah); color: var(--rendah); background: var(--rendah-bg); }
   .ticket-actions button.resched-btn { border-color: var(--resched); color: var(--resched); background: var(--resched-bg); }
@@ -233,13 +258,13 @@
   .btn-wa {
     background: var(--wa) !important; color: #FFF !important; border: none !important;
     display: inline-flex; align-items: center; gap: 6px; font-weight: 700 !important;
-    text-decoration: none; font-size: 12px; padding: 6px 12px; border-radius: 6px;
+    text-decoration: none; font-size: 11.5px; padding: 6px 12px; border-radius: 6px;
     transition: background 0.2s;
   }
   .btn-wa:hover { background: var(--wa-hover) !important; }
 
   .section-head {
-    font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
     color: var(--ink-soft); margin: 20px 0 12px; display: flex; align-items: center; gap: 8px;
   }
   .section-head .count { background: #E2E8F0; color: var(--ink); font-size: 11px; font-weight: 700; border-radius: 12px; padding: 2px 8px; }
@@ -247,7 +272,7 @@
   
   .filter-date-banner {
     background: #E0F2FE; border: 1px solid #38BDF8; color: #0369A1;
-    padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    padding: 10px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
     display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
   }
 </style>
@@ -323,6 +348,8 @@
   let MAX_PER_DAY = 10;
 
   let complaints = [];
+  let searchQuery = "";
+  let quickFilter = "semua";
   let sortMode = "prioritas";
   let categoryFilter = "semua";
   let storageOk = true;
@@ -451,12 +478,10 @@
     };
   }
 
-  // ALOKASI JADWAL UTAMA + DUKUNGAN RESCHEDULE (PENGHUNI TIDAK ADA DI RUMAH)
   function calculateCalendarSchedule(){
     const dateMap = {}; 
     const itemScheduledDateMap = {};
 
-    // 1. KUNCI KASUS SELESAI
     const completedItems = complaints.filter(c => c.status === "selesai");
     completedItems.forEach(item => {
       const dateKey = formatDateKey(new Date(item.receivedAt));
@@ -465,7 +490,6 @@
       itemScheduledDateMap[item.id] = new Date(item.receivedAt);
     });
 
-    // 2. KASUS DENGAN RESCHEDULE MANUAL (DISIMPAN DI TANGGAL KHUSUS)
     const rescheduledItems = complaints.filter(c => c.status !== "selesai" && c.rescheduledDate);
     rescheduledItems.forEach(item => {
       const dateKey = formatDateKey(new Date(item.rescheduledDate));
@@ -474,7 +498,6 @@
       itemScheduledDateMap[item.id] = new Date(item.rescheduledDate);
     });
 
-    // 3. KASUS OTOMATIS LAINNYA DIALOKASIKAN BERDASARKAN SKOR URGENSI TERTINGGI
     let unassigned = complaints
       .filter(c => c.status !== "selesai" && !c.rescheduledDate)
       .sort((a,b) => {
@@ -688,7 +711,6 @@
     await load();
   }
 
-  // FUNGSI KHUSUS PINDAHKAN KE HARI ESOK (PENGHUNI TIDAK ADA DI RUMAH)
   async function markAbsentAndReschedule(id) {
     const target = complaints.find(c => c.id === id);
     if (!target) return;
@@ -1087,6 +1109,20 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
             }
           }, String(c.dayNum));
         })
+      ),
+
+      el("div", { class: "quota-card" },
+        el("div", { class: "quota-header" },
+          el("span", {}, "⚡ Batas Kuota/Hari"),
+          el("span", { style: "color:var(--accent);" }, `${MAX_PER_DAY} Kasus`)
+        ),
+        el("input", {
+          type: "range", min: "5", max: "25", value: String(MAX_PER_DAY), style: "width:100%; cursor:pointer;",
+          oninput: (e) => {
+            MAX_PER_DAY = parseInt(e.target.value, 10);
+            render();
+          }
+        })
       )
     );
   }
@@ -1202,7 +1238,27 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
 
     const { dateMap, itemScheduledDateMap } = calculateCalendarSchedule();
 
-    let base = categoryFilter === "semua" ? complaints : complaints.filter(c => c.category === categoryFilter);
+    let base = complaints;
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      base = base.filter(c => 
+        (c.customer && c.customer.toLowerCase().includes(q)) ||
+        (c.id && c.id.toLowerCase().includes(q)) ||
+        (c.meterId && c.meterId.toLowerCase().includes(q)) ||
+        (c.address && c.address.toLowerCase().includes(q))
+      );
+    }
+
+    if (quickFilter === "urgent") {
+      base = base.filter(c => urgencyLevel(c) === "tinggi");
+    } else if (quickFilter === "reschedule") {
+      base = base.filter(c => c.rescheduledDate);
+    }
+
+    if (categoryFilter !== "semua") {
+      base = base.filter(c => c.category === categoryFilter);
+    }
 
     if (selectedDate) {
       const selKey = formatDateKey(selectedDate);
@@ -1269,6 +1325,19 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
           ),
 
           renderCaseChart(),
+
+          el("div", { class: "search-bar" },
+            el("input", {
+              class: "search-input",
+              type: "text",
+              placeholder: "🔍 Cari Nama Pelanggan, ID WO, ID Meter, atau Alamat...",
+              value: searchQuery,
+              oninput: (e) => { searchQuery = e.target.value; render(); }
+            }),
+            el("span", { class: `quick-badge ${quickFilter === "semua" ? "active" : ""}`, onclick: () => { quickFilter = "semua"; render(); } }, "Semua"),
+            el("span", { class: `quick-badge ${quickFilter === "urgent" ? "active" : ""}`, onclick: () => { quickFilter = "urgent"; render(); } }, "🔥 Urgent"),
+            el("span", { class: `quick-badge ${quickFilter === "reschedule" ? "active" : ""}`, onclick: () => { quickFilter = "reschedule"; render(); } }, "🏠 Reschedule")
+          ),
 
           el("div", { class:"toolbar" },
             el("div", { class:"toolbar-actions" },
