@@ -649,66 +649,80 @@
     };
   }
 
+  // FUNGSI UTAMA TAMBAH KOMPLAIN DENGAN KEAMANAN TINGGI (ZERO CRASH)
   async function addComplaint(data){
-    const item = {
-      id: "WO-" + Date.now().toString().slice(-6),
-      customer: data.customer,
-      phone: data.phone || "",
-      meterId: data.meterId || "",
-      address: data.address || "",
-      area: data.area || "Umum",
-      category: data.category || "KBSM",
-      desc: data.desc || "",
-      receivedAt: data.receivedAt || new Date().toISOString(),
-      urgent: !!data.urgent,
-      coords: data.coords || "",
-      status: "baru",
-    };
-
-    let fullDesc = item.desc;
-    if (item.address) fullDesc += ` [Alamat: ${item.address}]`;
-    if (item.phone) fullDesc += ` [WA: ${item.phone}]`;
-    const fullCust = item.meterId ? `${item.customer} (${item.meterId})` : item.customer;
-
-    const fullPayload = {
-      id: item.id,
-      customer: fullCust,
-      phone: item.phone || null,
-      meter_id: item.meterId || null,
-      address: item.address || null,
-      area: item.area,
-      category: item.category,
-      description: fullDesc,
-      received_at: item.receivedAt,
-      urgent: item.urgent,
-      coords: item.coords,
-      status: item.status
-    };
-
-    const fallbackPayload = {
-      id: item.id,
-      customer: fullCust,
-      area: item.area,
-      category: item.category,
-      description: fullDesc,
-      received_at: item.receivedAt,
-      urgent: item.urgent,
-      coords: item.coords,
-      status: item.status
-    };
-
     try {
-      const { error } = await sb.from(TABLE).insert(fullPayload);
-      if (error) {
-        const { error: error2 } = await sb.from(TABLE).insert(fallbackPayload);
-        if (error2) throw error2;
+      const item = {
+        id: "WO-" + Date.now().toString().slice(-6),
+        customer: (data && data.customer) ? data.customer : "Pelanggan Tanpa Nama",
+        phone: (data && data.phone) ? data.phone : "",
+        meterId: (data && data.meterId) ? data.meterId : "",
+        address: (data && data.address) ? data.address : "",
+        area: (data && data.area) ? data.area : "Cikupa",
+        category: (data && data.category) ? data.category : "KBSM",
+        desc: (data && data.desc) ? data.desc : "",
+        receivedAt: (data && data.receivedAt) ? data.receivedAt : new Date().toISOString(),
+        urgent: !!(data && data.urgent),
+        coords: (data && data.coords) ? data.coords : "",
+        status: "baru",
+      };
+
+      let fullDesc = item.desc;
+      if (item.address) fullDesc += ` [Alamat: ${item.address}]`;
+      if (item.phone) fullDesc += ` [WA: ${item.phone}]`;
+      const fullCust = item.meterId ? `${item.customer} (${item.meterId})` : item.customer;
+
+      const fullPayload = {
+        id: item.id,
+        customer: fullCust,
+        phone: item.phone || null,
+        meter_id: item.meterId || null,
+        address: item.address || null,
+        area: item.area,
+        category: item.category,
+        description: fullDesc,
+        received_at: item.receivedAt,
+        urgent: item.urgent,
+        coords: item.coords,
+        status: item.status
+      };
+
+      const fallbackPayload = {
+        id: item.id,
+        customer: fullCust,
+        area: item.area,
+        category: item.category,
+        description: fullDesc,
+        received_at: item.receivedAt,
+        urgent: item.urgent,
+        coords: item.coords,
+        status: item.status
+      };
+
+      let isSuccess = false;
+      try {
+        const { error } = await sb.from(TABLE).insert(fullPayload);
+        if (!error) isSuccess = true;
+      } catch(err) {
+        console.warn("Retrying insert with fallback schema...", err);
       }
-    } catch(e) {
-      console.error("Gagal simpan Supabase, menyimpan ke state lokal:", e);
+
+      if (!isSuccess) {
+        try {
+          const { error: err2 } = await sb.from(TABLE).insert(fallbackPayload);
+          if (!err2) isSuccess = true;
+        } catch(err2) {
+          console.warn("Supabase insertion failed, keeping data locally:", err2);
+        }
+      }
+
+      // Selalu simpan ke memori lokal jika server bermasalah
       complaints.push(item);
+    } catch(globalErr) {
+      console.error("Error pada fungsi addComplaint:", globalErr);
+    } finally {
+      await load();
     }
-    
-    await load();
   }
 
   async function markAbsentAndReschedule(id) {
@@ -839,7 +853,9 @@
     try{
       const { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: true });
       if(error) throw error;
-      complaints = data.map(rowToItem);
+      if (data && data.length > 0) {
+        complaints = data.map(rowToItem);
+      }
       storageOk = true;
     }catch(e){
       console.error("Database connection fallback active:", e);
@@ -873,9 +889,13 @@
 
     const editing = editingId ? complaints.find(x => x.id === editingId) : null;
     const toLocalInput = (iso) => {
-      const d = new Date(iso);
-      d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-      return d.toISOString().slice(0,16);
+      try {
+        const d = new Date(iso);
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+        return d.toISOString().slice(0,16);
+      } catch(e) {
+        return nowLocalInputValue();
+      }
     };
 
     const customerInput = el("input", { type:"text", placeholder:"Nama Pelanggan", value: editing ? editing.customer : "" });
@@ -915,23 +935,27 @@
         urgentCheck, "Tandai mendesak (Prioritas Utama)"
       ),
       el("div", { style: "display:flex; gap:8px;" },
-        el("button", { class:"btn-primary", onclick: async () => {
-          if(!customerInput.value.trim()){ 
+        el("button", { class:"btn-primary", onclick: async (e) => {
+          if (e && e.preventDefault) e.preventDefault();
+          
+          const valCust = customerInput ? customerInput.value.trim() : "";
+          if(!valCust){ 
             alert("Nama Pelanggan wajib diisi!");
-            customerInput.focus(); 
+            if(customerInput) customerInput.focus(); 
             return; 
           }
+
           const data = {
-            customer: customerInput.value.trim(),
-            phone: phoneInput.value.trim(),
-            meterId: meterIdInput.value.trim(),
-            address: addressInput.value.trim(),
-            area: areaInput.value.trim() || "Cikupa",
-            category: catSelect.value,
-            desc: descInput.value.trim(),
-            receivedAt: timeInput.value ? new Date(timeInput.value).toISOString() : new Date().toISOString(),
-            urgent: urgentCheck.checked,
-            coords: coordsInput.value.trim(),
+            customer: valCust,
+            phone: phoneInput ? phoneInput.value.trim() : "",
+            meterId: meterIdInput ? meterIdInput.value.trim() : "",
+            address: addressInput ? addressInput.value.trim() : "",
+            area: (areaInput && areaInput.value.trim()) ? areaInput.value.trim() : "Cikupa",
+            category: catSelect ? catSelect.value : "KBSM",
+            desc: descInput ? descInput.value.trim() : "",
+            receivedAt: (timeInput && timeInput.value) ? new Date(timeInput.value).toISOString() : new Date().toISOString(),
+            urgent: urgentCheck ? urgentCheck.checked : false,
+            coords: coordsInput ? coordsInput.value.trim() : "",
           };
 
           if(editing){ 
@@ -1206,7 +1230,9 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
 
   function initMaps(){
     Object.keys(activeMaps).forEach(id => {
-      activeMaps[id].remove();
+      if(activeMaps[id] && activeMaps[id].remove) {
+        activeMaps[id].remove();
+      }
       delete activeMaps[id];
     });
 
@@ -1215,25 +1241,30 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
       const container = document.getElementById("map-" + item.id);
       
       if(container && coords){
-        const map = L.map(container, {
-          attributionControl: false,
-          zoomControl: false
-        }).setView([coords.lat, coords.lng], 15);
+        try {
+          const map = L.map(container, {
+            attributionControl: false,
+            zoomControl: false
+          }).setView([coords.lat, coords.lng], 15);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19
-        }).addTo(map);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+          }).addTo(map);
 
-        L.marker([coords.lat, coords.lng]).addTo(map)
-          .bindPopup(`<b>${item.customer}</b><br>[${item.category}]`);
+          L.marker([coords.lat, coords.lng]).addTo(map)
+            .bindPopup(`<b>${item.customer}</b><br>[${item.category}]`);
 
-        activeMaps[item.id] = map;
+          activeMaps[item.id] = map;
+        } catch(e) {
+          console.warn("Map render skipped for", item.id);
+        }
       }
     });
   }
 
   function render(){
     const root = document.getElementById("app-root");
+    if(!root) return;
     root.innerHTML = "";
 
     const { dateMap, itemScheduledDateMap } = calculateCalendarSchedule();
@@ -1400,7 +1431,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
       root.appendChild(warn);
     }
 
-    setTimeout(initMaps, 50);
+    setTimeout(initMaps, 100);
   }
 
   load();
