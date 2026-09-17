@@ -23,6 +23,9 @@
     --wa: #25D366;
     --wa-bg: #DCF8C6;
     --wa-hover: #1EBE5D;
+
+    --resched: #7C3AED;
+    --resched-bg: #F3E8FF;
     
     --shadow-sm: 0 2px 4px rgba(148, 163, 184, 0.08);
     --shadow-md: 0 4px 12px rgba(148, 163, 184, 0.12);
@@ -198,7 +201,7 @@
   .case-tag { background: #E0F2FE; color: #0369A1; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
   .area-tag { background: #FEF3C7; color: #92400E; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
   .score-badge { background: #1E293B; color: #38BDF8; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
-  .email-source-tag { background: #F3E8FF; color: #6B21A8; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
+  .resched-badge { background: var(--resched-bg); color: var(--resched); font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
   
   .ticket-meta { font-size: 13px; color: var(--ink-soft); font-weight: 500; }
   .ticket-address { font-size: 12.5px; color: #475569; background: #F8FAFC; padding: 6px 10px; border-radius: 6px; border-left: 3px solid var(--accent); margin-top: 2px; }
@@ -223,6 +226,7 @@
   .ticket-actions button { font-size: 12px; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: #FFF; color: var(--ink-soft); }
   .ticket-actions button.progress { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
   .ticket-actions button.done { border-color: var(--rendah); color: var(--rendah); background: var(--rendah-bg); }
+  .ticket-actions button.resched-btn { border-color: var(--resched); color: var(--resched); background: var(--resched-bg); }
   .ticket-actions button.del { margin-left: auto; border-color: transparent; color: var(--ink-muted); }
   .ticket-actions button.del:hover { color: var(--tinggi); background: var(--tinggi-bg); }
   
@@ -447,10 +451,12 @@
     };
   }
 
+  // ALOKASI JADWAL UTAMA + DUKUNGAN RESCHEDULE (PENGHUNI TIDAK ADA DI RUMAH)
   function calculateCalendarSchedule(){
     const dateMap = {}; 
     const itemScheduledDateMap = {};
 
+    // 1. KUNCI KASUS SELESAI
     const completedItems = complaints.filter(c => c.status === "selesai");
     completedItems.forEach(item => {
       const dateKey = formatDateKey(new Date(item.receivedAt));
@@ -459,8 +465,18 @@
       itemScheduledDateMap[item.id] = new Date(item.receivedAt);
     });
 
+    // 2. KASUS DENGAN RESCHEDULE MANUAL (DISIMPAN DI TANGGAL KHUSUS)
+    const rescheduledItems = complaints.filter(c => c.status !== "selesai" && c.rescheduledDate);
+    rescheduledItems.forEach(item => {
+      const dateKey = formatDateKey(new Date(item.rescheduledDate));
+      if (!dateMap[dateKey]) dateMap[dateKey] = [];
+      dateMap[dateKey].push(item);
+      itemScheduledDateMap[item.id] = new Date(item.rescheduledDate);
+    });
+
+    // 3. KASUS OTOMATIS LAINNYA DIALOKASIKAN BERDASARKAN SKOR URGENSI TERTINGGI
     let unassigned = complaints
-      .filter(c => c.status !== "selesai")
+      .filter(c => c.status !== "selesai" && !c.rescheduledDate)
       .sort((a,b) => {
         const scoreA = priorityScore(a);
         const scoreB = priorityScore(b);
@@ -573,6 +589,7 @@
     let extraAddr = row.address || "";
     let extraMeter = row.meter_id || "";
     let extraPhone = row.phone || "";
+    let reschedDate = null;
 
     if (!extraAddr && row.description && row.description.includes("[Alamat:")) {
       const mAddr = row.description.match(/\[Alamat:\s*(.*?)\]/);
@@ -581,6 +598,10 @@
     if (!extraPhone && row.description && row.description.includes("[WA:")) {
       const mPhone = row.description.match(/\[WA:\s*(.*?)\]/);
       if (mPhone) extraPhone = mPhone[1];
+    }
+    if (row.description && row.description.includes("[Resched:")) {
+      const mResched = row.description.match(/\[Resched:\s*(.*?)\]/);
+      if (mResched) reschedDate = mResched[1];
     }
     if (!extraMeter && row.customer && row.customer.includes("(") && row.customer.includes(")")) {
       const mId = row.customer.match(/\((.*?)\)/);
@@ -595,16 +616,16 @@
       address: extraAddr,
       area: row.area,
       category: row.category,
-      desc: row.description ? row.description.replace(/\[Alamat:.*?\]/g, '').replace(/\[WA:.*?\]/g, '').trim() : "",
+      desc: row.description ? row.description.replace(/\[Alamat:.*?\]/g, '').replace(/\[WA:.*?\]/g, '').replace(/\[Resched:.*?\]/g, '').trim() : "",
       receivedAt: row.received_at,
       urgent: row.urgent,
       coords: row.coords,
       status: row.status,
+      rescheduledDate: reschedDate,
       createdAt: row.created_at,
     };
   }
 
-  // FUNGSI PENAMBAHAN DATA MANUAL & EMAIL AMAN TERHADAP DB SCHEMA
   async function addComplaint(data){
     const item = {
       id: "WO-" + Date.now().toString().slice(-6),
@@ -621,13 +642,11 @@
       status: "baru",
     };
 
-    // Format aman untuk Supabase
     let fullDesc = item.desc;
     if (item.address) fullDesc += ` [Alamat: ${item.address}]`;
     if (item.phone) fullDesc += ` [WA: ${item.phone}]`;
     const fullCust = item.meterId ? `${item.customer} (${item.meterId})` : item.customer;
 
-    // Payload 1: Mencoba dengan struktur kolom lengkap
     const fullPayload = {
       id: item.id,
       customer: fullCust,
@@ -643,7 +662,6 @@
       status: item.status
     };
 
-    // Payload 2: Fallback standar (jika kolom phone/meter_id belum ada di Supabase)
     const fallbackPayload = {
       id: item.id,
       customer: fullCust,
@@ -659,7 +677,6 @@
     try {
       const { error } = await sb.from(TABLE).insert(fullPayload);
       if (error) {
-        console.warn("Retrying insert with fallback schema...", error.message);
         const { error: error2 } = await sb.from(TABLE).insert(fallbackPayload);
         if (error2) throw error2;
       }
@@ -668,6 +685,33 @@
       complaints.push(item);
     }
     
+    await load();
+  }
+
+  // FUNGSI KHUSUS PINDAHKAN KE HARI ESOK (PENGHUNI TIDAK ADA DI RUMAH)
+  async function markAbsentAndReschedule(id) {
+    const target = complaints.find(c => c.id === id);
+    if (!target) return;
+
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = formatDateKey(tomorrow);
+
+    target.rescheduledDate = tomorrowStr;
+
+    let fullDesc = target.desc;
+    if (target.address) fullDesc += ` [Alamat: ${target.address}]`;
+    if (target.phone) fullDesc += ` [WA: ${target.phone}]`;
+    fullDesc += ` [Resched: ${tomorrowStr}]`;
+
+    try {
+      await sb.from(TABLE).update({
+        description: fullDesc
+      }).eq("id", id);
+    } catch(e) {
+      console.error(e);
+    }
+
     await load();
   }
 
@@ -1084,6 +1128,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
       el("div", { class:"ticket-meta" }, 
         el("span", { class:"case-tag" }, caseDetails.key),
         el("span", { class:"score-badge" }, `Skor: ${metrics.score}`),
+        item.rescheduledDate ? el("span", { class:"resched-badge" }, `🏠 Reschedule (H+1)`) : null,
         item.area ? el("span", { class:"area-tag" }, `📍 Area: ${item.area}`) : null,
         isFromEmail ? el("span", { class:"email-source-tag" }, "📧 Email Integrasi") : null,
         " ", caseDetails.label
@@ -1112,7 +1157,8 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
         isDone ? "Status: Selesai" : fmtWait(item) + (item.status==="proses" ? " · sedang dikerjakan" : "")
       ),
       el("div", { class:"ticket-actions" },
-        waUrl ? el("a", { class:"btn-wa", href: waUrl, target:"_blank", rel:"noopener" }, "💬 WhatsApp Pelanggan") : el("span", { style:"font-size:11px; color:var(--ink-muted);" }, " (No WA tidak ada)"),
+        waUrl ? el("a", { class:"btn-wa", href: waUrl, target:"_blank", rel:"noopener" }, "💬 WhatsApp Pelanggan") : el("span", { style:"font-size:11px; color:var(--ink-muted);" }, "(No WA -)"),
+        !isDone ? el("button", { class:"resched-btn", onclick: () => markAbsentAndReschedule(item.id) }, "🏠 Penghuni Tidak Ada (H+1)") : null,
         !isDone && item.status !== "proses" ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Mulai Proses") : null,
         !isDone ? el("button", { class:"done", onclick: () => setStatus(item.id, "selesai") }, "Selesai") : null,
         isDone ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Buka Lagi") : null,
