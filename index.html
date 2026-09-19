@@ -188,7 +188,12 @@
   .btn-history:hover { background: #0369A1; }
   .btn-excel { background: #10B981; color: #FFF; padding: 8px 14px; }
   .btn-excel:hover { background: #059669; }
-  .btn-text { background: none; color: var(--ink-soft); font-weight: 500; text-decoration: underline; padding: 4px; }
+  .btn-nav-route {
+    background: #0284C7 !important; color: #FFF !important; border: none !important;
+    display: inline-flex; align-items: center; gap: 4px; font-weight: 700 !important;
+    text-decoration: none; font-size: 11px; padding: 5px 10px; border-radius: 4px;
+  }
+  .btn-nav-route:hover { background: #0369A1 !important; }
 
   /* Form Panels */
   .form-panel {
@@ -239,7 +244,7 @@
   .deadline-warning { background: var(--sedang-bg); color: var(--sedang); }
   .deadline-overdue { background: var(--tinggi-bg); color: var(--tinggi); }
 
-  .ticket-map-container { width: 100%; height: 100px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-top: 2px; z-index: 1; }
+  .ticket-map-container { width: 100%; height: 120px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-top: 2px; z-index: 1; }
 
   .ticket-actions { display: flex; gap: 6px; margin-top: 2px; flex-wrap: wrap; align-items: center; }
   .ticket-actions button { font-size: 11px; padding: 5px 10px; border-radius: 4px; border: 1px solid var(--border); background: #FFF; color: var(--ink-soft); }
@@ -263,17 +268,9 @@
   }
   .section-head .count { background: #E2E8F0; color: var(--ink); font-size: 10.5px; font-weight: 700; border-radius: 10px; padding: 1px 6px; }
   .empty { text-align: center; padding: 18px; color: var(--ink-soft); font-size: 12px; border: 1px dashed var(--border); border-radius: var(--radius); background: var(--panel); }
-  
-  .filter-date-banner {
-    background: #E0F2FE; border: 1px solid #38BDF8; color: #0369A1;
-    padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
-    display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
-  }
-
-  .history-item { background: #F8FAFC; border-left: 3px solid var(--accent); padding: 8px 10px; border-radius: 4px; margin-bottom: 6px; font-size: 11.5px; }
 </style>
 
-<!-- SheetJS & Leaflet Map JS -->
+<!-- SheetJS & Leaflet Map JS & Routing Plugin -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -287,57 +284,20 @@
 
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  // Koordinat Kantor Cabang Aetra Cikupa (Sebagai titik asal rute default)
+  const OFFICE_COORDS = { lat: -6.2231, lng: 106.5134 };
+
   // Tim Petugas Lapangan
   const OFFICERS = ["Budi Santoso", "Agus Setiawan", "Dedi Kurniawan", "Hendra Wijaya", "Eko Prasetyo"];
 
   const CATEGORIES = [
     { key: "BPPD", label: "Biaya Penambahan Pipa Dinas", opRisk: 1, custImpact: 1, keywords: ["biaya", "pipa dinas"] },
-    { key: "BPPDIND", label: "Biaya Penambahan Pipa Dinas Industri", opRisk: 2, custImpact: 2, keywords: ["pipa industri"] },
-    { key: "INFO-PLG", label: "Info ke Pelanggan", opRisk: 1, custImpact: 1, keywords: ["info", "tanya"] },
     { key: "KATM", label: "Air Tidak Mengalir Domestic", opRisk: 3, custImpact: 3, keywords: ["tidak mengalir", "mati", "tidak keluar", "kering", "air mati"] },
-    { key: "KATMIND", label: "Air Tidak Mengalir Industri", opRisk: 3, custImpact: 3, keywords: ["air mati industri", "pabrik kering"] },
     { key: "KATR", label: "Air Kotor Domestic", opRisk: 2, custImpact: 3, keywords: ["kotor", "keruh", "berbau", "hitam", "kuning"] },
-    { key: "KATRIND", label: "Air Kotor Industri", opRisk: 3, custImpact: 3, keywords: ["kotor industri"] },
-    { key: "KBBP", label: "Sudah Bayar Belum Pasang Meter", opRisk: 1, custImpact: 2, keywords: ["belum pasang", "sudah bayar"] },
-    { key: "KBGL", label: "Bekas Galian", opRisk: 2, custImpact: 1, keywords: ["galian", "lubang", "tanah"] },
     { key: "KBSM", label: "Bocor Sebelum Meter", opRisk: 3, custImpact: 3, keywords: ["bocor sebelum meter", "bocor sebelum", "pipa bocor", "bocor deras"] },
-    { key: "KBSMIND", label: "Bocor Sebelum Meter Industri", opRisk: 3, custImpact: 3, keywords: ["bocor meter industri"] },
-    { key: "KBTR", label: "Belum Menerima Tagihan", opRisk: 1, custImpact: 1, keywords: ["belum terima tagihan"] },
-    { key: "KBTT", label: "Sudah Bayar Tapi di Tagih", opRisk: 1, custImpact: 1, keywords: ["sudah bayar ditagih"] },
-    { key: "KILL", label: "Illegal Consumption", opRisk: 3, custImpact: 2, keywords: ["ilegal", "pencurian", "bypass"] },
     { key: "KKMR", label: "Kran Meter Rusak", opRisk: 2, custImpact: 2, keywords: ["kran rusak", "kran patah"] },
-    { key: "KKMRIND", label: "Kran Meter Rusak Industri", opRisk: 2, custImpact: 3, keywords: ["kran industri"] },
-    { key: "KLBC", label: "Pipa Jaringan Bocor", opRisk: 3, custImpact: 3, keywords: ["jaringan bocor", "pipa induk bocor", "bocor di jalan"] },
-    { key: "KMAL", label: "Meter Air Lepas", opRisk: 2, custImpact: 2, keywords: ["meter lepas", "copot"] },
-    { key: "KMALIND", label: "Meter Air Lepas Industri", opRisk: 3, custImpact: 3, keywords: ["meter lepas industri"] },
-    { key: "KMDT", label: "Meter Dipasang Terbalik", opRisk: 2, custImpact: 2, keywords: ["terbalik"] },
-    { key: "KMTA", label: "Meter Tidak Ada", opRisk: 2, custImpact: 2, keywords: ["meter hilang"] },
-    { key: "KPAP", label: "Perubahan Alamat Premise", opRisk: 1, custImpact: 1, keywords: ["pindah alamat"] },
-    { key: "KPAT", label: "Perubahan Alamat Billing", opRisk: 1, custImpact: 1, keywords: ["alamat billing"] },
-    { key: "KPCT", label: "Pengajuan Cicilan Tagihan", opRisk: 1, custImpact: 1, keywords: ["cicil"] },
-    { key: "KPDB", label: "Double Bayar", opRisk: 1, custImpact: 1, keywords: ["double bayar"] },
-    { key: "KPGP", label: "Permintaan Balik Nama", opRisk: 1, custImpact: 1, keywords: ["balik nama"] },
-    { key: "KPKT", label: "Penyambungan Kembali Akibat Tunggakkan", opRisk: 2, custImpact: 2, keywords: ["sambung kembali"] },
     { key: "KPMR", label: "Meter Rusak", opRisk: 2, custImpact: 2, keywords: ["meter rusak", "meter mati", "angka tidak jalan"] },
-    { key: "KPMRIND", label: "Meter Rusak Industri", opRisk: 3, custImpact: 3, keywords: ["meter rusak industri"] },
-    { key: "KPPA", label: "Revisi Nama", opRisk: 1, custImpact: 1, keywords: ["revisi nama"] },
-    { key: "KPPM", label: "Perilaku Pembaca Meter", opRisk: 1, custImpact: 1, keywords: ["petugas"] },
-    { key: "KPPR", label: "Pipa Dinas Rusak", opRisk: 3, custImpact: 2, keywords: ["pipa dinas rusak"] },
-    { key: "KPPS", label: "Permintaan Pemutusan Sambungan", opRisk: 1, custImpact: 1, keywords: ["putus"] },
-    { key: "KPPSIND", label: "Permintaan Pemutusan Sambungan Industri", opRisk: 2, custImpact: 2, keywords: ["putus industri"] },
-    { key: "KPSB", label: "Salah Bayar", opRisk: 1, custImpact: 1, keywords: ["salah bayar"] },
-    { key: "KPSM", label: "Petugas Penyegelan", opRisk: 1, custImpact: 1, keywords: ["segel"] },
-    { key: "KRMT", label: "Permintaan Relokasi Meter (teknis)", opRisk: 2, custImpact: 1, keywords: ["relokasi meter", "geser meter"] },
-    { key: "KRPR", label: "Rekening Pembayaran Rendah", opRisk: 1, custImpact: 1, keywords: ["tagihan rendah"] },
-    { key: "KRPT", label: "Rekening Pembayaran Tinggi", opRisk: 1, custImpact: 1, keywords: ["tagihan tinggi", "lonjak"] },
-    { key: "KSPM", label: "Meter Tertukar", opRisk: 2, custImpact: 2, keywords: ["tertukar"] },
-    { key: "KTST", label: "Tidak Sesuai Tarif", opRisk: 1, custImpact: 1, keywords: ["tarif"] },
-    { key: "KTST-RC", label: "Tidak Sesuai Tarif - Re Class", opRisk: 1, custImpact: 1, keywords: ["reclass"] },
-    { key: "LAPUL", label: "Lapor Ulang", opRisk: 2, custImpact: 2, keywords: ["lapor ulang"] },
-    { key: "PPMI", label: "Permintaan Penyesuaian Meter Industri", opRisk: 2, custImpact: 2, keywords: ["penyesuaian meter"] },
-    { key: "TERAREQ", label: "Tera Meter Request", opRisk: 1, custImpact: 1, keywords: ["tera meter"] },
-    { key: "TR09", label: "Pindah Meter", opRisk: 2, custImpact: 1, keywords: ["pindah meter"] },
-    { key: "TR09IND", label: "Pindah Meter Industri", opRisk: 2, custImpact: 2, keywords: ["pindah meter industri"] }
+    { key: "TR09", label: "Pindah Meter", opRisk: 2, custImpact: 1, keywords: ["pindah meter"] }
   ];
 
   const SLA_DAYS = 14;
@@ -459,7 +419,7 @@
     };
   }
 
-  // ALGORITMA AUTO-ASSIGN MERATA (LOAD BALANCER)
+  // ALGORITMA AUTO-ASSIGN MERATA
   async function autoAssignMerata() {
     const unassigned = complaints.filter(c => !c.officer && c.status !== "selesai");
     if (unassigned.length === 0) {
@@ -713,16 +673,11 @@ Catatan: ${item.desc || '-'}`;
 
       try {
         await sb.from(TABLE).insert(fullPayload);
-      } catch(err) {
-        console.warn("Retrying insert...", err);
-      }
+      } catch(err) { console.warn("Retrying insert...", err); }
 
       complaints.push(item);
-    } catch(globalErr) {
-      console.error("Error addComplaint:", globalErr);
-    } finally {
-      await load();
-    }
+    } catch(globalErr) { console.error("Error addComplaint:", globalErr); } 
+    finally { await load(); }
   }
 
   async function markAbsentAndReschedule(id) {
@@ -805,17 +760,10 @@ Catatan: ${item.desc || '-'}`;
     }
 
     const newComplaint = {
-      customer,
-      phone,
-      meterId,
-      address,
-      area,
+      customer, phone, meterId, address, area,
       category: detectedCategory.toUpperCase(),
       desc: desc + " [Konversi Email Otomatis]",
-      officer: "",
-      receivedAt: new Date().toISOString(),
-      urgent: false,
-      coords
+      officer: "", receivedAt: new Date().toISOString(), urgent: false, coords
     };
 
     await addComplaint(newComplaint);
@@ -825,13 +773,9 @@ Catatan: ${item.desc || '-'}`;
     try{
       const { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: true });
       if(error) throw error;
-      if (data && data.length > 0) {
-        complaints = data.map(rowToItem);
-      }
+      if (data && data.length > 0) complaints = data.map(rowToItem);
       storageOk = true;
-    }catch(e){
-      storageOk = false;
-    }
+    }catch(e){ storageOk = false; }
     render();
   }
 
@@ -1153,6 +1097,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
     );
   }
 
+  /* RENDERING KARTU TIKET + VISUALISASI NAVIGASI RUTE LAPANGAN */
   function renderTicket(item, itemScheduledDateMap){
     const metrics = computeUrgencyMetrics(item);
     const level = metrics.level;
@@ -1171,6 +1116,11 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
       `Halo Bpk/Ibu ${item.customer},\n\nKami dari Petugas Lapangan Aetra Air Tangerang (${item.officer || 'Petugas Lapangan'}) mengonfirmasi WO ${item.id} [${caseDetails.label}]. Petugas menuju lokasi. Terima kasih.`
     );
     const waUrl = formattedPhone ? `https://wa.me/${formattedPhone}?text=${waText}` : null;
+
+    // URL Google Maps Navigation Route untuk aplikasi HP Teknisi
+    const googleMapsRouteUrl = coordsObj 
+      ? `https://www.google.com/maps/dir/?api=1&destination=${coordsObj.lat},${coordsObj.lng}&travelmode=driving`
+      : null;
 
     return el("div", { class: "ticket " + (isDone ? "selesai" : "") },
       el("div", { class:"ticket-top" },
@@ -1195,8 +1145,9 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
       ),
       coordsObj ? el("div", {},
         el("div", { id: mapContainerId, class: "ticket-map-container" }),
-        el("div", { class:"ticket-loc" },
-          el("a", { href: "https://www.google.com/maps?q=" + encodeURIComponent(item.coords), target:"_blank", rel:"noopener", style:"font-size:11px; color:var(--accent); text-decoration:none;" }, "Buka Maps ↗")
+        el("div", { style:"display:flex; justify-content:space-between; align-items:center; margin-top:4px;" },
+          el("span", { style:"font-size:10.5px; color:var(--ink-soft);" }, `📍 ${coordsObj.lat.toFixed(4)}, ${coordsObj.lng.toFixed(4)}`),
+          el("a", { href: googleMapsRouteUrl, target:"_blank", rel:"noopener", class:"btn-nav-route" }, "🚗 Petunjuk Rute ↗")
         )
       ) : null,
       el("div", { class:"ticket-actions" },
@@ -1212,6 +1163,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
     );
   }
 
+  // Inisialisasi Peta & Garis Rute Petugas ke Lokasi
   function initMaps(){
     Object.keys(activeMaps).forEach(id => {
       if(activeMaps[id] && activeMaps[id].remove) activeMaps[id].remove();
@@ -1223,9 +1175,23 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
       const container = document.getElementById("map-" + item.id);
       if(container && coords){
         try {
-          const map = L.map(container, { attributionControl: false, zoomControl: false }).setView([coords.lat, coords.lng], 15);
+          const map = L.map(container, { attributionControl: false, zoomControl: false });
+          
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-          L.marker([coords.lat, coords.lng]).addTo(map);
+
+          // Marker Kantor Asal & Marker Pelanggan
+          const startMarker = L.marker([OFFICE_COORDS.lat, OFFICE_COORDS.lng]).addTo(map).bindPopup("Kantor Aetra Cikupa");
+          const destMarker = L.marker([coords.lat, coords.lng]).addTo(map).bindPopup("Lokasi Pelanggan");
+
+          // Garis Rute Perjalanan (Polyline)
+          const routeLine = L.polyline([
+            [OFFICE_COORDS.lat, OFFICE_COORDS.lng],
+            [coords.lat, coords.lng]
+          ], { color: '#0284C7', weight: 4, opacity: 0.8, dashArray: '6, 6' }).addTo(map);
+
+          // Fit Bounds agar kedua titik terlihat di map
+          map.fitBounds(routeLine.getBounds(), { padding: [20, 20] });
+
           activeMaps[item.id] = map;
         } catch(e) {}
       }
