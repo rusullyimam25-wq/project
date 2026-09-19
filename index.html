@@ -41,7 +41,7 @@
     padding: 20px 16px 60px;
   }
   
-  .wrap { max-width: 1200px; margin: 0 auto; }
+  .wrap { max-width: 1400px; margin: 0 auto; }
 
   /* Header Logo */
   .masthead {
@@ -54,13 +54,16 @@
   .brand-title h1 { font-size: 17px; font-weight: 800; margin: 0; color: var(--ink); letter-spacing: -0.02em; }
   .brand-title .unit { font-size: 11px; color: var(--accent); font-weight: 700; text-transform: uppercase; }
 
-  /* Layout Grid */
-  .dashboard-grid {
-    display: grid; grid-template-columns: 1fr 340px; gap: 20px;
+  /* TATA LETAK BARU SEIMBANG (50% KIRI - 50% KANAN) */
+  .dashboard-grid-balanced {
+    display: grid; grid-template-columns: 380px 1fr; gap: 20px; align-items: start;
   }
-  @media (max-width: 900px) {
-    .dashboard-grid { grid-template-columns: 1fr; }
+  @media (max-width: 1024px) {
+    .dashboard-grid-balanced { grid-template-columns: 1fr; }
   }
+
+  .left-col-sidebar { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 20px; }
+  .right-col-content { display: flex; flex-direction: column; gap: 14px; }
 
   /* SLA Alert Banner */
   .sla-alert-banner {
@@ -72,7 +75,7 @@
   /* Widget Kalender Sidebar */
   .calendar-card {
     background: #0F172A; border-radius: var(--radius);
-    padding: 16px; box-shadow: var(--shadow-md); color: #F8FAFC; position: sticky; top: 20px;
+    padding: 16px; box-shadow: var(--shadow-md); color: #F8FAFC;
   }
   .cal-top-header {
     display: flex; justify-content: space-between; align-items: center;
@@ -116,7 +119,7 @@
   /* Grafik Card */
   .chart-card {
     background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 14px 18px; margin-bottom: 16px; box-shadow: var(--shadow-sm);
+    padding: 14px 18px; box-shadow: var(--shadow-sm);
   }
   .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
   .chart-header h3 { font-size: 13.5px; font-weight: 700; margin: 0; color: var(--ink); }
@@ -130,36 +133,36 @@
 
   /* Produktivitas Petugas Widget */
   .officer-done-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-top: 10px; margin-bottom: 12px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 6px; margin-top: 8px;
   }
   .officer-done-box {
-    background: #ECFDF5; border: 1px solid #A7F3D0; padding: 8px 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;
+    background: #ECFDF5; border: 1px solid #A7F3D0; padding: 6px 8px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;
   }
-  .officer-done-name { font-size: 11px; font-weight: 700; color: #065F46; }
-  .officer-done-count { font-size: 12px; font-weight: 800; color: #047857; background: #D1FAE5; padding: 2px 6px; border-radius: 4px; }
+  .officer-done-name { font-size: 10.5px; font-weight: 700; color: #065F46; }
+  .officer-done-count { font-size: 11px; font-weight: 800; color: #047857; background: #D1FAE5; padding: 1px 5px; border-radius: 4px; }
 
   .analytics-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border);
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border);
   }
   .analytics-box { background: #F8FAFC; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); }
-  .analytics-box .val { font-size: 14px; font-weight: 800; color: var(--ink); }
-  .analytics-box .lbl { font-size: 10.5px; color: var(--ink-soft); font-weight: 600; margin-top: 2px; }
+  .analytics-box .val { font-size: 13px; font-weight: 800; color: var(--ink); }
+  .analytics-box .lbl { font-size: 10px; color: var(--ink-soft); font-weight: 600; margin-top: 2px; }
 
   /* Stats Summary Cards */
-  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; }
   .stat-card {
     background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 12px 14px; box-shadow: var(--shadow-sm); border-top: 3px solid var(--accent);
+    padding: 10px 12px; box-shadow: var(--shadow-sm); border-top: 3px solid var(--accent);
   }
-  .stat-card .num { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -0.03em; }
-  .stat-card .lbl { font-size: 11.5px; font-weight: 600; color: var(--ink-soft); margin-top: 2px; }
+  .stat-card .num { font-size: 20px; font-weight: 800; color: var(--ink); letter-spacing: -0.03em; }
+  .stat-card .lbl { font-size: 11px; font-weight: 600; color: var(--ink-soft); margin-top: 2px; }
   .stat-card.tinggi { border-top-color: var(--tinggi); }
   .stat-card.tinggi .num { color: var(--tinggi); }
   .stat-card.selesai-stat { border-top-color: var(--rendah); }
   .stat-card.selesai-stat .num { color: var(--rendah); }
 
   /* Search & Filter Bar */
-  .search-bar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+  .search-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
   .search-input {
     flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid var(--border);
     border-radius: 8px; font-size: 12.5px; background: var(--panel); outline: none; transition: border-color 0.2s;
@@ -173,8 +176,7 @@
 
   /* Toolbar */
   .toolbar {
-    display: flex; gap: 10px; justify-content: space-between; align-items: center;
-    margin-bottom: 16px; flex-wrap: wrap;
+    display: flex; gap: 10px; justify-content: space-between; align-items: center; flex-wrap: wrap;
   }
   .toolbar-actions { display: flex; gap: 6px; flex-wrap: wrap; }
   .filters { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
@@ -208,7 +210,7 @@
   /* Form Panels */
   .form-panel {
     background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 16px; margin-bottom: 20px; box-shadow: var(--shadow-md); display: none;
+    padding: 16px; margin-bottom: 10px; box-shadow: var(--shadow-md); display: none;
   }
   .form-panel.open { display: block; }
   .form-panel h2 { font-size: 14px; font-weight: 700; margin: 0 0 12px; color: var(--ink); }
@@ -254,7 +256,7 @@
   .deadline-warning { background: var(--sedang-bg); color: var(--sedang); }
   .deadline-overdue { background: var(--tinggi-bg); color: var(--tinggi); }
 
-  .ticket-map-container { width: 100%; height: 100px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-top: 2px; z-index: 1; }
+  .ticket-map-container { width: 100%; height: 110px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-top: 2px; z-index: 1; }
 
   .ticket-actions { display: flex; gap: 6px; margin-top: 2px; flex-wrap: wrap; align-items: center; }
   .ticket-actions button { font-size: 11px; padding: 5px 10px; border-radius: 4px; border: 1px solid var(--border); background: #FFF; color: var(--ink-soft); }
@@ -274,7 +276,7 @@
 
   .section-head {
     font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
-    color: var(--ink-soft); margin: 16px 0 10px; display: flex; align-items: center; gap: 6px;
+    color: var(--ink-soft); margin: 12px 0 8px; display: flex; align-items: center; gap: 6px;
   }
   .section-head .count { background: #E2E8F0; color: var(--ink); font-size: 10.5px; font-weight: 700; border-radius: 10px; padding: 1px 6px; }
   .empty { text-align: center; padding: 18px; color: var(--ink-soft); font-size: 12px; border: 1px dashed var(--border); border-radius: var(--radius); background: var(--panel); }
@@ -293,7 +295,6 @@
   const TABLE = "complaints";
 
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
   const OFFICE_COORDS = { lat: -6.2231, lng: 106.5134 };
 
   // Tim Petugas Lapangan
@@ -980,7 +981,6 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
       if (custKey) customerMap[custKey] = (customerMap[custKey] || 0) + 1;
       totalWaitHours += hoursWaiting(c);
 
-      // Hitung komplain yang SELESAI per petugas
       if (c.status === "selesai" && c.officer && OFFICERS.includes(c.officer)) {
         officerDoneCounts[c.officer]++;
       }
@@ -1001,7 +1001,6 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
         el("span", { class: "total-badge" }, `Total Diterima: ${totalDiterima}`)
       ),
 
-      // Diterima & Grafik CASE
       activeCases.length === 0 
         ? el("div", { style: "font-size:11.5px; color:var(--ink-soft); text-align:center; padding:10px;" }, "Belum ada data komplain.")
         : el("div", { class: "chart-list" },
@@ -1010,7 +1009,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
               return el("div", { class: "chart-item" },
                 el("div", { class: "chart-label" },
                   el("span", {}, `[${item.key}] ${item.label}`),
-                  el("span", {}, `${item.count} kasus (${pct}%)`)
+                  el("span", {}, `${item.count} (${pct}%)`)
                 ),
                 el("div", { class: "chart-bar-bg" },
                   el("div", { class: "chart-bar-fill", style: `width: ${pct}%` })
@@ -1019,13 +1018,12 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
             })
           ),
 
-      // FITUR BARU: WIDGET JUMLAH KOMPLAIN SELESAI PER PETUGAS
       el("div", { style: "margin-top:12px; padding-top:10px; border-top:1px dashed var(--border);" },
-        el("div", { style: "font-size:11.5px; font-weight:700; color:var(--ink-soft); margin-bottom:6px;" }, "🏆 PRODUKTIVITAS PETUGAS (WO SELESAI):"),
+        el("div", { style: "font-size:11px; font-weight:700; color:var(--ink-soft); margin-bottom:4px;" }, "🏆 PRODUKTIVITAS PETUGAS (WO SELESAI):"),
         el("div", { class: "officer-done-grid" },
           ...OFFICERS.map(off => el("div", { class: "officer-done-box" },
             el("span", { class: "officer-done-name" }, `👷 ${off}`),
-            el("span", { class: "officer-done-count" }, `${officerDoneCounts[off]} Selesai`)
+            el("span", { class: "officer-done-count" }, `${officerDoneCounts[off]} WO`)
           ))
         )
       ),
@@ -1033,15 +1031,15 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
       el("div", { class: "analytics-grid" },
         el("div", { class: "analytics-box" },
           el("div", { class: "val" }, `${avgWaitHours} Jam`),
-          el("div", { class: "lbl" }, "Rata-Rata Waktu Menunggu")
+          el("div", { class: "lbl" }, "Rata Wait Time")
         ),
         el("div", { class: "analytics-box" },
           el("div", { class: "val" }, `${repeatRate}%`),
-          el("div", { class: "lbl" }, "Rasio Komplain Berulang")
+          el("div", { class: "lbl" }, "Rasio Berulang")
         ),
         el("div", { class: "analytics-box" },
           el("div", { class: "val" }, activeCases[0] ? activeCases[0].key : "-"),
-          el("div", { class: "lbl" }, "CASE Terbanyak")
+          el("div", { class: "lbl" }, "Top CASE")
         )
       )
     );
@@ -1294,16 +1292,22 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
         el("button", { class:"btn-secondary", style:"font-size:11px; padding:4px 8px;", onclick: () => { quickFilter = "urgent"; render(); } }, "Tampilkan Urgent")
       ) : null,
 
-      el("div", { class: "dashboard-grid" },
-        el("div", {},
+      /* LAYOUT BARU SEIMBANG: KOLOM KIRI & KOLOM KANAN */
+      el("div", { class: "dashboard-grid-balanced" },
+        
+        /* SIDEBAR KIRI (Analytics, Stats & Kalender) */
+        el("div", { class: "left-col-sidebar" },
           el("div", { class:"summary" },
-            el("div", { class:"stat-card tinggi" }, el("div", { class:"num" }, String(tinggiCount)), el("div", { class:"lbl" }, "Prioritas Urgent")),
-            el("div", { class:"stat-card" }, el("div", { class:"num" }, String(openAll.length)), el("div", { class:"lbl" }, "Belum Selesai")),
-            el("div", { class:"stat-card selesai-stat" }, el("div", { class:"num" }, String(totalSelesai)), el("div", { class:"lbl" }, "Komplain Selesai"))
+            el("div", { class:"stat-card tinggi" }, el("div", { class:"num" }, String(tinggiCount)), el("div", { class:"lbl" }, "Urgent")),
+            el("div", { class:"stat-card" }, el("div", { class:"num" }, String(openAll.length)), el("div", { class:"lbl" }, "Aktif")),
+            el("div", { class:"stat-card selesai-stat" }, el("div", { class:"num" }, String(totalSelesai)), el("div", { class:"lbl" }, "Selesai"))
           ),
-
           renderCaseChart(),
+          renderSidebarCalendar(dateMap)
+        ),
 
+        /* KOLOM KANAN (Daftar Tiket, Search & Actions) */
+        el("div", { class: "right-col-content" },
           el("div", { class: "search-bar" },
             el("input", {
               class: "search-input",
@@ -1321,9 +1325,9 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
           el("div", { class:"toolbar" },
             el("div", { class:"toolbar-actions" },
               el("button", { class:"btn-primary", onclick: () => { formOpen = !formOpen; emailModalOpen = false; historyModalOpen = false; if(!formOpen) editingId=null; render(); } }, formOpen ? "Tutup Form" : "+ Manual Komplain"),
-              el("button", { class:"btn-autoassign", onclick: () => autoAssignMerata() }, "⚖️ Auto-Assign Merata"),
-              el("button", { class:"btn-email", onclick: () => { emailModalOpen = !emailModalOpen; formOpen = false; historyModalOpen = false; render(); } }, "🔄 Konversi Email"),
-              el("button", { class:"btn-history", onclick: () => { historyModalOpen = !historyModalOpen; formOpen = false; emailModalOpen = false; render(); } }, "📜 History Pelanggan"),
+              el("button", { class:"btn-autoassign", onclick: () => autoAssignMerata() }, "⚖️ Auto-Assign"),
+              el("button", { class:"btn-email", onclick: () => { emailModalOpen = !emailModalOpen; formOpen = false; historyModalOpen = false; render(); } }, "🔄 Email Parser"),
+              el("button", { class:"btn-history", onclick: () => { historyModalOpen = !historyModalOpen; formOpen = false; emailModalOpen = false; render(); } }, "📜 History"),
               el("button", { class:"btn-excel", onclick: () => exportToExcel(base, itemScheduledDateMap) }, "📊 Export Excel")
             ),
             el("div", { class:"filters" },
@@ -1365,10 +1369,6 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
           section("Belum Dikerjakan", belum, true),
           section("Sedang Dikerjakan", proses, false),
           section("Selesai", selesai, false)
-        ),
-
-        el("div", {},
-          renderSidebarCalendar(dateMap)
         )
       )
     );
