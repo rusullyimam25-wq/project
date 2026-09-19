@@ -358,7 +358,6 @@
 
   const OFFICERS = ["Budi Santoso", "Agus Setiawan", "Dedi Kurniawan", "Hendra Wijaya", "Eko Prasetyo"];
 
-  // DAFTAR CASE LENGKAP 42 KATEGORI DARI GAMBAR TABEL
   const CATEGORIES = [
     { key: "BPPD", label: "Biaya Penambahan Pipa Dinas", opRisk: 1, custImpact: 1, keywords: ["biaya", "pipa dinas"] },
     { key: "BPPDIND", label: "Biaya Penambahan Pipa Dinas Industri", opRisk: 2, custImpact: 2, keywords: ["pipa dinas industri"] },
@@ -457,28 +456,20 @@
     return d;
   }
 
-  /* 🎯 METODE SKORING MULTI-KRITERIA (ALGORITMA SKORING URGENSI TERTINGGI - TERENDAH) */
   function computeUrgencyMetrics(item) {
     const cInfo = catInfo(item.category);
-    
-    // Kriteria 1: Risiko Operasional (35%)
     const scoreOpRisk = item.urgent ? 3 : (cInfo.opRisk || 1);
-    
-    // Kriteria 2: Dampak Pelanggan (30%)
     const scoreCustImpact = item.urgent ? 3 : (cInfo.custImpact || 1);
 
-    // Kriteria 3: Batas SLA Sisa Waktu (20%)
     const start = new Date(item.receivedAt);
     const deadline = new Date(start.getTime() + SLA_DAYS * 24 * 60 * 60 * 1000);
     const diffDays = Math.ceil((deadline - new Date()) / (1000 * 60 * 60 * 24));
     let scoreSla = diffDays <= 3 ? 3 : (diffDays <= 7 ? 2 : 1);
 
-    // Kriteria 4: Tipe Pelanggan & Komplain Berulang (15%)
     const isIndustrial = (item.category && item.category.endsWith("IND")) || 
                          (item.customer && item.customer.toLowerCase().includes("pt."));
     const scoreCustType = isIndustrial ? 3 : 2;
 
-    // Bobot Total Formula Skoring (1.00 - 3.00)
     const totalScore = (scoreOpRisk * 0.35) + (scoreCustImpact * 0.30) + (scoreSla * 0.20) + (scoreCustType * 0.15);
     const roundedScore = Math.round(totalScore * 100) / 100;
 
@@ -820,9 +811,12 @@ Catatan: ${item.desc || '-'}`;
     };
   }
 
+  /* 🛠️ FIX PERBAIKAN FORM TAMBAH KOMPLAIN MANUAL */
   async function addComplaint(data){
     try {
       let receivedDateObj = (data && data.receivedAt) ? new Date(data.receivedAt) : new Date();
+      if (isNaN(receivedDateObj.getTime())) receivedDateObj = new Date();
+
       if (isWeekend(receivedDateObj)) {
         receivedDateObj = getNextWorkingDay(receivedDateObj);
       }
@@ -861,10 +855,18 @@ Catatan: ${item.desc || '-'}`;
         status: item.status
       };
 
-      await sb.from(TABLE).insert(fullPayload);
-      complaints.push(item);
-    } catch(globalErr) { console.error("Error addComplaint:", globalErr); } 
-    finally { await load(); }
+      const { error } = await sb.from(TABLE).insert(fullPayload);
+      if(error) {
+        console.error("Gagal simpan Supabase:", error);
+        complaints.push(item); // Fallback lokal
+      }
+      
+      Swal.fire({ icon: 'success', title: 'Berhasil!', text: `Komplain ${item.id} berhasil ditambahkan!`, timer: 1500, showConfirmButton: false });
+    } catch(globalErr) { 
+      console.error("Error addComplaint:", globalErr); 
+    } finally { 
+      await load(); 
+    }
   }
 
   async function markAbsentAndReschedule(id) {
@@ -903,6 +905,7 @@ Catatan: ${item.desc || '-'}`;
         urgent: data.urgent,
         coords: data.coords,
       }).eq("id", id);
+      Swal.fire({ icon: 'success', title: 'Diperbarui!', text: `Work Order ${id} berhasil diubah!`, timer: 1500, showConfirmButton: false });
     }catch(e){ console.error(e); }
     await load();
   }
@@ -991,9 +994,9 @@ Catatan: ${item.desc || '-'}`;
   }
 
   function nowLocalInputValue(){
-    const d = new Date();
-    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-    return d.toISOString().slice(0,16);
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
   }
 
   function renderForm(){
@@ -1003,8 +1006,9 @@ Catatan: ${item.desc || '-'}`;
     const toLocalInput = (iso) => {
       try {
         const d = new Date(iso);
-        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-        return d.toISOString().slice(0,16);
+        if(isNaN(d.getTime())) return nowLocalInputValue();
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
       } catch(e) { return nowLocalInputValue(); }
     };
 
@@ -1012,7 +1016,7 @@ Catatan: ${item.desc || '-'}`;
     const phoneInput = el("input", { type:"text", placeholder:"No WA (08xxxxxxxxxx)", value: editing ? editing.phone : "" });
     const meterIdInput = el("input", { type:"text", placeholder:"ID Meter / Langganan", value: editing ? editing.meterId : "" });
     const addressInput = el("input", { type:"text", placeholder:"Alamat Lengkap", value: editing ? editing.address : "" });
-    const areaInput = el("input", { type:"text", placeholder:"Area / Zona", value: editing ? editing.area : "" });
+    const areaInput = el("input", { type:"text", placeholder:"Area / Zona (Cikupa)", value: editing ? editing.area : "Cikupa" });
     
     const catSelect = el("select", {},
       ...CATEGORIES.map(c => el("option", { value: c.key, selected: editing && editing.category===c.key ? "selected" : null }, `[${c.key}] ${c.label}`))
@@ -1024,14 +1028,14 @@ Catatan: ${item.desc || '-'}`;
     const coordsInput = el("input", { type:"text", placeholder:"-6.1783, 106.6319 (opsional)", value: editing ? (editing.coords||"") : "" });
 
     return el("div", { class:"form-panel open" },
-      el("h2", {}, editing ? "Ubah Komplain " + editing.id : "Tambah Komplain Baru"),
+      el("h2", {}, editing ? "Ubah Komplain " + editing.id : "Tambah Komplain Manual Baru"),
       el("div", { class:"field-row" },
         el("div", { class:"field" }, el("label", {}, "Nama Pelanggan *"), customerInput),
         el("div", { class:"field" }, el("label", {}, "No WhatsApp"), phoneInput),
         el("div", { class:"field" }, el("label", {}, "ID Meter"), meterIdInput),
       ),
       el("div", { class:"field-row" },
-        el("div", { class:"field" }, el("label", {}, "Alamat"), addressInput),
+        el("div", { class:"field" }, el("label", {}, "Alamat Lengkap"), addressInput),
         el("div", { class:"field" }, el("label", {}, "Area / Zona"), areaInput),
       ),
       el("div", { class:"field-row" },
@@ -1039,7 +1043,7 @@ Catatan: ${item.desc || '-'}`;
         el("div", { class:"field" }, el("label", {}, "Waktu Diterima"), timeInput),
       ),
       el("div", { class:"field-row" },
-        el("div", { class:"field" }, el("label", {}, "Deskripsi"), descInput),
+        el("div", { class:"field" }, el("label", {}, "Deskripsi Keluhan"), descInput),
         el("div", { class:"field" }, el("label", {}, "Koordinat GPS"), coordsInput),
       ),
       el("label", { style: "display:flex; align-items:center; gap:8px; font-size:12px; margin: 6px 0 14px; cursor:pointer;" }, 
@@ -1683,15 +1687,14 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
       });
     }
 
-    /* 📊 HIRARKI MULTI-LAYER: 1. SKOR URGENSI -> 2. WAKTU MASUK -> 3. KLUSTER GEOGRAFIS DAERAH BERDEKATAN */
     const processSmartSort = (items) => {
       let sorted = [...items];
 
       if (sortMode === "prioritas") {
         sorted.sort((a,b) => {
           const scoreDiff = computeUrgencyMetrics(b).score - computeUrgencyMetrics(a).score;
-          if (Math.abs(scoreDiff) > 0.05) return scoreDiff; // Urutkan Skor Urgensi Tertinggi -> Terendah
-          return new Date(a.receivedAt) - new Date(b.receivedAt); // Urutkan Waktu Komplain Masuk Terlama -> Terbaru
+          if (Math.abs(scoreDiff) > 0.05) return scoreDiff;
+          return new Date(a.receivedAt) - new Date(b.receivedAt);
         });
       } else if (sortMode === "waktu-terbaru") {
         sorted.sort((a,b) => new Date(b.receivedAt) - new Date(a.receivedAt));
@@ -1701,7 +1704,6 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
         sorted.sort((a,b) => (a.customer || "").localeCompare(b.customer || ""));
       }
 
-      // Kelompokkan Berdasarkan Zona / Daerah Berdekatan
       const areaGroups = {};
       sorted.forEach(item => {
         const zone = (item.area || "Area Cikupa").trim();
