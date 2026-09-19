@@ -281,7 +281,8 @@
 
   .ticket-main-info { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 11px; color: var(--ink-soft); }
   .case-tag { background: var(--bg); color: var(--ink); font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border); }
-  
+  .score-tag { background: #FEF3C7; color: #92400E; font-size: 10px; font-weight: 800; padding: 2px 5px; border-radius: 4px; border: 1px solid #FDE68A; }
+
   .officer-select-inline {
     font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px;
     border: 1px solid #BAE6FD; background: #E0F2FE; color: #0369A1; cursor: pointer; outline: none;
@@ -322,6 +323,13 @@
   .btn-wa:hover { background: var(--wa-hover) !important; }
 
   .countdown-badge { font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: #FEF2F2; color: #EF4444; border: 1px solid #FCA5A5; }
+
+  .area-group-header {
+    background: linear-gradient(90deg, #1E293B, #334155); color: #F8FAFC;
+    padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 800;
+    margin: 10px 0 6px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .area-group-header .area-badge { background: #38BDF8; color: #0F172A; padding: 1px 6px; border-radius: 4px; font-size: 10px; }
 
   .section-head {
     font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
@@ -449,20 +457,28 @@
     return d;
   }
 
+  /* 🎯 METODE SKORING MULTI-KRITERIA (ALGORITMA SKORING URGENSI TERTINGGI - TERENDAH) */
   function computeUrgencyMetrics(item) {
     const cInfo = catInfo(item.category);
+    
+    // Kriteria 1: Risiko Operasional (35%)
     const scoreOpRisk = item.urgent ? 3 : (cInfo.opRisk || 1);
+    
+    // Kriteria 2: Dampak Pelanggan (30%)
     const scoreCustImpact = item.urgent ? 3 : (cInfo.custImpact || 1);
 
+    // Kriteria 3: Batas SLA Sisa Waktu (20%)
     const start = new Date(item.receivedAt);
     const deadline = new Date(start.getTime() + SLA_DAYS * 24 * 60 * 60 * 1000);
     const diffDays = Math.ceil((deadline - new Date()) / (1000 * 60 * 60 * 24));
     let scoreSla = diffDays <= 3 ? 3 : (diffDays <= 7 ? 2 : 1);
 
+    // Kriteria 4: Tipe Pelanggan & Komplain Berulang (15%)
     const isIndustrial = (item.category && item.category.endsWith("IND")) || 
                          (item.customer && item.customer.toLowerCase().includes("pt."));
     const scoreCustType = isIndustrial ? 3 : 2;
 
+    // Bobot Total Formula Skoring (1.00 - 3.00)
     const totalScore = (scoreOpRisk * 0.35) + (scoreCustImpact * 0.30) + (scoreSla * 0.20) + (scoreCustType * 0.15);
     const roundedScore = Math.round(totalScore * 100) / 100;
 
@@ -1566,6 +1582,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
       el("div", { class:"ticket-main-info" },
         el("span", { class:"case-tag" }, item.category),
         el("span", {}, caseDetails.label),
+        el("span", { class:"score-tag", title:"Skor Urgensi Otomatis" }, `⭐ ${metrics.score.toFixed(2)}`),
         officerSelectCard,
         item.area ? el("span", { style:"font-weight:700; color:#92400E;" }, `• Area: ${item.area}`) : null
       ),
@@ -1666,29 +1683,63 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
       });
     }
 
-    const sortedByMode = (items) => {
-      if (sortMode === "prioritas") return [...items].sort((a,b) => priorityScore(b) - priorityScore(a));
-      else if (sortMode === "waktu-terbaru") return [...items].sort((a,b) => new Date(b.receivedAt) - new Date(a.receivedAt));
-      else if (sortMode === "waktu-lama") return [...items].sort((a,b) => new Date(a.receivedAt) - new Date(b.receivedAt));
-      else if (sortMode === "nama") return [...items].sort((a,b) => (a.customer || "").localeCompare(b.customer || ""));
-      return items;
+    /* 📊 HIRARKI MULTI-LAYER: 1. SKOR URGENSI -> 2. WAKTU MASUK -> 3. KLUSTER GEOGRAFIS DAERAH BERDEKATAN */
+    const processSmartSort = (items) => {
+      let sorted = [...items];
+
+      if (sortMode === "prioritas") {
+        sorted.sort((a,b) => {
+          const scoreDiff = computeUrgencyMetrics(b).score - computeUrgencyMetrics(a).score;
+          if (Math.abs(scoreDiff) > 0.05) return scoreDiff; // Urutkan Skor Urgensi Tertinggi -> Terendah
+          return new Date(a.receivedAt) - new Date(b.receivedAt); // Urutkan Waktu Komplain Masuk Terlama -> Terbaru
+        });
+      } else if (sortMode === "waktu-terbaru") {
+        sorted.sort((a,b) => new Date(b.receivedAt) - new Date(a.receivedAt));
+      } else if (sortMode === "waktu-lama") {
+        sorted.sort((a,b) => new Date(a.receivedAt) - new Date(b.receivedAt));
+      } else if (sortMode === "nama") {
+        sorted.sort((a,b) => (a.customer || "").localeCompare(b.customer || ""));
+      }
+
+      // Kelompokkan Berdasarkan Zona / Daerah Berdekatan
+      const areaGroups = {};
+      sorted.forEach(item => {
+        const zone = (item.area || "Area Cikupa").trim();
+        if (!areaGroups[zone]) areaGroups[zone] = [];
+        areaGroups[zone].push(item);
+      });
+
+      return areaGroups;
     };
 
-    const belum = sortedByMode(base.filter(c => c.status === "baru"));
-    const proses = sortedByMode(base.filter(c => c.status === "proses"));
-    const selesai = sortedByMode(base.filter(c => c.status === "selesai"));
+    const belumGroups = processSmartSort(base.filter(c => c.status === "baru"));
+    const prosesGroups = processSmartSort(base.filter(c => c.status === "proses"));
+    const selesaiGroups = processSmartSort(base.filter(c => c.status === "selesai"));
 
     const openAll = complaints.filter(c => c.status !== "selesai");
     const totalSelesai = complaints.filter(c => c.status === "selesai").length;
     const tinggiCount = openAll.filter(c => urgencyLevel(c) === "tinggi").length;
     const overdueCount = openAll.filter(c => getDeadlineInfo(c).isOverdue).length;
 
-    const section = (title, items, isFirst) => el("div", {},
-      el("div", { class:"section-head" + (isFirst ? " first" : "") }, title, el("span", { class:"count" }, String(items.length))),
-      items.length === 0
-        ? el("div", { class:"empty" }, "Tidak ada komplain di seksi ini.")
-        : el("div", {}, ...items.map((item) => renderTicket(item, itemScheduledDateMap)))
-    );
+    const renderGroupedSection = (title, groups, isFirst) => {
+      const zones = Object.keys(groups);
+      const totalInSec = zones.reduce((acc, z) => acc + groups[z].length, 0);
+
+      return el("div", {},
+        el("div", { class:"section-head" + (isFirst ? " first" : "") }, title, el("span", { class:"count" }, String(totalInSec))),
+        totalInSec === 0
+          ? el("div", { class:"empty" }, "Tidak ada komplain di seksi ini.")
+          : el("div", {},
+              ...zones.map(zoneName => el("div", {},
+                el("div", { class: "area-group-header" },
+                  el("span", {}, `🗺️ ZONA DAERAH BERDEKATAN: ${zoneName.toUpperCase()}`),
+                  el("span", { class: "area-badge" }, `${groups[zoneName].length} WO`)
+                ),
+                ...groups[zoneName].map(item => renderTicket(item, itemScheduledDateMap))
+              ))
+            )
+      );
+    };
 
     const wrap = el("div", { class:"wrap" },
       el("div", { class:"masthead" },
@@ -1771,7 +1822,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
               el("div", { class:"filter-group" },
                 "Urutkan:",
                 el("select", { onchange: (e) => { sortMode = e.target.value; render(); } },
-                  el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "⚡ Skor Urgensi"),
+                  el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "⚡ Skor Urgensi -> Waktu -> Kluster"),
                   el("option", { value:"waktu-terbaru", selected: sortMode==="waktu-terbaru" ? "selected" : null }, "🕒 Waktu Terbaru"),
                   el("option", { value:"waktu-lama", selected: sortMode==="waktu-lama" ? "selected" : null }, "⏳ Waktu Terlama"),
                   el("option", { value:"nama", selected: sortMode==="nama" ? "selected" : null }, "🔤 Nama (A-Z)")
@@ -1790,9 +1841,9 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
             el("button", { style: "color:#0284C7; font-size:11px; background:none; border:none; cursor:pointer;", onclick: () => { selectedDate = null; render(); } }, "Tampilkan Semua")
           ) : null,
 
-          section("Belum Dikerjakan", belum, true),
-          section("Sedang Dikerjakan", proses, false),
-          section("Selesai", selesai, false)
+          renderGroupedSection("Belum Dikerjakan", belumGroups, true),
+          renderGroupedSection("Sedang Dikerjakan", prosesGroups, false),
+          renderGroupedSection("Selesai", selesaiGroups, false)
         )
       )
     );
