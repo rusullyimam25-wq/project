@@ -1,7 +1,7 @@
 <div id="app-root"></div>
 <style>
   :root {
-    --bg: #F8FAFC;
+    --bg: #F1F5F9;
     --panel: #FFFFFF;
     --border: #E2E8F0;
     --border-hover: #CBD5E1;
@@ -27,10 +27,9 @@
     --resched: #7C3AED;
     --resched-bg: #F3E8FF;
     
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --radius: 12px;
+    --radius: 10px;
   }
 
   * { box-sizing: border-box; }
@@ -39,7 +38,7 @@
   #app-root {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     min-height: 100vh;
-    padding: 24px 16px 60px;
+    padding: 20px 16px 60px;
   }
   
   .wrap { max-width: 1180px; margin: 0 auto; }
@@ -51,13 +50,13 @@
     border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border);
   }
   .brand-group { display: flex; align-items: center; gap: 14px; }
-  .brand-logo { height: 42px; width: auto; object-fit: contain; }
-  .brand-title h1 { font-size: 18px; font-weight: 800; margin: 0; color: var(--ink); letter-spacing: -0.02em; }
-  .brand-title .unit { font-size: 12px; color: var(--accent); font-weight: 700; }
+  .brand-logo { height: 38px; width: auto; object-fit: contain; }
+  .brand-title h1 { font-size: 17px; font-weight: 800; margin: 0; color: var(--ink); letter-spacing: -0.02em; }
+  .brand-title .unit { font-size: 11px; color: var(--accent); font-weight: 700; text-transform: uppercase; }
 
   /* Layout Grid */
   .dashboard-grid {
-    display: grid; grid-template-columns: 1fr 340px; gap: 20px;
+    display: grid; grid-template-columns: 1fr 320px; gap: 20px;
   }
   @media (max-width: 900px) {
     .dashboard-grid { grid-template-columns: 1fr; }
@@ -66,30 +65,30 @@
   /* Widget Kalender Sidebar */
   .calendar-card {
     background: #0F172A; border-radius: var(--radius);
-    padding: 18px; box-shadow: var(--shadow-md); color: #F8FAFC; position: sticky; top: 20px;
+    padding: 16px; box-shadow: var(--shadow-md); color: #F8FAFC; position: sticky; top: 20px;
   }
   .cal-top-header {
     display: flex; justify-content: space-between; align-items: center;
-    font-size: 14px; font-weight: 700; color: #38BDF8; padding-bottom: 10px; margin-bottom: 12px;
+    font-size: 13px; font-weight: 700; color: #38BDF8; padding-bottom: 8px; margin-bottom: 10px;
     border-bottom: 1px solid #334155;
   }
   .cal-month-nav {
-    display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
   }
-  .cal-month-title { font-size: 14px; font-weight: 700; color: #F8FAFC; }
-  .cal-nav-btns { display: flex; gap: 6px; }
+  .cal-month-title { font-size: 13px; font-weight: 700; color: #F8FAFC; }
+  .cal-nav-btns { display: flex; gap: 4px; }
   .cal-nav-btn {
-    background: #1E293B; border: 1px solid #334155; font-size: 12px; cursor: pointer; color: #94A3B8; padding: 4px 8px; border-radius: 4px;
+    background: #1E293B; border: 1px solid #334155; font-size: 11px; cursor: pointer; color: #94A3B8; padding: 3px 6px; border-radius: 4px;
   }
   .cal-nav-btn:hover { color: #FFF; background: #334155; }
 
   .cal-grid-embedded {
     display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center;
   }
-  .cal-head-cell { font-size: 11px; font-weight: 700; color: #94A3B8; padding: 4px 0; text-transform: uppercase; }
+  .cal-head-cell { font-size: 10px; font-weight: 700; color: #94A3B8; padding: 4px 0; text-transform: uppercase; }
   .cal-date-cell {
-    padding: 6px 0; font-size: 13px; font-weight: 600; color: #E2E8F0;
-    border-radius: 50%; width: 32px; height: 32px; margin: 0 auto;
+    padding: 4px 0; font-size: 12px; font-weight: 600; color: #E2E8F0;
+    border-radius: 50%; width: 28px; height: 28px; margin: 0 auto;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     cursor: pointer; position: relative; transition: all 0.2s;
   }
@@ -100,7 +99,7 @@
   }
   .cal-date-cell.has-tasks::after {
     content: ""; display: block; width: 4px; height: 4px; background: #38BDF8;
-    border-radius: 50%; position: absolute; bottom: 2px;
+    border-radius: 50%; position: absolute; bottom: 1px;
   }
   .cal-date-cell.selected.has-tasks::after { background: #0F172A; }
   .cal-date-cell.has-high::after { background: var(--tinggi); }
@@ -109,40 +108,40 @@
   /* Kuota Control Card */
   .quota-card {
     background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 14px 16px; margin-top: 16px; box-shadow: var(--shadow-sm);
+    padding: 12px 14px; margin-top: 14px; box-shadow: var(--shadow-sm);
   }
-  .quota-header { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--ink-soft); margin-bottom: 8px; }
+  .quota-header { display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 700; color: var(--ink-soft); margin-bottom: 6px; }
 
-  /* Grafik & Analisa Card */
+  /* Grafik Card */
   .chart-card {
     background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 16px 20px; margin-bottom: 20px; box-shadow: var(--shadow-sm);
+    padding: 14px 18px; margin-bottom: 16px; box-shadow: var(--shadow-sm);
   }
-  .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-  .chart-header h3 { font-size: 14px; font-weight: 700; margin: 0; color: var(--ink); }
-  .chart-header .total-badge { background: var(--accent-bg); color: var(--accent); font-weight: 700; font-size: 11px; padding: 4px 10px; border-radius: 20px; }
+  .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .chart-header h3 { font-size: 13.5px; font-weight: 700; margin: 0; color: var(--ink); }
+  .chart-header .total-badge { background: var(--accent-bg); color: var(--accent); font-weight: 700; font-size: 10.5px; padding: 3px 8px; border-radius: 12px; }
   
-  .chart-list { display: flex; flex-direction: column; gap: 10px; max-height: 200px; overflow-y: auto; padding-right: 4px; }
-  .chart-item { font-size: 12px; }
-  .chart-label { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 4px; color: var(--ink-soft); }
-  .chart-bar-bg { background: #F1F5F9; border-radius: 6px; height: 8px; width: 100%; overflow: hidden; }
-  .chart-bar-fill { background: linear-gradient(90deg, #2563EB, #06B6D4); height: 100%; border-radius: 6px; transition: width 0.3s; }
+  .chart-list { display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; padding-right: 4px; }
+  .chart-item { font-size: 11.5px; }
+  .chart-label { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 3px; color: var(--ink-soft); }
+  .chart-bar-bg { background: #F1F5F9; border-radius: 4px; height: 6px; width: 100%; overflow: hidden; }
+  .chart-bar-fill { background: linear-gradient(90deg, #2563EB, #06B6D4); height: 100%; border-radius: 4px; transition: width 0.3s; }
 
   .analytics-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border);
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border);
   }
-  .analytics-box { background: #F8FAFC; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); }
-  .analytics-box .val { font-size: 16px; font-weight: 800; color: var(--ink); }
-  .analytics-box .lbl { font-size: 11px; color: var(--ink-soft); font-weight: 600; margin-top: 2px; }
+  .analytics-box { background: #F8FAFC; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); }
+  .analytics-box .val { font-size: 14px; font-weight: 800; color: var(--ink); }
+  .analytics-box .lbl { font-size: 10.5px; color: var(--ink-soft); font-weight: 600; margin-top: 2px; }
 
   /* Stats Summary Cards */
-  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px; margin-bottom: 20px; }
+  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 16px; }
   .stat-card {
     background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 16px; box-shadow: var(--shadow-sm); border-top: 4px solid var(--accent);
+    padding: 12px 14px; box-shadow: var(--shadow-sm); border-top: 3px solid var(--accent);
   }
-  .stat-card .num { font-size: 26px; font-weight: 800; color: var(--ink); letter-spacing: -0.03em; }
-  .stat-card .lbl { font-size: 12px; font-weight: 600; color: var(--ink-soft); margin-top: 4px; }
+  .stat-card .num { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -0.03em; }
+  .stat-card .lbl { font-size: 11.5px; font-weight: 600; color: var(--ink-soft); margin-top: 2px; }
   
   .stat-card.tinggi { border-top-color: var(--tinggi); }
   .stat-card.tinggi .num { color: var(--tinggi); }
@@ -151,141 +150,126 @@
 
   /* Search & Filter Bar */
   .search-bar {
-    display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;
+    display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center;
   }
   .search-input {
-    flex: 1; min-width: 200px; padding: 9px 14px; border: 1px solid var(--border);
-    border-radius: 8px; font-size: 13px; background: var(--panel); outline: none; transition: border-color 0.2s;
+    flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 12.5px; background: var(--panel); outline: none; transition: border-color 0.2s;
   }
   .search-input:focus { border-color: var(--accent); }
   .quick-badge {
-    font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 20px; cursor: pointer;
+    font-size: 11.5px; font-weight: 700; padding: 5px 10px; border-radius: 16px; cursor: pointer;
     background: var(--panel); border: 1px solid var(--border); color: var(--ink-soft); transition: all 0.2s;
   }
   .quick-badge:hover, .quick-badge.active { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
 
   /* Toolbar */
   .toolbar {
-    display: flex; gap: 12px; justify-content: space-between; align-items: center;
-    margin-bottom: 20px; flex-wrap: wrap;
+    display: flex; gap: 10px; justify-content: space-between; align-items: center;
+    margin-bottom: 16px; flex-wrap: wrap;
   }
-  .toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-  .filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .filter-group { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-soft); font-weight: 600; }
+  .toolbar-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filters { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .filter-group { display: flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--ink-soft); font-weight: 600; }
 
   select {
-    font-size: 12.5px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
-    background: var(--panel); color: var(--ink); outline: none; max-width: 220px; font-weight: 500; cursor: pointer;
+    font-size: 12px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px;
+    background: var(--panel); color: var(--ink); outline: none; max-width: 200px; font-weight: 500; cursor: pointer;
   }
 
-  button { font-family: inherit; cursor: pointer; border: none; font-size: 12.5px; font-weight: 600; border-radius: 8px; transition: all 0.2s; }
-  .btn-primary { background: var(--accent); color: #fff; padding: 9px 16px; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2); }
+  button { font-family: inherit; cursor: pointer; border: none; font-size: 12px; font-weight: 600; border-radius: 6px; transition: all 0.2s; }
+  .btn-primary { background: var(--accent); color: #fff; padding: 8px 14px; }
   .btn-primary:hover { background: var(--accent-hover); }
-  .btn-secondary { background: var(--panel); border: 1px solid var(--border); color: var(--ink); padding: 8px 14px; }
+  .btn-secondary { background: var(--panel); border: 1px solid var(--border); color: var(--ink); padding: 7px 12px; }
   .btn-secondary:hover { background: #F8FAFC; }
-  .btn-email { background: #8B5CF6; color: #FFF; padding: 9px 16px; box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2); }
+  .btn-email { background: #8B5CF6; color: #FFF; padding: 8px 14px; }
   .btn-email:hover { background: #7C3AED; }
-  .btn-history { background: #0284C7; color: #FFF; padding: 9px 16px; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.2); }
+  .btn-history { background: #0284C7; color: #FFF; padding: 8px 14px; }
   .btn-history:hover { background: #0369A1; }
-  .btn-excel { background: #10B981; color: #FFF; padding: 9px 16px; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2); }
+  .btn-excel { background: #10B981; color: #FFF; padding: 8px 14px; }
   .btn-excel:hover { background: #059669; }
   .btn-text { background: none; color: var(--ink-soft); font-weight: 500; text-decoration: underline; padding: 4px; }
 
   /* Form Panels */
   .form-panel {
     background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 20px; margin-bottom: 24px; box-shadow: var(--shadow-md); display: none;
+    padding: 16px; margin-bottom: 20px; box-shadow: var(--shadow-md); display: none;
   }
   .form-panel.open { display: block; }
-  .form-panel h2 { font-size: 15px; font-weight: 700; margin: 0 0 16px; color: var(--ink); }
-  .field-row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
-  .field { flex: 1; min-width: 160px; display: flex; flex-direction: column; gap: 6px; }
-  .field label { font-size: 11.5px; font-weight: 600; color: var(--ink-soft); }
+  .form-panel h2 { font-size: 14px; font-weight: 700; margin: 0 0 12px; color: var(--ink); }
+  .field-row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .field { flex: 1; min-width: 150px; display: flex; flex-direction: column; gap: 4px; }
+  .field label { font-size: 11px; font-weight: 600; color: var(--ink-soft); }
   .field input, .field select, .field textarea {
-    font-family: inherit; font-size: 12.5px; padding: 8px 12px; border: 1px solid var(--border);
+    font-family: inherit; font-size: 12px; padding: 7px 10px; border: 1px solid var(--border);
     border-radius: 6px; outline: none;
   }
-  .field textarea { resize: vertical; min-height: 55px; }
+  .field textarea { resize: vertical; min-height: 50px; }
 
-  /* Cards Ticket Modern */
+  /* TAMPILAN KARTU TIKET SIMPEL & RAPI */
   .ticket {
     background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow-sm);
-    display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden;
-    transition: transform 0.2s, box-shadow 0.2s;
+    padding: 12px 14px; margin-bottom: 10px; box-shadow: var(--shadow-sm);
+    display: flex; flex-direction: column; gap: 8px; position: relative;
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
-  .ticket:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
-  .ticket::before { content: ""; position: absolute; top: 0; left: 0; bottom: 0; width: 4px; }
-  .ticket.tinggi::before { background: var(--tinggi); }
-  .ticket.sedang::before { background: var(--sedang); }
-  .ticket.rendah::before { background: var(--rendah); }
-  .ticket.selesai { opacity: 0.7; background: #F8FAFC; }
+  .ticket:hover { border-color: var(--border-hover); box-shadow: var(--shadow-md); }
+  .ticket.selesai { opacity: 0.65; background: #F8FAFC; }
 
-  .ticket-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-  .ticket-id { font-size: 12px; font-weight: 700; color: var(--accent); }
-  .ticket-cust { font-size: 15px; font-weight: 700; color: var(--ink); margin-top: 2px; }
-  .ticket-meter { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+  .ticket-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .ticket-id { font-size: 11.5px; font-weight: 800; color: var(--accent); background: var(--accent-bg); padding: 2px 6px; border-radius: 4px; }
+  .ticket-cust { font-size: 13.5px; font-weight: 700; color: var(--ink); }
   
-  .ticket-badge { font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 20px; text-transform: uppercase; }
+  .ticket-badge { font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
   .badge-tinggi { background: var(--tinggi-bg); color: var(--tinggi); }
   .badge-sedang { background: var(--sedang-bg); color: var(--sedang); }
   .badge-rendah { background: var(--rendah-bg); color: var(--rendah); }
   .badge-selesai { background: #E2E8F0; color: #475569; }
 
-  .case-tag { background: #E0F2FE; color: #0369A1; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
-  .area-tag { background: #FEF3C7; color: #92400E; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
-  .score-badge { background: #1E293B; color: #38BDF8; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
-  .resched-badge { background: var(--resched-bg); color: var(--resched); font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
+  .ticket-main-info { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 11.5px; color: var(--ink-soft); }
+  .case-tag { background: #F1F5F9; color: #334155; font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); }
   
-  .ticket-meta { font-size: 12.5px; color: var(--ink-soft); font-weight: 500; }
-  .ticket-address { font-size: 12px; color: #475569; background: #F8FAFC; padding: 6px 10px; border-radius: 6px; border-left: 3px solid var(--accent); margin-top: 2px; }
-  .ticket-desc { font-size: 13px; color: var(--ink); line-height: 1.4; }
+  .ticket-address { font-size: 11.5px; color: #334155; line-height: 1.3; }
+  .ticket-desc { font-size: 12px; color: var(--ink); background: #F8FAFC; padding: 6px 8px; border-radius: 6px; border-left: 2px solid var(--border-hover); }
 
-  .schedule-box {
-    background: #F8FAFC; border: 1px solid var(--border); border-radius: 8px;
-    padding: 10px 12px; font-size: 12px; display: flex; flex-direction: column; gap: 4px;
-  }
-  .schedule-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
-  .schedule-title { font-weight: 700; color: var(--accent); }
-  .deadline-tag { font-weight: 700; padding: 2px 8px; border-radius: 4px; font-size: 10.5px; }
+  .schedule-row-simple { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-soft); font-weight: 500; }
+  .deadline-tag { font-weight: 700; padding: 1px 5px; border-radius: 3px; font-size: 10px; }
   .deadline-normal { background: #E2E8F0; color: #334155; }
   .deadline-warning { background: var(--sedang-bg); color: var(--sedang); }
   .deadline-overdue { background: var(--tinggi-bg); color: var(--tinggi); }
 
-  .ticket-map-container { width: 100%; height: 130px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-top: 4px; z-index: 1; }
-  .ticket-loc { font-size: 12px; display: flex; gap: 12px; margin-top: 4px; }
-  .ticket-loc a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .ticket-map-container { width: 100%; height: 100px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-top: 2px; z-index: 1; }
 
-  .ticket-actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; align-items: center; }
-  .ticket-actions button { font-size: 11.5px; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: #FFF; color: var(--ink-soft); }
+  .ticket-actions { display: flex; gap: 6px; margin-top: 2px; flex-wrap: wrap; align-items: center; }
+  .ticket-actions button { font-size: 11px; padding: 5px 10px; border-radius: 4px; border: 1px solid var(--border); background: #FFF; color: var(--ink-soft); }
   .ticket-actions button.progress { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
   .ticket-actions button.done { border-color: var(--rendah); color: var(--rendah); background: var(--rendah-bg); }
   .ticket-actions button.resched-btn { border-color: var(--resched); color: var(--resched); background: var(--resched-bg); }
+  .ticket-actions button.copy-btn { border-color: #0EA5E9; color: #0EA5E9; background: #F0F9FF; }
   .ticket-actions button.del { margin-left: auto; border-color: transparent; color: var(--ink-muted); }
   .ticket-actions button.del:hover { color: var(--tinggi); background: var(--tinggi-bg); }
   
   .btn-wa {
     background: var(--wa) !important; color: #FFF !important; border: none !important;
-    display: inline-flex; align-items: center; gap: 6px; font-weight: 700 !important;
-    text-decoration: none; font-size: 11.5px; padding: 6px 12px; border-radius: 6px;
-    transition: background 0.2s;
+    display: inline-flex; align-items: center; gap: 4px; font-weight: 700 !important;
+    text-decoration: none; font-size: 11px; padding: 5px 10px; border-radius: 4px;
   }
   .btn-wa:hover { background: var(--wa-hover) !important; }
 
   .section-head {
-    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
-    color: var(--ink-soft); margin: 20px 0 12px; display: flex; align-items: center; gap: 8px;
+    font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--ink-soft); margin: 16px 0 10px; display: flex; align-items: center; gap: 6px;
   }
-  .section-head .count { background: #E2E8F0; color: var(--ink); font-size: 11px; font-weight: 700; border-radius: 12px; padding: 2px 8px; }
-  .empty { text-align: center; padding: 24px; color: var(--ink-soft); font-size: 13px; border: 1px dashed var(--border); border-radius: var(--radius); background: var(--panel); }
+  .section-head .count { background: #E2E8F0; color: var(--ink); font-size: 10.5px; font-weight: 700; border-radius: 10px; padding: 1px 6px; }
+  .empty { text-align: center; padding: 18px; color: var(--ink-soft); font-size: 12px; border: 1px dashed var(--border); border-radius: var(--radius); background: var(--panel); }
   
   .filter-date-banner {
     background: #E0F2FE; border: 1px solid #38BDF8; color: #0369A1;
-    padding: 10px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
-    display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+    padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
   }
 
-  .history-item { background: #F8FAFC; border-left: 3px solid var(--accent); padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 12px; }
+  .history-item { background: #F8FAFC; border-left: 3px solid var(--accent); padding: 8px 10px; border-radius: 4px; margin-bottom: 6px; font-size: 11.5px; }
 </style>
 
 <!-- SheetJS untuk Export ke Excel -->
@@ -435,7 +419,7 @@
 
   function fmtWait(item){
     const hrs = hoursWaiting(item);
-    if (hrs < 1) return Math.round(hrs*60) + " menit menunggu";
+    if (hrs < 1) return Math.round(hrs*60) + "m menunggu";
     const h = Math.floor(hrs);
     const m = Math.round((hrs - h) * 60);
     return h + "j " + (m>0? m+"m ":"") + "menunggu";
@@ -473,14 +457,14 @@
     const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 
     let statusClass = "deadline-normal";
-    let statusText = `Sisa ${diffDays} hari`;
+    let statusText = `SLA ${diffDays}hr`;
 
     if (diffMs < 0) {
       statusClass = "deadline-overdue";
-      statusText = `Terlambat (${Math.abs(diffDays)} hari)`;
+      statusText = `Lewat SLA (${Math.abs(diffDays)}hr)`;
     } else if (diffDays <= 3) {
       statusClass = "deadline-warning";
-      statusText = `Mendesak (${diffDays} hari lagi)`;
+      statusText = `SLA Urgen (${diffDays}hr)`;
     }
 
     return {
@@ -489,6 +473,25 @@
       statusClass,
       statusText
     };
+  }
+
+  function copyFieldFormat(item) {
+    const cInfo = catInfo(item.category);
+    const textToCopy = 
+`*[LAPORAN PENGERJAAN MINOR REPAIR]*
+ID WO: ${item.id}
+Pelanggan: ${item.customer} ${item.meterId ? '('+item.meterId+')' : ''}
+Keluhan: [${item.category}] ${cInfo.label}
+Alamat: ${item.address || '-'}
+Area: ${item.area || 'Cikupa'}
+Status: ${item.status.toUpperCase()}
+Catatan: ${item.desc || '-'}`;
+
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      alert("Format laporan WO " + item.id + " berhasil disalin ke clipboard!");
+    }).catch(err => {
+      console.error("Gagal menyalin:", err);
+    });
   }
 
   function calculateCalendarSchedule(){
@@ -942,7 +945,7 @@
         el("div", { class:"field" }, el("label", {}, "Deskripsi"), descInput),
         el("div", { class:"field" }, el("label", {}, "Koordinat Lokasi"), coordsInput),
       ),
-      el("label", { style: "display:flex; align-items:center; gap:8px; font-size:13px; margin: 8px 0 16px; cursor:pointer;" }, 
+      el("label", { style: "display:flex; align-items:center; gap:8px; font-size:12px; margin: 6px 0 14px; cursor:pointer;" }, 
         urgentCheck, "Tandai mendesak (Prioritas Utama)"
       ),
       el("div", { style: "display:flex; gap:8px;" },
@@ -1010,9 +1013,9 @@
         )
       ),
       historySearchTerm.trim() === "" 
-        ? el("p", { style:"font-size:12px; color:var(--ink-soft);" }, "Ketik ID Meter atau Nama Pelanggan di atas untuk menampilkan riwayat.")
+        ? el("p", { style:"font-size:11.5px; color:var(--ink-soft);" }, "Ketik ID Meter atau Nama Pelanggan di atas untuk menampilkan riwayat.")
         : historyResults.length === 0
-          ? el("p", { style:"font-size:12px; color:var(--tinggi);" }, "Tidak ditemukan riwayat komplain untuk pelanggan ini.")
+          ? el("p", { style:"font-size:11.5px; color:var(--tinggi);" }, "Tidak ditemukan riwayat komplain untuk pelanggan ini.")
           : el("div", { style:"max-height:220px; overflow-y:auto; margin-top:10px;" },
               ...historyResults.map(item => {
                 const cInfo = catInfo(item.category);
@@ -1021,7 +1024,7 @@
                     el("span", {}, `${item.id} - ${cInfo.label}`),
                     el("span", { style: `color: ${item.status === 'selesai' ? 'var(--rendah)' : 'var(--tinggi)'}` }, item.status.toUpperCase())
                   ),
-                  el("div", { style:"color:var(--ink-soft); font-size:11px; margin-top:2px;" }, `Waktu Lapor: ${fmtDateTime(new Date(item.receivedAt))}`),
+                  el("div", { style:"color:var(--ink-soft); font-size:10.5px; margin-top:2px;" }, `Waktu Lapor: ${fmtDateTime(new Date(item.receivedAt))}`),
                   el("div", { style:"margin-top:4px;" }, item.desc)
                 );
               })
@@ -1046,15 +1049,15 @@ Koordinat : -6.2231, 106.5134
 Urgent : Ya
 Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor deras. Mohon segera diperbaiki.`;
 
-    const emailTextArea = el("textarea", { style: "width:100%; height:150px; font-family:monospace; font-size:12px; padding:10px; border:1px solid var(--border); border-radius:6px;" }, defaultEmailContent);
+    const emailTextArea = el("textarea", { style: "width:100%; height:140px; font-family:monospace; font-size:11.5px; padding:8px; border:1px solid var(--border); border-radius:6px;" }, defaultEmailContent);
 
     return el("div", { class:"form-panel open", style: "background:#F3E8FF; border-color:#C084FC;" },
       el("h2", { style:"color:#6B21A8; margin-top:0;" }, "🔄 Engine Konversi Email Langsung Ke CASE"),
-      el("p", { style:"font-size:12px; color:#581C87; margin-bottom:12px;" }, 
+      el("p", { style:"font-size:11.5px; color:#581C87; margin-bottom:10px;" }, 
         "Sistem akan membaca teks email, memilah data pelanggan (Termasuk Nomor WhatsApp), dan mencocokkan jenis CASE secara otomatis:"
       ),
       emailTextArea,
-      el("div", { style:"display:flex; gap:8px; margin-top:12px;" },
+      el("div", { style:"display:flex; gap:8px; margin-top:10px;" },
         el("button", { class:"btn-email", onclick: async () => {
           await processInboundEmail(emailTextArea.value);
           emailModalOpen = false;
@@ -1097,7 +1100,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
         el("span", { class: "total-badge" }, `Total Diterima: ${totalDiterima}`)
       ),
       activeCases.length === 0 
-        ? el("div", { style: "font-size:12px; color:var(--ink-soft); text-align:center; padding:12px;" }, "Belum ada data komplain.")
+        ? el("div", { style: "font-size:11.5px; color:var(--ink-soft); text-align:center; padding:10px;" }, "Belum ada data komplain.")
         : el("div", { class: "chart-list" },
             ...activeCases.map(item => {
               const pct = totalDiterima > 0 ? Math.round((item.count / totalDiterima) * 100) : 0;
@@ -1177,7 +1180,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
       el("div", { class: "cal-top-header" },
         el("span", {}, headerTitle),
         selectedDate ? el("button", { 
-          style: "font-size:11px; background:none; border:none; color:#38BDF8; cursor:pointer; font-weight:700;",
+          style: "font-size:10.5px; background:none; border:none; color:#38BDF8; cursor:pointer; font-weight:700;",
           onclick: () => { selectedDate = null; render(); }
         }, "Reset Filter") : null
       ),
@@ -1236,6 +1239,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
     );
   }
 
+  /* RENDERING TIKET SIMPEL & MODERN */
   function renderTicket(item, itemScheduledDateMap){
     const metrics = computeUrgencyMetrics(item);
     const level = metrics.level;
@@ -1245,7 +1249,6 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
     const deadlineInfo = getDeadlineInfo(item);
     const mapContainerId = "map-" + item.id;
     const caseDetails = catInfo(item.category);
-    const isFromEmail = item.desc && item.desc.includes("Konversi");
 
     const scheduledDateObj = itemScheduledDateMap[item.id];
     const scheduledText = scheduledDateObj ? fmtDateOnly(scheduledDateObj) : "-";
@@ -1253,58 +1256,50 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
     const formattedPhone = formatWA(item.phone);
     const waText = encodeURIComponent(
       `Halo Bpk/Ibu ${item.customer},\n\n` +
-      `Kami dari Tim Petugas Lapangan Aetra Air Tangerang ingin mengonfirmasi terkait penanganan komplain Anda dengan data berikut:\n` +
+      `Kami dari Tim Petugas Lapangan Aetra Air Tangerang ingin mengonfirmasi terkait penanganan komplain Anda:\n` +
       `- No Work Order: ${item.id}\n` +
       `- Keluhan: ${caseDetails.label}\n` +
       `- Alamat: ${item.address || '-'}\n\n` +
-      `Petugas kami dijadwalkan menuju ke lokasi Anda. Mohon konfirmasinya apakah lokasi dapat diakses saat ini? Terima kasih.`
+      `Petugas kami dijadwalkan menuju ke lokasi Anda. Mohon konfirmasinya. Terima kasih.`
     );
     const waUrl = formattedPhone ? `https://wa.me/${formattedPhone}?text=${waText}` : null;
 
-    return el("div", { class: "ticket " + level + (isDone ? " selesai" : "") },
+    return el("div", { class: "ticket " + (isDone ? "selesai" : "") },
       el("div", { class:"ticket-top" },
-        el("div", {},
-          el("div", { class:"ticket-id" }, item.id),
-          el("div", { class:"ticket-cust" }, item.customer),
-          item.meterId ? el("div", { class:"ticket-meter" }, `ID Meter: ${item.meterId}`) : null
+        el("div", { style:"display:flex; align-items:center; gap:6px;" },
+          el("span", { class:"ticket-id" }, item.id),
+          el("span", { class:"ticket-cust" }, item.customer),
+          item.meterId ? el("span", { style:"font-size:11px; color:var(--ink-soft);" }, `(${item.meterId})`) : null
         ),
         el("span", { class:`ticket-badge ${isDone ? 'badge-selesai' : 'badge-' + level}` }, isDone ? "Selesai" : badgeText)
       ),
-      el("div", { class:"ticket-meta" }, 
-        el("span", { class:"case-tag" }, caseDetails.key),
-        el("span", { class:"score-badge" }, `Skor: ${metrics.score}`),
-        item.rescheduledDate ? el("span", { class:"resched-badge" }, `🏠 Reschedule (H+1)`) : null,
-        item.area ? el("span", { class:"area-tag" }, `📍 Area: ${item.area}`) : null,
-        isFromEmail ? el("span", { class:"email-source-tag" }, "📧 Email Integrasi") : null,
-        " ", caseDetails.label
+      
+      el("div", { class:"ticket-main-info" },
+        el("span", { class:"case-tag" }, item.category),
+        el("span", {}, caseDetails.label),
+        item.area ? el("span", { style:"font-weight:700; color:#92400E;" }, `• Area: ${item.area}`) : null
       ),
-      item.address ? el("div", { class:"ticket-address" }, `🏠 ${item.address}`) : null,
+
+      item.address ? el("div", { class:"ticket-address" }, `📍 ${item.address}`) : null,
       item.desc ? el("div", { class:"ticket-desc" }, item.desc) : null,
       
-      el("div", { class:"schedule-box" },
-        el("div", { class:"schedule-row" },
-          el("span", { class:"schedule-title" }, `📅 Tanggal Kerja: ${scheduledText}`),
-          el("span", { class:`deadline-tag ${deadlineInfo.statusClass}` }, deadlineInfo.statusText)
-        ),
-        el("div", { style:"color:var(--ink-soft);" }, `Diterima: ${deadlineInfo.receivedText}`),
-        el("div", { style:"color:var(--ink-soft);" }, `Batas SLA (14 Hari): ${deadlineInfo.deadlineText}`)
+      el("div", { class:"schedule-row-simple" },
+        el("span", {}, `📅 Pengerjaan: ${scheduledText}`),
+        el("span", { class:`deadline-tag ${deadlineInfo.statusClass}` }, deadlineInfo.statusText)
       ),
 
       coordsObj ? el("div", {},
         el("div", { id: mapContainerId, class: "ticket-map-container" }),
         el("div", { class:"ticket-loc" },
-          el("a", { href: "https://www.google.com/maps?q=" + encodeURIComponent(item.coords), target:"_blank", rel:"noopener" }, "Lihat Google Maps ↗"),
-          el("a", { href: "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(item.coords), target:"_blank", rel:"noopener" }, "🧭 Navigasi ↗")
+          el("a", { href: "https://www.google.com/maps?q=" + encodeURIComponent(item.coords), target:"_blank", rel:"noopener", style:"font-size:11px; color:var(--accent); text-decoration:none;" }, "Buka Maps ↗")
         )
       ) : null,
 
-      el("div", { style: "font-size: 12px; color: var(--ink-soft); font-weight: 500;" },
-        isDone ? "Status: Selesai" : fmtWait(item) + (item.status==="proses" ? " · sedang dikerjakan" : "")
-      ),
       el("div", { class:"ticket-actions" },
-        waUrl ? el("a", { class:"btn-wa", href: waUrl, target:"_blank", rel:"noopener" }, "💬 WhatsApp Pelanggan") : el("span", { style:"font-size:11px; color:var(--ink-muted);" }, "(No WA -)"),
-        !isDone ? el("button", { class:"resched-btn", onclick: () => markAbsentAndReschedule(item.id) }, "🏠 Penghuni Tidak Ada (H+1)") : null,
-        !isDone && item.status !== "proses" ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Mulai Proses") : null,
+        waUrl ? el("a", { class:"btn-wa", href: waUrl, target:"_blank", rel:"noopener" }, "💬 WhatsApp") : null,
+        el("button", { class:"copy-btn", onclick: () => copyFieldFormat(item) }, "📋 Copy Format"),
+        !isDone ? el("button", { class:"resched-btn", onclick: () => markAbsentAndReschedule(item.id) }, "🏠 Reschedule") : null,
+        !isDone && item.status !== "proses" ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Proses") : null,
         !isDone ? el("button", { class:"done", onclick: () => setStatus(item.id, "selesai") }, "Selesai") : null,
         isDone ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Buka Lagi") : null,
         el("button", { onclick: () => { editingId = item.id; formOpen = true; render(); window.scrollTo({top:0, behavior:"smooth"}); } }, "Edit"),
@@ -1336,8 +1331,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
             maxZoom: 19
           }).addTo(map);
 
-          L.marker([coords.lat, coords.lng]).addTo(map)
-            .bindPopup(`<b>${item.customer}</b><br>[${item.category}]`);
+          L.marker([coords.lat, coords.lng]).addTo(map);
 
           activeMaps[item.id] = map;
         } catch(e) {
@@ -1368,11 +1362,12 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
 
     if (quickFilter === "urgent") {
       base = base.filter(c => urgencyLevel(c) === "tinggi");
+    } else if (quickFilter === "proses") {
+      base = base.filter(c => c.status === "proses");
     } else if (quickFilter === "reschedule") {
       base = base.filter(c => c.rescheduledDate);
     }
 
-    // Pemfilteran Presisi Berdasarkan CASE
     if (categoryFilter !== "semua") {
       base = base.filter(c => c.category === categoryFilter);
     }
@@ -1385,18 +1380,12 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
       });
     }
 
-    // Fungsi Pengurutan Tingkat Tinggi & Akses Cepat
     const sortedByMode = (items) => {
       if (sortMode === "prioritas") {
         return [...items].sort((a,b) => {
           const scoreA = priorityScore(a);
           const scoreB = priorityScore(b);
           if (scoreB !== scoreA) return scoreB - scoreA;
-          
-          const areaA = (a.area || "").toLowerCase();
-          const areaB = (b.area || "").toLowerCase();
-          if (areaA !== areaB) return areaA.localeCompare(areaB);
-
           return new Date(a.receivedAt) - new Date(b.receivedAt);
         });
       } else if (sortMode === "waktu-terbaru") {
@@ -1459,6 +1448,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
             }),
             el("span", { class: `quick-badge ${quickFilter === "semua" ? "active" : ""}`, onclick: () => { quickFilter = "semua"; render(); } }, "Semua"),
             el("span", { class: `quick-badge ${quickFilter === "urgent" ? "active" : ""}`, onclick: () => { quickFilter = "urgent"; render(); } }, "🔥 Urgent"),
+            el("span", { class: `quick-badge ${quickFilter === "proses" ? "active" : ""}`, onclick: () => { quickFilter = "proses"; render(); } }, "⚙️ Diproses"),
             el("span", { class: `quick-badge ${quickFilter === "reschedule" ? "active" : ""}`, onclick: () => { quickFilter = "reschedule"; render(); } }, "🏠 Reschedule")
           ),
 
@@ -1523,7 +1513,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
     root.appendChild(wrap);
 
     if(!storageOk){
-      const warn = el("div", { style:"margin-top:12px; font-size:12px; color:var(--tinggi); text-align:center;" }, "Terhubung dalam mode cadangan lokal.");
+      const warn = el("div", { style:"margin-top:12px; font-size:11.5px; color:var(--tinggi); text-align:center;" }, "Terhubung dalam mode cadangan lokal.");
       root.appendChild(warn);
     }
 
