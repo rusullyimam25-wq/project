@@ -1,4 +1,1012 @@
-/* 📸 UPLOAD BUKTI BEFORE/AFTER & ✍️ DIGITAL SIGNATURE MODAL (RESPONSIF TOUCH & MOUSE) */
+<div id="app-root"></div>
+
+<style>
+  :root {
+    --bg: #F1F5F9;
+    --panel: #FFFFFF;
+    --border: #E2E8F0;
+    --border-hover: #CBD5E1;
+    --ink: #0F172A;
+    --ink-soft: #64748B;
+    --ink-muted: #94A3B8;
+    
+    --accent: #2563EB;
+    --accent-bg: #EFF6FF;
+    --accent-hover: #1D4ED8;
+    
+    --tinggi: #EF4444;
+    --tinggi-bg: #FEF2F2;
+    --sedang: #F59E0B;
+    --sedang-bg: #FFFBEB;
+    --rendah: #10B981;
+    --rendah-bg: #ECFDF5;
+    
+    --wa: #25D366;
+    --wa-hover: #1EBE5D;
+
+    --resched: #7C3AED;
+    --resched-bg: #F3E8FF;
+    
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --radius: 10px;
+  }
+
+  body.dark-mode {
+    --bg: #0F172A;
+    --panel: #1E293B;
+    --border: #334155;
+    --border-hover: #475569;
+    --ink: #F8FAFC;
+    --ink-soft: #94A3B8;
+    --ink-muted: #64748B;
+    --accent-bg: #1E3A8A;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); overflow-x: hidden; transition: background 0.3s, color 0.3s; }
+
+  #app-root {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    height: 100vh;
+    display: flex; flex-direction: column;
+    padding: 16px 16px 20px;
+  }
+  
+  .wrap { max-width: 1440px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; height: 100%; }
+
+  /* Header Logo */
+  .masthead {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px; padding: 10px 16px; background: var(--panel);
+    border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .brand-group { display: flex; align-items: center; gap: 14px; }
+  .brand-logo { height: 32px; width: auto; object-fit: contain; }
+  .brand-title h1 { font-size: 16px; font-weight: 800; margin: 0; color: var(--ink); letter-spacing: -0.02em; }
+  .brand-title .unit { font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase; }
+
+  /* TATA LETAK 2 KOLOM SEIMBANG DENGAN SCROLL BERPISAH */
+  .dashboard-grid-balanced {
+    display: grid; grid-template-columns: 380px 1fr; gap: 16px;
+    flex: 1; height: calc(100vh - 90px); overflow: hidden;
+  }
+  @media (max-width: 1024px) {
+    .dashboard-grid-balanced { grid-template-columns: 1fr; height: auto; overflow: auto; }
+  }
+
+  /* KOLOM KIRI (ANALISIS & KALENDER HASIL SCROLL MANDIRI) */
+  .left-col-sidebar {
+    display: flex; flex-direction: column; gap: 12px;
+    height: 100%; overflow-y: auto; padding-right: 6px;
+  }
+  
+  /* KOLOM KANAN (DAFTAR TIKET HASIL SCROLL MANDIRI) */
+  .right-col-content {
+    display: flex; flex-direction: column; gap: 12px;
+    height: 100%; overflow-y: auto; padding-right: 6px;
+  }
+
+  /* Custom Scrollbar */
+  .left-col-sidebar::-webkit-scrollbar, .right-col-content::-webkit-scrollbar { width: 5px; }
+  .left-col-sidebar::-webkit-scrollbar-thumb, .right-col-content::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+
+  /* SLA Alert Banner */
+  .sla-alert-banner {
+    background: #FEF2F2; border: 1px solid #FCA5A5; color: #991B1B;
+    padding: 8px 12px; border-radius: var(--radius); margin-bottom: 12px;
+    font-size: 11.5px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;
+    flex-shrink: 0;
+  }
+
+  /* Widget Fleet Map */
+  .fleet-map-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 10px; box-shadow: var(--shadow-sm);
+  }
+  .fleet-map-header { font-size: 11.5px; font-weight: 700; color: var(--ink); margin-bottom: 6px; display: flex; justify-content: space-between; }
+  #fleet-map-container { width: 100%; height: 160px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+
+  /* Widget Kalender Sidebar */
+  .calendar-card {
+    background: #0F172A; border-radius: var(--radius);
+    padding: 14px; box-shadow: var(--shadow-md); color: #F8FAFC;
+  }
+  .cal-top-header {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; font-weight: 700; color: #38BDF8; padding-bottom: 6px; margin-bottom: 8px;
+    border-bottom: 1px solid #334155;
+  }
+  .cal-month-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .cal-month-title { font-size: 12px; font-weight: 700; color: #F8FAFC; }
+  .cal-nav-btns { display: flex; gap: 4px; }
+  .cal-nav-btn {
+    background: #1E293B; border: 1px solid #334155; font-size: 10px; cursor: pointer; color: #94A3B8; padding: 2px 5px; border-radius: 4px;
+  }
+  .cal-nav-btn:hover { color: #FFF; background: #334155; }
+
+  .cal-grid-embedded { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+  .cal-head-cell { font-size: 9.5px; font-weight: 700; color: #94A3B8; padding: 2px 0; text-transform: uppercase; }
+  .cal-head-cell.weekend-head { color: #EF4444; }
+  
+  .cal-date-cell {
+    padding: 3px 0; font-size: 11.5px; font-weight: 600; color: #E2E8F0;
+    border-radius: 50%; width: 26px; height: 26px; margin: 0 auto;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; position: relative; transition: all 0.2s;
+  }
+  .cal-date-cell:hover { background: #334155; }
+  .cal-date-cell.other-month { color: #475569; }
+  .cal-date-cell.weekend-day { color: #F87171; background: rgba(239, 68, 68, 0.12); cursor: not-allowed; }
+  .cal-date-cell.selected { background: #38BDF8 !important; color: #0F172A !important; font-weight: 800; }
+  .cal-date-cell.has-tasks::after {
+    content: ""; display: block; width: 4px; height: 4px; background: #38BDF8;
+    border-radius: 50%; position: absolute; bottom: 1px;
+  }
+  .cal-date-cell.selected.has-tasks::after { background: #0F172A; }
+  .cal-date-cell.has-high::after { background: var(--tinggi); }
+  .cal-date-cell.all-done::after { background: var(--rendah); }
+
+  /* Kuota Control Card */
+  .quota-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 10px 12px; margin-top: 10px; box-shadow: var(--shadow-sm);
+  }
+  .quota-header { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--ink-soft); margin-bottom: 4px; }
+
+  /* Grafik Card */
+  .chart-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 14px; box-shadow: var(--shadow-sm);
+  }
+  .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .chart-header h3 { font-size: 12.5px; font-weight: 700; margin: 0; color: var(--ink); }
+  .chart-header .total-badge { background: var(--accent-bg); color: var(--accent); font-weight: 700; font-size: 10px; padding: 2px 6px; border-radius: 12px; }
+  
+  .chart-list { display: flex; flex-direction: column; gap: 6px; max-height: 140px; overflow-y: auto; padding-right: 4px; }
+  .chart-item { font-size: 11px; }
+  .chart-label { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 2px; color: var(--ink-soft); }
+  .chart-bar-bg { background: #F1F5F9; border-radius: 4px; height: 5px; width: 100%; overflow: hidden; }
+  .chart-bar-fill { background: linear-gradient(90deg, #2563EB, #06B6D4); height: 100%; border-radius: 4px; transition: width 0.3s; }
+
+  /* Produktivitas Petugas Widget */
+  .officer-done-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 6px; margin-top: 6px;
+  }
+  .officer-done-box {
+    background: #ECFDF5; border: 1px solid #A7F3D0; padding: 5px 7px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .officer-done-name { font-size: 10px; font-weight: 700; color: #065F46; }
+  .officer-done-count { font-size: 10.5px; font-weight: 800; color: #047857; background: #D1FAE5; padding: 1px 4px; border-radius: 4px; }
+
+  .analytics-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 6px; margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border);
+  }
+  .analytics-box { background: var(--bg); padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border); }
+  .analytics-box .val { font-size: 12px; font-weight: 800; color: var(--ink); }
+  .analytics-box .lbl { font-size: 9.5px; color: var(--ink-soft); font-weight: 600; margin-top: 1px; }
+
+  /* Stats Summary Cards */
+  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; }
+  .stat-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 8px 10px; box-shadow: var(--shadow-sm); border-top: 3px solid var(--accent);
+  }
+  .stat-card .num { font-size: 18px; font-weight: 800; color: var(--ink); letter-spacing: -0.03em; }
+  .stat-card .lbl { font-size: 10.5px; font-weight: 600; color: var(--ink-soft); margin-top: 1px; }
+  .stat-card.tinggi { border-top-color: var(--tinggi); }
+  .stat-card.tinggi .num { color: var(--tinggi); }
+  .stat-card.selesai-stat { border-top-color: var(--rendah); }
+  .stat-card.selesai-stat .num { color: var(--rendah); }
+
+  /* Search & Filter Bar */
+  .search-bar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .search-input {
+    flex: 1; min-width: 180px; padding: 7px 10px; border: 1px solid var(--border);
+    border-radius: 6px; font-size: 12px; background: var(--panel); color: var(--ink); outline: none; transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .quick-badge {
+    font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 14px; cursor: pointer;
+    background: var(--panel); border: 1px solid var(--border); color: var(--ink-soft); transition: all 0.2s;
+  }
+  .quick-badge:hover, .quick-badge.active { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+
+  /* Toolbar */
+  .toolbar {
+    display: flex; gap: 8px; justify-content: space-between; align-items: center; flex-wrap: wrap;
+  }
+  .toolbar-actions { display: flex; gap: 5px; flex-wrap: wrap; }
+  .filters { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+  .filter-group { display: flex; align-items: center; gap: 3px; font-size: 11px; color: var(--ink-soft); font-weight: 600; }
+
+  select {
+    font-size: 11.5px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px;
+    background: var(--panel); color: var(--ink); outline: none; max-width: 180px; font-weight: 500; cursor: pointer;
+  }
+
+  button { font-family: inherit; cursor: pointer; border: none; font-size: 11.5px; font-weight: 600; border-radius: 6px; transition: all 0.2s; }
+  .btn-primary { background: var(--accent); color: #fff; padding: 7px 12px; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-secondary { background: var(--panel); border: 1px solid var(--border); color: var(--ink); padding: 6px 10px; }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn-autoassign { background: #0EA5E9; color: #FFF; padding: 7px 12px; }
+  .btn-autoassign:hover { background: #0284C7; }
+  .btn-email { background: #8B5CF6; color: #FFF; padding: 7px 12px; }
+  .btn-email:hover { background: #7C3AED; }
+  .btn-history { background: #0284C7; color: #FFF; padding: 7px 12px; }
+  .btn-history:hover { background: #0369A1; }
+  .btn-excel { background: #10B981; color: #FFF; padding: 7px 12px; }
+  .btn-excel:hover { background: #059669; }
+  .btn-nav-route {
+    background: #0284C7 !important; color: #FFF !important; border: none !important;
+    display: inline-flex; align-items: center; gap: 4px; font-weight: 700 !important;
+    text-decoration: none; font-size: 10.5px; padding: 4px 8px; border-radius: 4px;
+  }
+  .btn-nav-route:hover { background: #0369A1 !important; }
+
+  /* Form Panels */
+  .form-panel {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px; margin-bottom: 8px; box-shadow: var(--shadow-md); display: none;
+  }
+  .form-panel.open { display: block; }
+  .form-panel h2 { font-size: 13.5px; font-weight: 700; margin: 0 0 10px; color: var(--ink); }
+  .field-row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .field { flex: 1; min-width: 140px; display: flex; flex-direction: column; gap: 3px; }
+  .field label { font-size: 10.5px; font-weight: 600; color: var(--ink-soft); }
+  .field input, .field select, .field textarea {
+    font-family: inherit; font-size: 11.5px; padding: 6px 8px; border: 1px solid var(--border);
+    border-radius: 6px; outline: none; background: var(--panel); color: var(--ink);
+  }
+  .field textarea { resize: vertical; min-height: 45px; }
+
+  /* Digital Signature Canvas */
+  .signature-pad { border: 1px dashed var(--border); border-radius: 6px; background: #FFF; cursor: crosshair; touch-action: none; }
+
+  /* KARTU TIKET COMPLAINT */
+  .ticket {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 10px 12px; margin-bottom: 8px; box-shadow: var(--shadow-sm);
+    display: flex; flex-direction: column; gap: 6px; position: relative;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .ticket:hover { border-color: var(--border-hover); box-shadow: var(--shadow-md); }
+  .ticket.selesai { opacity: 0.7; background: var(--bg); }
+
+  .ticket-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .ticket-id { font-size: 11px; font-weight: 800; color: var(--accent); background: var(--accent-bg); padding: 2px 5px; border-radius: 4px; }
+  .ticket-cust { font-size: 12.5px; font-weight: 700; color: var(--ink); }
+  
+  .ticket-badge { font-size: 9.5px; font-weight: 800; padding: 2px 5px; border-radius: 4px; text-transform: uppercase; }
+  .badge-tinggi { background: var(--tinggi-bg); color: var(--tinggi); }
+  .badge-sedang { background: var(--sedang-bg); color: var(--sedang); }
+  .badge-rendah { background: var(--rendah-bg); color: var(--rendah); }
+  .badge-selesai { background: #E2E8F0; color: #475569; }
+
+  .ticket-main-info { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; font-size: 11px; color: var(--ink-soft); }
+  .case-tag { background: var(--bg); color: var(--ink); font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border); }
+  .officer-tag { background: #E0F2FE; color: #0369A1; font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px; border: 1px solid #BAE6FD; }
+  
+  .ticket-address { font-size: 11px; color: var(--ink-soft); line-height: 1.3; }
+  .ticket-desc { font-size: 11.5px; color: var(--ink); background: var(--bg); padding: 5px 7px; border-radius: 5px; border-left: 2px solid var(--border-hover); }
+
+  .schedule-row-simple { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--ink-soft); font-weight: 500; }
+  .deadline-tag { font-weight: 700; padding: 1px 4px; border-radius: 3px; font-size: 9.5px; }
+  .deadline-normal { background: #E2E8F0; color: #334155; }
+  .deadline-warning { background: var(--sedang-bg); color: var(--sedang); }
+  .deadline-overdue { background: var(--tinggi-bg); color: var(--tinggi); }
+
+  .photo-proof-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 4px; }
+  .photo-box img { width: 100%; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); }
+  .photo-lbl { font-size: 9px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; margin-bottom: 2px; }
+
+  .ticket-map-container { width: 100%; height: 95px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-top: 2px; z-index: 1; }
+
+  .ticket-actions { display: flex; gap: 5px; margin-top: 2px; flex-wrap: wrap; align-items: center; }
+  .ticket-actions button { font-size: 10.5px; padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border); background: var(--panel); color: var(--ink-soft); }
+  .ticket-actions button.progress { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+  .ticket-actions button.done { border-color: var(--rendah); color: var(--rendah); background: var(--rendah-bg); }
+  .ticket-actions button.resched-btn { border-color: var(--resched); color: var(--resched); background: var(--resched-bg); }
+  .ticket-actions button.copy-btn { border-color: #0EA5E9; color: #0EA5E9; background: #F0F9FF; }
+  .ticket-actions button.del { margin-left: auto; border-color: transparent; color: var(--ink-muted); }
+  .ticket-actions button.del:hover { color: var(--tinggi); background: var(--tinggi-bg); }
+  
+  .btn-wa {
+    background: var(--wa) !important; color: #FFF !important; border: none !important;
+    display: inline-flex; align-items: center; gap: 3px; font-weight: 700 !important;
+    text-decoration: none; font-size: 10.5px; padding: 4px 8px; border-radius: 4px;
+  }
+  .btn-wa:hover { background: var(--wa-hover) !important; }
+
+  .countdown-badge { font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: #FEF2F2; color: #EF4444; border: 1px solid #FCA5A5; }
+
+  .section-head {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--ink-soft); margin: 10px 0 6px; display: flex; align-items: center; gap: 5px;
+  }
+  .section-head .count { background: var(--border); color: var(--ink); font-size: 10px; font-weight: 700; border-radius: 10px; padding: 1px 5px; }
+  .empty { text-align: center; padding: 14px; color: var(--ink-soft); font-size: 11.5px; border: 1px dashed var(--border); border-radius: var(--radius); background: var(--panel); }
+</style>
+
+<!-- JS Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+(function(){
+  const SUPABASE_URL = "https://bprmrbwmoadocyslhsqr.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwcm1yYndtb2Fkb2N5c2xoc3FyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzODc4ODgsImV4cCI6MjEwNDk2Mzg4OH0.oaCUIBFy2ii_ZBrR-XMpuL-UsGvTaH2CGmTpncvf5K8";
+  const TABLE = "complaints";
+
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const OFFICE_COORDS = { lat: -6.2231, lng: 106.5134 };
+
+  const OFFICERS = ["Budi Santoso", "Agus Setiawan", "Dedi Kurniawan", "Hendra Wijaya", "Eko Prasetyo"];
+
+  const CATEGORIES = [
+    { key: "BPPD", label: "Biaya Penambahan Pipa Dinas", opRisk: 1, custImpact: 1, keywords: ["biaya", "pipa dinas"] },
+    { key: "KATM", label: "Air Tidak Mengalir Domestic", opRisk: 3, custImpact: 3, keywords: ["tidak mengalir", "mati", "tidak keluar", "kering", "air mati"] },
+    { key: "KATR", label: "Air Kotor Domestic", opRisk: 2, custImpact: 3, keywords: ["kotor", "keruh", "berbau", "hitam", "kuning"] },
+    { key: "KBSM", label: "Bocor Sebelum Meter", opRisk: 3, custImpact: 3, keywords: ["bocor sebelum meter", "bocor sebelum", "pipa bocor", "bocor deras"] },
+    { key: "KKMR", label: "Kran Meter Rusak", opRisk: 2, custImpact: 2, keywords: ["kran rusak", "kran patah"] },
+    { key: "KPMR", label: "Meter Rusak", opRisk: 2, custImpact: 2, keywords: ["meter rusak", "meter mati", "angka tidak jalan"] },
+    { key: "TR09", label: "Pindah Meter", opRisk: 2, custImpact: 1, keywords: ["pindah meter"] }
+  ];
+
+  const SLA_DAYS = 14;
+  let MAX_PER_DAY = 10;
+
+  let complaints = [];
+  let searchQuery = "";
+  let quickFilter = "semua";
+  let sortMode = "prioritas";
+  let categoryFilter = "semua";
+  let officerFilter = "semua";
+  let isDarkMode = false;
+  let activeMaps = {};
+  let fleetMapObj = null;
+  let donutChartObj = null;
+
+  let selectedDate = null;
+  let viewMonth = new Date();
+  let formOpen = false;
+  let emailModalOpen = false;
+  let historyModalOpen = false;
+  let finishModalOpen = false;
+  let finishTargetId = null;
+  let historySearchTerm = "";
+  let editingId = null;
+
+  function catInfo(key){
+    return CATEGORIES.find(c => c.key === key) || { key: key||"OTHERS", label: key||"Lainnya", opRisk: 1, custImpact: 1, keywords:[] };
+  }
+
+  function formatWA(phoneStr) {
+    if (!phoneStr) return "";
+    let clean = phoneStr.replace(/[^0-9]/g, '');
+    if (clean.startsWith('0')) clean = '62' + clean.slice(1);
+    return clean;
+  }
+
+  function isWeekend(dateObj) {
+    const day = dateObj.getDay();
+    return day === 0 || day === 6;
+  }
+
+  function getNextWorkingDay(startDate) {
+    let d = new Date(startDate);
+    while (isWeekend(d)) {
+      d.setDate(d.getDate() + 1);
+    }
+    return d;
+  }
+
+  function computeUrgencyMetrics(item) {
+    const cInfo = catInfo(item.category);
+    const scoreOpRisk = item.urgent ? 3 : (cInfo.opRisk || 1);
+    const scoreCustImpact = item.urgent ? 3 : (cInfo.custImpact || 1);
+
+    const start = new Date(item.receivedAt);
+    const deadline = new Date(start.getTime() + SLA_DAYS * 24 * 60 * 60 * 1000);
+    const diffDays = Math.ceil((deadline - new Date()) / (1000 * 60 * 60 * 24));
+    let scoreSla = diffDays <= 3 ? 3 : (diffDays <= 7 ? 2 : 1);
+
+    const isIndustrial = (item.category && item.category.endsWith("IND")) || 
+                         (item.customer && item.customer.toLowerCase().includes("pt."));
+    const scoreCustType = isIndustrial ? 3 : 2;
+
+    const totalScore = (scoreOpRisk * 0.35) + (scoreCustImpact * 0.30) + (scoreSla * 0.20) + (scoreCustType * 0.15);
+    const roundedScore = Math.round(totalScore * 100) / 100;
+
+    let level = "rendah";
+    if (roundedScore >= 2.40) level = "tinggi";
+    else if (roundedScore >= 1.70) level = "sedang";
+
+    return { score: roundedScore, level: level };
+  }
+
+  function urgencyLevel(item){ return computeUrgencyMetrics(item).level; }
+
+  function hoursWaiting(item){
+    const ms = Date.now() - new Date(item.receivedAt).getTime();
+    return Math.max(0, ms / 3600000);
+  }
+
+  function priorityScore(item){
+    const metrics = computeUrgencyMetrics(item);
+    const hrs = Math.min(hoursWaiting(item), 336);
+    return (metrics.score * 1000) + hrs;
+  }
+
+  function fmtDateTime(dateObj){
+    return dateObj.toLocaleString("id-ID", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
+  }
+
+  function fmtDateOnly(dateObj){
+    return dateObj.toLocaleString("id-ID", { day:"2-digit", month:"short", year:"numeric" });
+  }
+
+  function formatDateKey(d){
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function parseCoords(str){
+    if(!str) return null;
+    const parts = str.split(",").map(p => parseFloat(p.trim()));
+    if(parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])){
+      return { lat: parts[0], lng: parts[1] };
+    }
+    return null;
+  }
+
+  /* ⏱️ COUNTDOWN SLA TIMER REAL-TIME */
+  function getSLACountdown(receivedAt) {
+    const deadline = new Date(new Date(receivedAt).getTime() + SLA_DAYS * 24 * 60 * 60 * 1000);
+    const diffMs = deadline - new Date();
+    if (diffMs <= 0) return { text: "OVERDUE", isOverdue: true };
+    
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    return { text: `⏳ Sisa ${days}d ${hours}h`, isOverdue: false };
+  }
+
+  function getDeadlineInfo(item){
+    const start = new Date(item.receivedAt);
+    const deadline = new Date(start.getTime() + SLA_DAYS * 24 * 60 * 60 * 1000);
+    const now = new Date();
+    const diffMs = deadline - now;
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    let statusClass = "deadline-normal";
+    let statusText = `SLA ${diffDays}hr`;
+
+    if (diffMs < 0) {
+      statusClass = "deadline-overdue";
+      statusText = `Overdue (${Math.abs(diffDays)}hr)`;
+    } else if (diffDays <= 3) {
+      statusClass = "deadline-warning";
+      statusText = `SLA Urgent (${diffDays}hr)`;
+    }
+
+    return {
+      receivedText: fmtDateTime(start),
+      deadlineText: fmtDateTime(deadline),
+      statusClass,
+      statusText,
+      isOverdue: diffMs < 0
+    };
+  }
+
+  async function autoAssignMerata() {
+    const unassigned = complaints.filter(c => !c.officer && c.status !== "selesai");
+    if (unassigned.length === 0) {
+      Swal.fire('Info', 'Semua komplain aktif sudah memiliki petugas lapangan!', 'info');
+      return;
+    }
+
+    const counts = {};
+    OFFICERS.forEach(o => counts[o] = 0);
+    complaints.forEach(c => {
+      if (c.officer && OFFICERS.includes(c.officer) && c.status !== "selesai") {
+        counts[c.officer]++;
+      }
+    });
+
+    for (let item of unassigned) {
+      let minOfficer = OFFICERS[0];
+      let minCount = counts[OFFICERS[0]];
+
+      for (let o of OFFICERS) {
+        if (counts[o] < minCount) {
+          minCount = counts[o];
+          minOfficer = o;
+        }
+      }
+
+      item.officer = minOfficer;
+      counts[minOfficer]++;
+
+      let fullDesc = buildFullDescription(item.desc, item.address, item.phone, item.rescheduledDate, item.officer, item.photoBefore, item.photoAfter);
+      try {
+        await sb.from(TABLE).update({ description: fullDesc }).eq("id", item.id);
+      } catch(e) { console.error(e); }
+    }
+
+    Swal.fire('Berhasil', `Berhasil membagikan ${unassigned.length} Work Order secara merata ke petugas!`, 'success');
+    await load();
+  }
+
+  function copyFieldFormat(item) {
+    const cInfo = catInfo(item.category);
+    const textToCopy = 
+`*[LAPORAN PENGERJAAN MINOR REPAIR]*
+ID WO: ${item.id}
+Pelanggan: ${item.customer} ${item.meterId ? '('+item.meterId+')' : ''}
+Keluhan: [${item.category}] ${cInfo.label}
+Petugas Lapangan: ${item.officer || 'Belum Ditugaskan'}
+Alamat: ${item.address || '-'}
+Area: ${item.area || 'Cikupa'}
+Status: ${item.status.toUpperCase()}
+Catatan: ${item.desc || '-'}`;
+
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      Swal.fire({ icon: 'success', title: 'Tercopy!', text: 'Format laporan berhasil disalin ke clipboard.', timer: 1500, showConfirmButton: false });
+    });
+  }
+
+  function calculateCalendarSchedule(){
+    const dateMap = {}; 
+    const itemScheduledDateMap = {};
+
+    const completedItems = complaints.filter(c => c.status === "selesai");
+    completedItems.forEach(item => {
+      const dateKey = formatDateKey(new Date(item.receivedAt));
+      if (!dateMap[dateKey]) dateMap[dateKey] = [];
+      dateMap[dateKey].push(item);
+      itemScheduledDateMap[item.id] = new Date(item.receivedAt);
+    });
+
+    const rescheduledItems = complaints.filter(c => c.status !== "selesai" && c.rescheduledDate);
+    rescheduledItems.forEach(item => {
+      const dateKey = formatDateKey(new Date(item.rescheduledDate));
+      if (!dateMap[dateKey]) dateMap[dateKey] = [];
+      dateMap[dateKey].push(item);
+      itemScheduledDateMap[item.id] = new Date(item.rescheduledDate);
+    });
+
+    let unassigned = complaints
+      .filter(c => c.status !== "selesai" && !c.rescheduledDate)
+      .sort((a,b) => priorityScore(b) - priorityScore(a));
+
+    let currentDate = getNextWorkingDay(new Date());
+    currentDate.setHours(0,0,0,0);
+
+    while (unassigned.length > 0) {
+      if (isWeekend(currentDate)) {
+        currentDate.setDate(currentDate.getDate() + 1);
+        continue;
+      }
+
+      const dateKey = formatDateKey(currentDate);
+      if (!dateMap[dateKey]) dateMap[dateKey] = [];
+
+      let availableSlots = MAX_PER_DAY - dateMap[dateKey].length;
+      if (availableSlots <= 0) {
+        currentDate.setDate(currentDate.getDate() + 1);
+        continue;
+      }
+
+      const seedItem = unassigned[0];
+      const targetArea = (seedItem.area || "TANPA-AREA").trim().toLowerCase();
+
+      const sameAreaItems = unassigned.filter(i => (i.area || "TANPA-AREA").trim().toLowerCase() === targetArea);
+      const otherAreaItems = unassigned.filter(i => (i.area || "TANPA-AREA").trim().toLowerCase() !== targetArea);
+
+      const batchForToday = sameAreaItems.slice(0, availableSlots);
+      const remainingSameArea = sameAreaItems.slice(availableSlots);
+
+      batchForToday.forEach(item => {
+        let targetWorkingDate = new Date(currentDate);
+        if (isWeekend(new Date(item.receivedAt))) {
+          targetWorkingDate = getNextWorkingDay(new Date(item.receivedAt));
+        }
+
+        dateMap[dateKey].push(item);
+        itemScheduledDateMap[item.id] = targetWorkingDate;
+      });
+
+      unassigned = [...remainingSameArea, ...otherAreaItems].sort((a,b) => priorityScore(b) - priorityScore(a));
+
+      if (dateMap[dateKey].length >= MAX_PER_DAY) {
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+    }
+
+    return { dateMap, itemScheduledDateMap };
+  }
+
+  function exportToExcel(itemsToExport, itemScheduledDateMap) {
+    if (!itemsToExport || itemsToExport.length === 0) {
+      Swal.fire('Warning', 'Tidak ada data komplain untuk diunduh.', 'warning');
+      return;
+    }
+
+    const excelData = itemsToExport.map(item => {
+      const caseDetails = catInfo(item.category);
+      const metrics = computeUrgencyMetrics(item);
+      const deadlineInfo = getDeadlineInfo(item);
+      const schedDate = itemScheduledDateMap[item.id];
+
+      return {
+        "ID Work Order": item.id,
+        "Nama Pelanggan": item.customer || "-",
+        "No WhatsApp": item.phone || "-",
+        "ID Meter": item.meterId || "-",
+        "Petugas Lapangan": item.officer || "Belum Ditugaskan",
+        "Alamat Lengkap": item.address || "-",
+        "Area / Zona": item.area || "-",
+        "Kode CASE": item.category,
+        "Kategori Keluhan": caseDetails.label,
+        "Skor Urgensi": metrics.score,
+        "Level Urgensi": metrics.level.toUpperCase(),
+        "Deskripsi": item.desc || "-",
+        "Waktu Diterima": fmtDateTime(new Date(item.receivedAt)),
+        "Jadwal Pengerjaan": schedDate ? fmtDateOnly(schedDate) : "-",
+        "Batas SLA (14 Hari)": deadlineInfo.deadlineText,
+        "Status SLA": deadlineInfo.statusText,
+        "Status Work Order": item.status === "selesai" ? "Selesai" : item.status === "proses" ? "Dalam Proses" : "Belum Dikerjakan"
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Komplain");
+
+    const dateStr = formatDateKey(new Date());
+    XLSX.writeFile(workbook, `Laporan_Minor_Repair_${dateStr}.xlsx`);
+  }
+
+  function buildFullDescription(desc, address, phone, reschedDate, officer, photoBefore, photoAfter) {
+    let result = desc || "";
+    if (address) result += ` [Alamat: ${address}]`;
+    if (phone) result += ` [WA: ${phone}]`;
+    if (reschedDate) result += ` [Resched: ${reschedDate}]`;
+    if (officer) result += ` [Petugas: ${officer}]`;
+    if (photoBefore) result += ` [Before: ${photoBefore}]`;
+    if (photoAfter) result += ` [After: ${photoAfter}]`;
+    return result;
+  }
+
+  function rowToItem(row){
+    let extraAddr = row.address || "";
+    let extraMeter = row.meter_id || "";
+    let extraPhone = row.phone || "";
+    let extraOfficer = "";
+    let reschedDate = null;
+    let photoBefore = null;
+    let photoAfter = null;
+
+    if (row.description) {
+      if (row.description.includes("[Alamat:")) {
+        const mAddr = row.description.match(/\[Alamat:\s*(.*?)\]/);
+        if (mAddr) extraAddr = mAddr[1];
+      }
+      if (row.description.includes("[WA:")) {
+        const mPhone = row.description.match(/\[WA:\s*(.*?)\]/);
+        if (mPhone) extraPhone = mPhone[1];
+      }
+      if (row.description.includes("[Resched:")) {
+        const mResched = row.description.match(/\[Resched:\s*(.*?)\]/);
+        if (mResched) reschedDate = mResched[1];
+      }
+      if (row.description.includes("[Petugas:")) {
+        const mOff = row.description.match(/\[Petugas:\s*(.*?)\]/);
+        if (mOff) extraOfficer = mOff[1];
+      }
+      if (row.description.includes("[Before:")) {
+        const mBef = row.description.match(/\[Before:\s*(.*?)\]/);
+        if (mBef) photoBefore = mBef[1];
+      }
+      if (row.description.includes("[After:")) {
+        const mAft = row.description.match(/\[After:\s*(.*?)\]/);
+        if (mAft) photoAfter = mAft[1];
+      }
+    }
+
+    if (!extraMeter && row.customer && row.customer.includes("(") && row.customer.includes(")")) {
+      const mId = row.customer.match(/\((.*?)\)/);
+      if (mId) extraMeter = mId[1];
+    }
+
+    return {
+      id: row.id,
+      customer: row.customer ? row.customer.replace(/\s*\(.*?\)/, '') : "",
+      phone: extraPhone,
+      meterId: extraMeter,
+      address: extraAddr,
+      area: row.area,
+      category: row.category,
+      desc: row.description ? row.description.replace(/\[Alamat:.*?\]/g, '').replace(/\[WA:.*?\]/g, '').replace(/\[Resched:.*?\]/g, '').replace(/\[Petugas:.*?\]/g, '').replace(/\[Before:.*?\]/g, '').replace(/\[After:.*?\]/g, '').trim() : "",
+      receivedAt: row.received_at,
+      urgent: row.urgent,
+      coords: row.coords,
+      status: row.status,
+      rescheduledDate: reschedDate,
+      officer: extraOfficer,
+      photoBefore: photoBefore,
+      photoAfter: photoAfter,
+      createdAt: row.created_at,
+    };
+  }
+
+  async function addComplaint(data){
+    try {
+      let receivedDateObj = (data && data.receivedAt) ? new Date(data.receivedAt) : new Date();
+      if (isWeekend(receivedDateObj)) {
+        receivedDateObj = getNextWorkingDay(receivedDateObj);
+      }
+
+      const item = {
+        id: "WO-" + Date.now().toString().slice(-6),
+        customer: (data && data.customer) ? data.customer : "Pelanggan Tanpa Nama",
+        phone: (data && data.phone) ? data.phone : "",
+        meterId: (data && data.meterId) ? data.meterId : "",
+        address: (data && data.address) ? data.address : "",
+        area: (data && data.area) ? data.area : "Cikupa",
+        category: (data && data.category) ? data.category : "KBSM",
+        desc: (data && data.desc) ? data.desc : "",
+        officer: (data && data.officer) ? data.officer : "",
+        receivedAt: receivedDateObj.toISOString(),
+        urgent: !!(data && data.urgent),
+        coords: (data && data.coords) ? data.coords : "",
+        status: "baru",
+      };
+
+      let fullDesc = buildFullDescription(item.desc, item.address, item.phone, null, item.officer, null, null);
+      const fullCust = item.meterId ? `${item.customer} (${item.meterId})` : item.customer;
+
+      const fullPayload = {
+        id: item.id,
+        customer: fullCust,
+        phone: item.phone || null,
+        meter_id: item.meterId || null,
+        address: item.address || null,
+        area: item.area,
+        category: item.category,
+        description: fullDesc,
+        received_at: item.receivedAt,
+        urgent: item.urgent,
+        coords: item.coords,
+        status: item.status
+      };
+
+      await sb.from(TABLE).insert(fullPayload);
+      complaints.push(item);
+    } catch(globalErr) { console.error("Error addComplaint:", globalErr); } 
+    finally { await load(); }
+  }
+
+  async function markAbsentAndReschedule(id) {
+    const target = complaints.find(c => c.id === id);
+    if (!target) return;
+
+    let tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow = getNextWorkingDay(tomorrow);
+
+    const tomorrowStr = formatDateKey(tomorrow);
+
+    target.rescheduledDate = tomorrowStr;
+    let fullDesc = buildFullDescription(target.desc, target.address, target.phone, tomorrowStr, target.officer, target.photoBefore, target.photoAfter);
+
+    try {
+      await sb.from(TABLE).update({ description: fullDesc }).eq("id", id);
+    } catch(e) { console.error(e); }
+
+    await load();
+  }
+
+  async function updateComplaint(id, data){
+    let fullDesc = buildFullDescription(data.desc, data.address, data.phone, null, data.officer, data.photoBefore, data.photoAfter);
+    const fullCust = data.meterId ? `${data.customer} (${data.meterId})` : data.customer;
+
+    try{
+      await sb.from(TABLE).update({
+        customer: fullCust,
+        phone: data.phone || null,
+        area: data.area,
+        category: data.category,
+        description: fullDesc,
+        received_at: data.receivedAt,
+        urgent: data.urgent,
+        coords: data.coords,
+      }).eq("id", id);
+    }catch(e){ console.error(e); }
+    await load();
+  }
+
+  async function setStatus(id, status){
+    try{
+      await sb.from(TABLE).update({ status }).eq("id", id);
+    }catch(e){
+      const target = complaints.find(c => c.id === id);
+      if(target) target.status = status;
+    }
+    await load();
+  }
+
+  async function removeComplaint(id){
+    Swal.fire({
+      title: 'Hapus Work Order?',
+      text: "Data yang dihapus tidak dapat dikembalikan!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#EF4444',
+      confirmButtonText: 'Ya, Hapus'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try{ await sb.from(TABLE).delete().eq("id", id); } catch(e){}
+        await load();
+        Swal.fire('Terhapus!', 'WO berhasil dihapus.', 'success');
+      }
+    });
+  }
+
+  async function processInboundEmail(emailRawText) {
+    if (!emailRawText.trim()) return;
+
+    const parseField = (pattern) => {
+      const match = emailRawText.match(pattern);
+      return match ? match[1].trim() : null;
+    };
+
+    const customer = parseField(/Nama Pelanggan\s*:\s*(.*)/i) || parseField(/Pelanggan\s*:\s*(.*)/i) || "Pelanggan Inbound Email";
+    const phone = parseField(/No WhatsApp\s*:\s*(.*)/i) || parseField(/No HP\s*:\s*(.*)/i) || "";
+    const meterId = parseField(/ID Meter\s*:\s*(.*)/i) || parseField(/ID Pelanggan\s*:\s*(.*)/i) || "-";
+    const address = parseField(/Alamat\s*:\s*(.*)/i) || "-";
+    const area = parseField(/Area\s*:\s*(.*)/i) || "Cikupa";
+    const coords = parseField(/Koordinat\s*:\s*(.*)/i) || "";
+    const desc = parseField(/Deskripsi\s*:\s*(.*)/i) || emailRawText.slice(0, 150);
+
+    let detectedCategory = parseField(/Jenis Case\s*:\s*(.*)/i);
+    if (!detectedCategory || !CATEGORIES.some(c => c.key === detectedCategory.toUpperCase())) {
+      const lowerText = (desc + " " + emailRawText).toLowerCase();
+      let matched = CATEGORIES.find(c => c.keywords.some(kw => lowerText.includes(kw)));
+      detectedCategory = matched ? matched.key : "KBSM";
+    }
+
+    const newComplaint = {
+      customer, phone, meterId, address, area,
+      category: detectedCategory.toUpperCase(),
+      desc: desc + " [Konversi Email Otomatis]",
+      officer: "", receivedAt: new Date().toISOString(), urgent: false, coords
+    };
+
+    await addComplaint(newComplaint);
+  }
+
+  async function load(){
+    try{
+      const { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: true });
+      if(error) throw error;
+      if (data && data.length > 0) complaints = data.map(rowToItem);
+    }catch(e){ console.error(e); }
+    render();
+  }
+
+  function el(tag, attrs, ...children){
+    const e = document.createElement(tag);
+    if(attrs) for(const k in attrs){
+      if(k === "class") e.className = attrs[k];
+      else if(k.startsWith("on")) e.addEventListener(k.slice(2), attrs[k]);
+      else e.setAttribute(k, attrs[k]);
+    }
+    children.flat().forEach(c => {
+      if(c === null || c === undefined) return;
+      e.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    });
+    return e;
+  }
+
+  function nowLocalInputValue(){
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0,16);
+  }
+
+  function renderForm(){
+    if(!formOpen) return el("div");
+
+    const editing = editingId ? complaints.find(x => x.id === editingId) : null;
+    const toLocalInput = (iso) => {
+      try {
+        const d = new Date(iso);
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+        return d.toISOString().slice(0,16);
+      } catch(e) { return nowLocalInputValue(); }
+    };
+
+    const customerInput = el("input", { type:"text", placeholder:"Nama Pelanggan", value: editing ? editing.customer : "" });
+    const phoneInput = el("input", { type:"text", placeholder:"No WA (08xxxxxxxxxx)", value: editing ? editing.phone : "" });
+    const meterIdInput = el("input", { type:"text", placeholder:"ID Meter / Langganan", value: editing ? editing.meterId : "" });
+    const addressInput = el("input", { type:"text", placeholder:"Alamat Lengkap", value: editing ? editing.address : "" });
+    const areaInput = el("input", { type:"text", placeholder:"Area / Zona", value: editing ? editing.area : "" });
+    const catSelect = el("select", {},
+      ...CATEGORIES.map(c => el("option", { value: c.key, selected: editing && editing.category===c.key ? "selected" : null }, `[${c.key}] ${c.label}`))
+    );
+    const officerSelect = el("select", {},
+      el("option", { value: "" }, "-- Pilih Petugas Lapangan --"),
+      ...OFFICERS.map(o => el("option", { value: o, selected: editing && editing.officer===o ? "selected" : null }, o))
+    );
+
+    const descInput = el("textarea", { placeholder:"Detail komplain..." }, editing ? editing.desc : "");
+    const timeInput = el("input", { type:"datetime-local", value: editing ? toLocalInput(editing.receivedAt) : nowLocalInputValue() });
+    const urgentCheck = el("input", { type:"checkbox", checked: editing && editing.urgent ? "checked" : null });
+    const coordsInput = el("input", { type:"text", placeholder:"-6.1783, 106.6319 (opsional)", value: editing ? (editing.coords||"") : "" });
+
+    return el("div", { class:"form-panel open" },
+      el("h2", {}, editing ? "Ubah Komplain " + editing.id : "Tambah Komplain Baru"),
+      el("div", { class:"field-row" },
+        el("div", { class:"field" }, el("label", {}, "Nama Pelanggan *"), customerInput),
+        el("div", { class:"field" }, el("label", {}, "No WhatsApp"), phoneInput),
+        el("div", { class:"field" }, el("label", {}, "ID Meter"), meterIdInput),
+      ),
+      el("div", { class:"field-row" },
+        el("div", { class:"field" }, el("label", {}, "Alamat"), addressInput),
+        el("div", { class:"field" }, el("label", {}, "Area / Zona"), areaInput),
+      ),
+      el("div", { class:"field-row" },
+        el("div", { class:"field" }, el("label", {}, "CASE Keluhan"), catSelect),
+        el("div", { class:"field" }, el("label", {}, "Petugas Lapangan"), officerSelect),
+        el("div", { class:"field" }, el("label", {}, "Waktu Diterima"), timeInput),
+      ),
+      el("div", { class:"field-row" },
+        el("div", { class:"field" }, el("label", {}, "Deskripsi"), descInput),
+        el("div", { class:"field" }, el("label", {}, "Koordinat GPS"), coordsInput),
+      ),
+      el("label", { style: "display:flex; align-items:center; gap:8px; font-size:12px; margin: 6px 0 14px; cursor:pointer;" }, 
+        urgentCheck, "Tandai mendesak (Prioritas Utama)"
+      ),
+      el("div", { style: "display:flex; gap:8px;" },
+        el("button", { class:"btn-primary", onclick: async (e) => {
+          if (e && e.preventDefault) e.preventDefault();
+          const valCust = customerInput ? customerInput.value.trim() : "";
+          if(!valCust){ Swal.fire('Error', 'Nama Pelanggan wajib diisi!', 'error'); return; }
+
+          const data = {
+            customer: valCust,
+            phone: phoneInput ? phoneInput.value.trim() : "",
+            meterId: meterIdInput ? meterIdInput.value.trim() : "",
+            address: addressInput ? addressInput.value.trim() : "",
+            area: (areaInput && areaInput.value.trim()) ? areaInput.value.trim() : "Cikupa",
+            category: catSelect ? catSelect.value : "KBSM",
+            officer: officerSelect ? officerSelect.value : "",
+            desc: descInput ? descInput.value.trim() : "",
+            receivedAt: (timeInput && timeInput.value) ? new Date(timeInput.value).toISOString() : new Date().toISOString(),
+            urgent: urgentCheck ? urgentCheck.checked : false,
+            coords: coordsInput ? coordsInput.value.trim() : "",
+          };
+
+          if(editing){ await updateComplaint(editing.id, data); } 
+          else { await addComplaint(data); }
+
+          formOpen = false; editingId = null; render();
+        }}, editing ? "Simpan Perubahan" : "Simpan Komplain"),
+        el("button", { class:"btn-secondary", onclick: () => { formOpen = false; editingId = null; render(); } }, "Batal")
+      )
+    );
+  }
+
+  /* 📸 UPLOAD BUKTI BEFORE/AFTER & ✍️ DIGITAL SIGNATURE MODAL (RESPONSIF TOUCH & MOUSE) */
   function renderFinishModal(){
     if (!finishModalOpen || !finishTargetId) return el("div");
 
@@ -10,7 +1018,6 @@
     let drawing = false;
     let hasSignature = false;
 
-    // Helper Fungsi Ambil Koordinat Presisi (Mouse & Touch)
     function getCoords(e) {
       const rect = canvas.getBoundingClientRect();
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -47,13 +1054,11 @@
       ctx.beginPath();
     }
 
-    // Event Listener Mouse
     canvas.addEventListener("mousedown", startDrawing);
     canvas.addEventListener("mousemove", draw);
     canvas.addEventListener("mouseup", stopDrawing);
     canvas.addEventListener("mouseleave", stopDrawing);
 
-    // Event Listener Touchscreen HP / Tablet
     canvas.addEventListener("touchstart", startDrawing, { passive: false });
     canvas.addEventListener("touchmove", draw, { passive: false });
     canvas.addEventListener("touchend", stopDrawing);
@@ -100,3 +1105,584 @@
       )
     );
   }
+
+  function renderHistoryModal(){
+    if(!historyModalOpen) return el("div");
+
+    let historyResults = [];
+    if (historySearchTerm.trim()) {
+      const term = historySearchTerm.toLowerCase();
+      historyResults = complaints.filter(c => 
+        (c.meterId && c.meterId.toLowerCase().includes(term)) ||
+        (c.customer && c.customer.toLowerCase().includes(term))
+      );
+    }
+
+    return el("div", { class:"form-panel open", style: "background:#F0F9FF; border-color:#0284C7;" },
+      el("h2", { style:"color:#0369A1; margin-top:0;" }, "📜 Cari History Komplain Pelanggan"),
+      el("div", { class:"field-row" },
+        el("div", { class:"field" },
+          el("label", {}, "Masukkan ID Meter / Nama Pelanggan:"),
+          el("input", { 
+            type: "text", 
+            placeholder: "Contoh: PLG-99882 atau Bambang", 
+            value: historySearchTerm,
+            oninput: (e) => { historySearchTerm = e.target.value; render(); }
+          })
+        )
+      ),
+      historySearchTerm.trim() === "" 
+        ? el("p", { style:"font-size:11.5px; color:var(--ink-soft);" }, "Ketik ID Meter atau Nama Pelanggan di atas.")
+        : historyResults.length === 0
+          ? el("p", { style:"font-size:11.5px; color:var(--tinggi);" }, "Tidak ditemukan riwayat komplain.")
+          : el("div", { style:"max-height:220px; overflow-y:auto; margin-top:10px;" },
+              ...historyResults.map(item => {
+                const cInfo = catInfo(item.category);
+                return el("div", { class:"history-item", style:"background:var(--panel); padding:8px; margin-bottom:6px; border-radius:6px; border:1px solid #BAE6FD;" },
+                  el("div", { style:"display:flex; justify-content:space-between; font-weight:700;" },
+                    el("span", {}, `${item.id} - ${cInfo.label}`),
+                    el("span", { style: `color: ${item.status === 'selesai' ? 'var(--rendah)' : 'var(--tinggi)'}` }, item.status.toUpperCase())
+                  ),
+                  el("div", { style:"color:var(--ink-soft); font-size:10.5px; margin-top:2px;" }, `Waktu Lapor: ${fmtDateTime(new Date(item.receivedAt))}`),
+                  el("div", { style:"margin-top:4px;" }, item.desc)
+                );
+              })
+            ),
+      el("div", { style:"display:flex; gap:8px; margin-top:12px;" },
+        el("button", { class:"btn-secondary", onclick: () => { historyModalOpen = false; historySearchTerm = ""; render(); } }, "Tutup")
+      )
+    );
+  }
+
+  function renderEmailParserModal(){
+    if(!emailModalOpen) return el("div");
+
+    const defaultEmailContent = 
+`FW: [LAPORAN KELUHAN AIR MATI]
+Nama Pelanggan : Bambang Wijaya
+No WhatsApp : 081298765432
+ID Meter : PLG-99882
+Alamat : Jl. Raya Serang Km 14 No. 25, Cikupa
+Area : Cikupa
+Koordinat : -6.2231, 106.5134
+Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor deras. Mohon segera diperbaiki.`;
+
+    const emailTextArea = el("textarea", { style: "width:100%; height:140px; font-family:monospace; font-size:11.5px; padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--panel); color:var(--ink);" }, defaultEmailContent);
+
+    return el("div", { class:"form-panel open", style: "background:#F3E8FF; border-color:#C084FC;" },
+      el("h2", { style:"color:#6B21A8; margin-top:0;" }, "🔄 Auto Inbound Email Webhook & Converter"),
+      emailTextArea,
+      el("div", { style:"display:flex; gap:8px; margin-top:10px;" },
+        el("button", { class:"btn-email", onclick: async () => {
+          await processInboundEmail(emailTextArea.value);
+          emailModalOpen = false; render();
+        }}, "⚡ Ekstrak Email Otomatis"),
+        el("button", { class:"btn-secondary", onclick: () => { emailModalOpen = false; render(); } }, "Tutup")
+      )
+    );
+  }
+
+  /* 🗺️ MINI INTERACTIVE FLEET MAP */
+  function initFleetMap() {
+    const container = document.getElementById("fleet-map-container");
+    if (!container) return;
+
+    if (fleetMapObj) { fleetMapObj.remove(); fleetMapObj = null; }
+    
+    fleetMapObj = L.map(container, { zoomControl: false }).setView([OFFICE_COORDS.lat, OFFICE_COORDS.lng], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(fleetMapObj);
+
+    L.marker([OFFICE_COORDS.lat, OFFICE_COORDS.lng]).addTo(fleetMapObj).bindPopup("<b>Kantor Cikupa</b>");
+
+    complaints.forEach(c => {
+      if (c.status !== "selesai" && c.coords) {
+        const parts = c.coords.split(",").map(p => parseFloat(p.trim()));
+        if (parts.length === 2 && !isNaN(parts[0])) {
+          L.circleMarker([parts[0], parts[1]], {
+            radius: 6,
+            fillColor: c.urgent ? '#EF4444' : '#2563EB',
+            color: '#FFF', weight: 1, fillOpacity: 0.8
+          }).addTo(fleetMapObj).bindPopup(`<b>${c.id}</b><br>${c.customer}`);
+        }
+      }
+    });
+  }
+
+  /* 📊 DONUT CHART STATUS KOMPOSISI */
+  function renderDonutChart() {
+    const canvas = document.getElementById("donutChartCanvas");
+    if (!canvas) return;
+
+    const belum = complaints.filter(c => c.status === "baru").length;
+    const proses = complaints.filter(c => c.status === "proses").length;
+    const selesai = complaints.filter(c => c.status === "selesai").length;
+
+    if (donutChartObj) donutChartObj.destroy();
+
+    donutChartObj = new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels: ['Belum', 'Diproses', 'Selesai'],
+        datasets: [{
+          data: [belum, proses, selesai],
+          backgroundColor: ['#3B82F6', '#F59E0B', '#10B981']
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+  }
+
+  function renderCaseChart(){
+    const counts = {};
+    const customerMap = {};
+    const officerDoneCounts = {};
+
+    OFFICERS.forEach(o => officerDoneCounts[o] = 0);
+    let totalWaitHours = 0;
+
+    complaints.forEach(c => {
+      counts[c.category] = (counts[c.category] || 0) + 1;
+      const custKey = c.meterId || c.customer;
+      if (custKey) customerMap[custKey] = (customerMap[custKey] || 0) + 1;
+      totalWaitHours += hoursWaiting(c);
+
+      if (c.status === "selesai" && c.officer && OFFICERS.includes(c.officer)) {
+        officerDoneCounts[c.officer]++;
+      }
+    });
+
+    const totalDiterima = complaints.length;
+    const avgWaitHours = totalDiterima > 0 ? Math.round(totalWaitHours / totalDiterima) : 0;
+    const repeatCustomers = Object.values(customerMap).filter(val => val > 1).length;
+    const repeatRate = totalDiterima > 0 ? Math.round((repeatCustomers / Object.keys(customerMap).length) * 100) || 0 : 0;
+
+    const activeCases = Object.keys(counts).map(key => ({
+      key, count: counts[key], label: catInfo(key).label
+    })).sort((a,b) => b.count - a.count);
+
+    return el("div", { class: "chart-card" },
+      el("div", { class: "chart-header" },
+        el("h3", {}, "📊 Analytics & KPI Kinerja CASE"),
+        el("span", { class: "total-badge" }, `Total: ${totalDiterima}`)
+      ),
+
+      activeCases.length === 0 
+        ? el("div", { style: "font-size:11px; color:var(--ink-soft); text-align:center; padding:8px;" }, "Belum ada data komplain.")
+        : el("div", { class: "chart-list" },
+            ...activeCases.map(item => {
+              const pct = totalDiterima > 0 ? Math.round((item.count / totalDiterima) * 100) : 0;
+              return el("div", { class: "chart-item" },
+                el("div", { class: "chart-label" },
+                  el("span", {}, `[${item.key}] ${item.label}`),
+                  el("span", {}, `${item.count} (${pct}%)`)
+                ),
+                el("div", { class: "chart-bar-bg" },
+                  el("div", { class: "chart-bar-fill", style: `width: ${pct}%` })
+                )
+              );
+            })
+          ),
+
+      el("div", { style: "margin-top:10px; padding-top:8px; border-top:1px dashed var(--border);" },
+        el("div", { style: "font-size:10.5px; font-weight:700; color:var(--ink-soft); margin-bottom:4px;" }, "🏆 PRODUKTIVITAS PETUGAS (SELESAI):"),
+        el("div", { class: "officer-done-grid" },
+          ...OFFICERS.map(off => el("div", { class: "officer-done-box" },
+            el("span", { class: "officer-done-name" }, `👷 ${off}`),
+            el("span", { class: "officer-done-count" }, `${officerDoneCounts[off]} WO`)
+          ))
+        )
+      ),
+
+      el("div", { class: "analytics-grid" },
+        el("div", { class: "analytics-box" },
+          el("div", { class: "val" }, `${avgWaitHours} Jam`),
+          el("div", { class: "lbl" }, "Rata Wait Time")
+        ),
+        el("div", { class: "analytics-box" },
+          el("div", { class: "val" }, `${repeatRate}%`),
+          el("div", { class: "lbl" }, "Rasio Berulang")
+        ),
+        el("div", { class: "analytics-box" },
+          el("div", { class: "val" }, activeCases[0] ? activeCases[0].key : "-"),
+          el("div", { class: "lbl" }, "Top CASE")
+        )
+      )
+    );
+  }
+
+  function renderSidebarCalendar(dateMap){
+    const selectedKey = selectedDate ? formatDateKey(selectedDate) : null;
+    const headerTitle = selectedDate ? selectedDate.toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short" }) : "Semua Tanggal Kerja";
+
+    const year = viewMonth.getFullYear();
+    const month = viewMonth.getMonth();
+    const monthTitle = viewMonth.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const prevMonthLastDay = new Date(year, month, 0).getDate();
+    const startDayOfWeek = firstDay.getDay();
+
+    const dateCells = [];
+    for(let i = startDayOfWeek - 1; i >= 0; i--) dateCells.push({ dayNum: prevMonthLastDay - i, isOtherMonth: true });
+
+    for(let d = 1; d <= lastDay.getDate(); d++){
+      const fullDate = new Date(year, month, d);
+      const key = formatDateKey(fullDate);
+      const tasks = dateMap[key] || [];
+      const weekend = isWeekend(fullDate);
+
+      dateCells.push({
+        dayNum: d, fullDate, key,
+        isSelected: key === selectedKey,
+        isWeekend: weekend,
+        hasTasks: tasks.length > 0,
+        hasHigh: tasks.some(t => urgencyLevel(t) === "tinggi" && t.status !== "selesai"),
+        allDone: tasks.length > 0 && tasks.every(t => t.status === "selesai"),
+        isOtherMonth: false
+      });
+    }
+
+    const remainingSlots = 42 - dateCells.length;
+    for(let i = 1; i <= remainingSlots; i++) dateCells.push({ dayNum: i, isOtherMonth: true });
+
+    const headers = [
+      { t: "Min", w: true }, { t: "Sen", w: false }, { t: "Sel", w: false },
+      { t: "Rab", w: false }, { t: "Kam", w: false }, { t: "Jum", w: false }, { t: "Sab", w: true }
+    ];
+
+    return el("div", { class: "calendar-card" },
+      el("div", { class: "cal-top-header" },
+        el("span", {}, headerTitle),
+        selectedDate ? el("button", { 
+          style: "font-size:10px; background:none; border:none; color:#38BDF8; cursor:pointer; font-weight:700;",
+          onclick: () => { selectedDate = null; render(); }
+        }, "Reset Filter") : null
+      ),
+      el("div", { class: "cal-month-nav" },
+        el("span", { class: "cal-month-title" }, monthTitle),
+        el("div", { class: "cal-nav-btns" },
+          el("button", { class: "cal-nav-btn", onclick: () => { viewMonth.setMonth(viewMonth.getMonth() - 1); render(); } }, "▲"),
+          el("button", { class: "cal-nav-btn", onclick: () => { viewMonth.setMonth(viewMonth.getMonth() + 1); render(); } }, "▼")
+        )
+      ),
+      el("div", { class: "cal-grid-embedded" },
+        ...headers.map(h => el("div", { class: "cal-head-cell " + (h.w ? "weekend-head" : "") }, h.t)),
+        ...dateCells.map(c => {
+          if (c.isOtherMonth) return el("div", { class: "cal-date-cell other-month" }, String(c.dayNum));
+          let classes = "cal-date-cell";
+          if (c.isWeekend) classes += " weekend-day";
+          if (c.isSelected) classes += " selected";
+          if (c.hasTasks) classes += " has-tasks";
+          if (c.hasHigh) classes += " has-high";
+          if (c.allDone) classes += " all-done";
+
+          return el("div", {
+            class: classes,
+            title: c.isWeekend ? "Hari Libur (Sabtu/Minggu) - Kasus Otomatis Dialihkan ke Senin" : "Hari Kerja Operasional",
+            onclick: () => {
+              if (c.isWeekend) return;
+              selectedDate = (selectedDate && formatDateKey(selectedDate) === c.key) ? null : c.fullDate;
+              render();
+            }
+          }, String(c.dayNum));
+        })
+      ),
+      el("div", { class: "quota-card" },
+        el("div", { class: "quota-header" },
+          el("span", {}, "⚡ Auto Load-Balancer Kuota/Hari Kerja"),
+          el("span", { style: "color:var(--accent);" }, `${MAX_PER_DAY} Kasus`)
+        ),
+        el("input", {
+          type: "range", min: "5", max: "25", value: String(MAX_PER_DAY), style: "width:100%; cursor:pointer;",
+          oninput: (e) => { MAX_PER_DAY = parseInt(e.target.value, 10); render(); }
+        })
+      )
+    );
+  }
+
+  function renderTicket(item, itemScheduledDateMap){
+    const metrics = computeUrgencyMetrics(item);
+    const level = metrics.level;
+    const badgeText = level === "tinggi" ? "Urgent" : level === "sedang" ? "Medium" : "Low";
+    const isDone = item.status === "selesai";
+    const coordsObj = parseCoords(item.coords);
+    const deadlineInfo = getDeadlineInfo(item);
+    const slaCountdown = getSLACountdown(item.receivedAt);
+    const mapContainerId = "map-" + item.id;
+    const caseDetails = catInfo(item.category);
+
+    const scheduledDateObj = itemScheduledDateMap[item.id];
+    const scheduledText = scheduledDateObj ? fmtDateOnly(scheduledDateObj) : "-";
+
+    const formattedPhone = formatWA(item.phone);
+    const waText = encodeURIComponent(
+      `Halo Bpk/Ibu ${item.customer},\n\nKami dari Petugas Lapangan Aetra Air Tangerang (${item.officer || 'Petugas Lapangan'}) mengonfirmasi WO ${item.id} [${caseDetails.label}]. Petugas menuju lokasi. Terima kasih.`
+    );
+    const waUrl = formattedPhone ? `https://wa.me/${formattedPhone}?text=${waText}` : null;
+
+    const googleMapsRouteUrl = coordsObj 
+      ? `https://www.google.com/maps/dir/?api=1&destination=${coordsObj.lat},${coordsObj.lng}&travelmode=driving`
+      : null;
+
+    return el("div", { class: "ticket " + (isDone ? "selesai" : "") },
+      el("div", { class:"ticket-top" },
+        el("div", { style:"display:flex; align-items:center; gap:5px;" },
+          el("span", { class:"ticket-id" }, item.id),
+          el("span", { class:"ticket-cust" }, item.customer),
+          item.meterId ? el("span", { style:"font-size:10.5px; color:var(--ink-soft);" }, `(${item.meterId})`) : null
+        ),
+        el("div", { style: "display:flex; gap:5px; align-items:center;" },
+          !isDone ? el("span", { class: "countdown-badge" }, slaCountdown.text) : null,
+          el("span", { class:`ticket-badge ${isDone ? 'badge-selesai' : 'badge-' + level}` }, isDone ? "Selesai" : badgeText)
+        )
+      ),
+      el("div", { class:"ticket-main-info" },
+        el("span", { class:"case-tag" }, item.category),
+        el("span", {}, caseDetails.label),
+        item.officer ? el("span", { class:"officer-tag" }, `👷 ${item.officer}`) : el("span", { style:"font-size:10px; color:var(--tinggi); font-weight:700;" }, "⚠️ Belum Ada Petugas"),
+        item.area ? el("span", { style:"font-weight:700; color:#92400E;" }, `• Area: ${item.area}`) : null
+      ),
+      item.address ? el("div", { class:"ticket-address" }, `📍 ${item.address}`) : null,
+      item.desc ? el("div", { class:"ticket-desc" }, item.desc) : null,
+      
+      (item.photoBefore || item.photoAfter) ? el("div", { class: "photo-proof-grid" },
+        item.photoBefore ? el("div", { class: "photo-box" }, el("div", { class: "photo-lbl" }, "BEFORE"), el("img", { src: item.photoBefore })) : null,
+        item.photoAfter ? el("div", { class: "photo-box" }, el("div", { class: "photo-lbl" }, "AFTER"), el("img", { src: item.photoAfter })) : null,
+      ) : null,
+
+      el("div", { class:"schedule-row-simple" },
+        el("span", {}, `📅 Pengerjaan: ${scheduledText}`),
+        el("span", { class:`deadline-tag ${deadlineInfo.statusClass}` }, deadlineInfo.statusText)
+      ),
+      coordsObj ? el("div", {},
+        el("div", { id: mapContainerId, class: "ticket-map-container" }),
+        el("div", { style:"display:flex; justify-content:space-between; align-items:center; margin-top:3px;" },
+          el("span", { style:"font-size:10px; color:var(--ink-soft);" }, `📍 ${coordsObj.lat.toFixed(4)}, ${coordsObj.lng.toFixed(4)}`),
+          el("a", { href: googleMapsRouteUrl, target:"_blank", rel:"noopener", class:"btn-nav-route" }, "🚗 Petunjuk Rute ↗")
+        )
+      ) : null,
+      el("div", { class:"ticket-actions" },
+        waUrl ? el("a", { class:"btn-wa", href: waUrl, target:"_blank", rel:"noopener" }, "💬 WhatsApp") : null,
+        el("button", { class:"copy-btn", onclick: () => copyFieldFormat(item) }, "📋 Copy Format"),
+        !isDone ? el("button", { class:"resched-btn", onclick: () => markAbsentAndReschedule(item.id) }, "🏠 Reschedule") : null,
+        !isDone && item.status !== "proses" ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Proses") : null,
+        !isDone ? el("button", { class:"done", onclick: () => { finishTargetId = item.id; finishModalOpen = true; render(); } }, "Selesai") : null,
+        isDone ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Buka Lagi") : null,
+        el("button", { onclick: () => { editingId = item.id; formOpen = true; render(); } }, "Edit"),
+        el("button", { class:"del", onclick: () => removeComplaint(item.id) }, "Hapus")
+      )
+    );
+  }
+
+  function initMaps(){
+    Object.keys(activeMaps).forEach(id => {
+      if(activeMaps[id] && activeMaps[id].remove) activeMaps[id].remove();
+      delete activeMaps[id];
+    });
+
+    complaints.forEach(item => {
+      const coords = parseCoords(item.coords);
+      const container = document.getElementById("map-" + item.id);
+      if(container && coords){
+        try {
+          const map = L.map(container, { attributionControl: false, zoomControl: false });
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+          L.marker([OFFICE_COORDS.lat, OFFICE_COORDS.lng]).addTo(map).bindPopup("Kantor Aetra Cikupa");
+          L.marker([coords.lat, coords.lng]).addTo(map).bindPopup("Lokasi Pelanggan");
+
+          const routeLine = L.polyline([
+            [OFFICE_COORDS.lat, OFFICE_COORDS.lng],
+            [coords.lat, coords.lng]
+          ], { color: '#0284C7', weight: 4, opacity: 0.8, dashArray: '6, 6' }).addTo(map);
+
+          map.fitBounds(routeLine.getBounds(), { padding: [15, 15] });
+          activeMaps[item.id] = map;
+        } catch(e) {}
+      }
+    });
+  }
+
+  function render(){
+    const root = document.getElementById("app-root");
+    if(!root) return;
+    root.innerHTML = "";
+
+    const { dateMap, itemScheduledDateMap } = calculateCalendarSchedule();
+    let base = complaints;
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      base = base.filter(c => 
+        (c.customer && c.customer.toLowerCase().includes(q)) ||
+        (c.id && c.id.toLowerCase().includes(q)) ||
+        (c.meterId && c.meterId.toLowerCase().includes(q)) ||
+        (c.address && c.address.toLowerCase().includes(q)) ||
+        (c.officer && c.officer.toLowerCase().includes(q))
+      );
+    }
+
+    if (quickFilter === "urgent") base = base.filter(c => urgencyLevel(c) === "tinggi");
+    else if (quickFilter === "proses") base = base.filter(c => c.status === "proses");
+    else if (quickFilter === "reschedule") base = base.filter(c => c.rescheduledDate);
+
+    if (categoryFilter !== "semua") base = base.filter(c => c.category === categoryFilter);
+    if (officerFilter !== "semua") base = base.filter(c => c.officer === officerFilter);
+
+    if (selectedDate) {
+      const selKey = formatDateKey(selectedDate);
+      base = base.filter(item => {
+        const schedDate = itemScheduledDateMap[item.id];
+        return schedDate && formatDateKey(schedDate) === selKey;
+      });
+    }
+
+    const sortedByMode = (items) => {
+      if (sortMode === "prioritas") return [...items].sort((a,b) => priorityScore(b) - priorityScore(a));
+      else if (sortMode === "waktu-terbaru") return [...items].sort((a,b) => new Date(b.receivedAt) - new Date(a.receivedAt));
+      else if (sortMode === "waktu-lama") return [...items].sort((a,b) => new Date(a.receivedAt) - new Date(b.receivedAt));
+      else if (sortMode === "nama") return [...items].sort((a,b) => (a.customer || "").localeCompare(b.customer || ""));
+      return items;
+    };
+
+    const belum = sortedByMode(base.filter(c => c.status === "baru"));
+    const proses = sortedByMode(base.filter(c => c.status === "proses"));
+    const selesai = sortedByMode(base.filter(c => c.status === "selesai"));
+
+    const openAll = complaints.filter(c => c.status !== "selesai");
+    const totalSelesai = complaints.filter(c => c.status === "selesai").length;
+    const tinggiCount = openAll.filter(c => urgencyLevel(c) === "tinggi").length;
+    const overdueCount = openAll.filter(c => getDeadlineInfo(c).isOverdue).length;
+
+    const section = (title, items, isFirst) => el("div", {},
+      el("div", { class:"section-head" + (isFirst ? " first" : "") }, title, el("span", { class:"count" }, String(items.length))),
+      items.length === 0
+        ? el("div", { class:"empty" }, "Tidak ada komplain di seksi ini.")
+        : el("div", {}, ...items.map((item) => renderTicket(item, itemScheduledDateMap)))
+    );
+
+    const wrap = el("div", { class:"wrap" },
+      el("div", { class:"masthead" },
+        el("div", { class:"brand-group" },
+          el("img", { class: "brand-logo", src: "https://aetraairtangerang.co.id/wp-content/uploads/2021/03/logo-aetra.png", alt: "Aetra Logo" }),
+          el("div", { class:"brand-title" },
+            el("h1", {}, "Papan Kerja Minor Repair"),
+            el("span", { class:"unit" }, "Aetra Air Tangerang")
+          )
+        ),
+        el("button", { class: "btn-secondary", onclick: () => {
+          isDarkMode = !isDarkMode;
+          document.body.classList.toggle("dark-mode", isDarkMode);
+        }}, isDarkMode ? "☀️ Mode Terang" : "🌙 Mode Gelap")
+      ),
+
+      overdueCount > 0 ? el("div", { class: "sla-alert-banner" },
+        el("span", {}, `⚠️ Terdapat ${overdueCount} Work Order yang telah melewati batas waktu SLA (Overdue). Mohon secepatnya ditindaklanjuti.`),
+        el("button", { class:"btn-secondary", style:"font-size:10.5px; padding:3px 6px;", onclick: () => { quickFilter = "urgent"; render(); } }, "Tampilkan Urgent")
+      ) : null,
+
+      el("div", { class: "dashboard-grid-balanced" },
+        
+        /* SIDEBAR KIRI (SCROLL INDEPENDENT: ANALYTICS & KALENDER) */
+        el("div", { class: "left-col-sidebar" },
+          el("div", { class: "fleet-map-card" },
+            el("div", { class: "fleet-map-header" }, el("span", {}, "🗺️ Fleet Map Sebaran Kasus")),
+            el("div", { id: "fleet-map-container" })
+          ),
+          el("div", { class:"summary" },
+            el("div", { class:"stat-card tinggi" }, el("div", { class:"num" }, String(tinggiCount)), el("div", { class:"lbl" }, "Urgent")),
+            el("div", { class:"stat-card" }, el("div", { class:"num" }, String(openAll.length)), el("div", { class:"lbl" }, "Aktif")),
+            el("div", { class:"stat-card selesai-stat" }, el("div", { class:"num" }, String(totalSelesai)), el("div", { class:"lbl" }, "Selesai"))
+          ),
+          renderCaseChart(),
+          el("div", { class: "chart-card" },
+            el("div", { class: "chart-header" }, el("h3", {}, "📊 Komposisi Status Work Order")),
+            el("div", { style: "height:140px; position:relative;" }, el("canvas", { id: "donutChartCanvas" }))
+          ),
+          renderSidebarCalendar(dateMap)
+        ),
+
+        /* KOLOM KANAN (SCROLL INDEPENDENT: TIKET COMPLAINT & SEARCH) */
+        el("div", { class: "right-col-content" },
+          el("div", { class: "search-bar" },
+            el("input", {
+              class: "search-input",
+              type: "text",
+              placeholder: "🔍 Cari Pelanggan, WO, ID Meter, Alamat, atau Petugas...",
+              value: searchQuery,
+              oninput: (e) => { searchQuery = e.target.value; render(); }
+            }),
+            el("span", { class: `quick-badge ${quickFilter === "semua" ? "active" : ""}`, onclick: () => { quickFilter = "semua"; render(); } }, "Semua"),
+            el("span", { class: `quick-badge ${quickFilter === "urgent" ? "active" : ""}`, onclick: () => { quickFilter = "urgent"; render(); } }, "🔥 Urgent"),
+            el("span", { class: `quick-badge ${quickFilter === "proses" ? "active" : ""}`, onclick: () => { quickFilter = "proses"; render(); } }, "⚙️ Diproses"),
+            el("span", { class: `quick-badge ${quickFilter === "reschedule" ? "active" : ""}`, onclick: () => { quickFilter = "reschedule"; render(); } }, "🏠 Reschedule")
+          ),
+
+          el("div", { class:"toolbar" },
+            el("div", { class:"toolbar-actions" },
+              el("button", { class:"btn-primary", onclick: () => { formOpen = !formOpen; emailModalOpen = false; historyModalOpen = false; if(!formOpen) editingId=null; render(); } }, formOpen ? "Tutup Form" : "+ Manual Komplain"),
+              el("button", { class:"btn-autoassign", onclick: () => autoAssignMerata() }, "⚖️ Auto-Assign"),
+              el("button", { class:"btn-email", onclick: () => { emailModalOpen = !emailModalOpen; formOpen = false; historyModalOpen = false; render(); } }, "🔄 Email Parser"),
+              el("button", { class:"btn-history", onclick: () => { historyModalOpen = !historyModalOpen; formOpen = false; emailModalOpen = false; render(); } }, "📜 History"),
+              el("button", { class:"btn-excel", onclick: () => exportToExcel(base, itemScheduledDateMap) }, "📊 Export Excel")
+            ),
+            el("div", { class:"filters" },
+              el("div", { class:"filter-group" },
+                "Petugas:",
+                el("select", { onchange: (e) => { officerFilter = e.target.value; render(); } },
+                  el("option", { value:"semua", selected: officerFilter==="semua" ? "selected" : null }, "Semua Petugas"),
+                  ...OFFICERS.map(o => el("option", { value: o, selected: officerFilter===o ? "selected" : null }, o))
+                )
+              ),
+              el("div", { class:"filter-group" },
+                "CASE:",
+                el("select", { onchange: (e) => { categoryFilter = e.target.value; render(); } },
+                  el("option", { value:"semua", selected: categoryFilter==="semua" ? "selected" : null }, "Semua CASE"),
+                  ...CATEGORIES.map(c => el("option", { value: c.key, selected: categoryFilter===c.key ? "selected" : null }, `[${c.key}] ${c.label}`))
+                )
+              ),
+              el("div", { class:"filter-group" },
+                "Urutkan:",
+                el("select", { onchange: (e) => { sortMode = e.target.value; render(); } },
+                  el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "⚡ Skor Urgensi"),
+                  el("option", { value:"waktu-terbaru", selected: sortMode==="waktu-terbaru" ? "selected" : null }, "🕒 Waktu Terbaru"),
+                  el("option", { value:"waktu-lama", selected: sortMode==="waktu-lama" ? "selected" : null }, "⏳ Waktu Terlama"),
+                  el("option", { value:"nama", selected: sortMode==="nama" ? "selected" : null }, "🔤 Nama (A-Z)")
+                )
+              )
+            )
+          ),
+
+          renderForm(),
+          renderEmailParserModal(),
+          renderHistoryModal(),
+          renderFinishModal(),
+
+          selectedDate ? el("div", { class: "filter-date-banner", style:"background:#E0F2FE; color:#0369A1; padding:6px 10px; border-radius:6px; font-size:11.5px; font-weight:700; display:flex; justify-content:space-between; align-items:center;" },
+            el("span", {}, `📅 Menampilkan Kasus Tanggal Kerja: ${fmtDateOnly(selectedDate)}`),
+            el("button", { style: "color:#0284C7; font-size:11px; background:none; border:none; cursor:pointer;", onclick: () => { selectedDate = null; render(); } }, "Tampilkan Semua")
+          ) : null,
+
+          section("Belum Dikerjakan", belum, true),
+          section("Sedang Dikerjakan", proses, false),
+          section("Selesai", selesai, false)
+        )
+      )
+    );
+
+    root.appendChild(wrap);
+    setTimeout(() => {
+      initMaps();
+      initFleetMap();
+      renderDonutChart();
+    }, 100);
+  }
+
+  load();
+  sb.channel("complaints-sync")
+    .on("postgres_changes", { event: "*", schema: "public", table: TABLE }, () => load())
+    .subscribe();
+  setInterval(render, 60000);
+})();
+</script>
