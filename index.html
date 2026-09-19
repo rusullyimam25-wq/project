@@ -175,7 +175,7 @@
 
   select {
     font-size: 12.5px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
-    background: var(--panel); color: var(--ink); outline: none; max-width: 200px; font-weight: 500;
+    background: var(--panel); color: var(--ink); outline: none; max-width: 220px; font-weight: 500; cursor: pointer;
   }
 
   button { font-family: inherit; cursor: pointer; border: none; font-size: 12.5px; font-weight: 600; border-radius: 8px; transition: all 0.2s; }
@@ -285,7 +285,6 @@
     display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
   }
 
-  /* History Modal Styles */
   .history-item { background: #F8FAFC; border-left: 3px solid var(--accent); padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 12px; }
 </style>
 
@@ -1018,7 +1017,7 @@
               ...historyResults.map(item => {
                 const cInfo = catInfo(item.category);
                 return el("div", { class:"history-item" },
-                  el("div", { style:"display:flex; justify-space-between; font-weight:700;" },
+                  el("div", { style:"display:flex; justify-content:space-between; font-weight:700;" },
                     el("span", {}, `${item.id} - ${cInfo.label}`),
                     el("span", { style: `color: ${item.status === 'selesai' ? 'var(--rendah)' : 'var(--tinggi)'}` }, item.status.toUpperCase())
                   ),
@@ -1066,7 +1065,6 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
     );
   }
 
-  // GRAFIK & ANALISA DENGAN MODUL KPI BARU
   function renderCaseChart(){
     const counts = {};
     const customerMap = {};
@@ -1084,7 +1082,6 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
     const totalDiterima = complaints.length;
     const avgWaitHours = totalDiterima > 0 ? Math.round(totalWaitHours / totalDiterima) : 0;
 
-    // Menghitung rasio komplain berulang
     const repeatCustomers = Object.values(customerMap).filter(val => val > 1).length;
     const repeatRate = totalDiterima > 0 ? Math.round((repeatCustomers / Object.keys(customerMap).length) * 100) || 0 : 0;
 
@@ -1375,6 +1372,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
       base = base.filter(c => c.rescheduledDate);
     }
 
+    // Pemfilteran Presisi Berdasarkan CASE
     if (categoryFilter !== "semua") {
       base = base.filter(c => c.category === categoryFilter);
     }
@@ -1387,6 +1385,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
       });
     }
 
+    // Fungsi Pengurutan Tingkat Tinggi & Akses Cepat
     const sortedByMode = (items) => {
       if (sortMode === "prioritas") {
         return [...items].sort((a,b) => {
@@ -1400,9 +1399,14 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
 
           return new Date(a.receivedAt) - new Date(b.receivedAt);
         });
-      } else {
+      } else if (sortMode === "waktu-terbaru") {
+        return [...items].sort((a,b) => new Date(b.receivedAt) - new Date(a.receivedAt));
+      } else if (sortMode === "waktu-lama") {
         return [...items].sort((a,b) => new Date(a.receivedAt) - new Date(b.receivedAt));
+      } else if (sortMode === "nama") {
+        return [...items].sort((a,b) => (a.customer || "").localeCompare(b.customer || ""));
       }
+      return items;
     };
 
     const belum = sortedByMode(base.filter(c => c.status === "baru"));
@@ -1476,8 +1480,10 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
               el("div", { class:"filter-group" },
                 "Urutkan:",
                 el("select", { onchange: (e) => { sortMode = e.target.value; render(); } },
-                  el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "Skor Urgensi (Tinggi-Rendah)"),
-                  el("option", { value:"waktu", selected: sortMode==="waktu" ? "selected" : null }, "Waktu Diterima")
+                  el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "⚡ Skor Urgensi (Tinggi-Rendah)"),
+                  el("option", { value:"waktu-terbaru", selected: sortMode==="waktu-terbaru" ? "selected" : null }, "🕒 Waktu Lapor (Terbaru)"),
+                  el("option", { value:"waktu-lama", selected: sortMode==="waktu-lama" ? "selected" : null }, "⏳ Waktu Lapor (Terlama)"),
+                  el("option", { value:"nama", selected: sortMode==="nama" ? "selected" : null }, "🔤 Nama Pelanggan (A-Z)")
                 )
               )
             )
