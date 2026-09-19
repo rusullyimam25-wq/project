@@ -193,7 +193,7 @@
     flex: 1; min-width: 180px; padding: 7px 10px; border: 1px solid var(--border);
     border-radius: 6px; font-size: 12px; background: var(--panel); color: var(--ink); outline: none; transition: border-color 0.2s;
   }
-  .search-input:focus { border-color: var(--accent); }
+  .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg); }
   .quick-badge {
     font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 14px; cursor: pointer;
     background: var(--panel); border: 1px solid var(--border); color: var(--ink-soft); transition: all 0.2s;
@@ -554,19 +554,20 @@
     };
   }
 
+  /* 🛠️ PERBAIKAN 1: PILIH PETUGAS KINI TIDAK MENYEBABKAN WORK ORDER HILANG */
   async function assignOfficerToWO(id, newOfficer) {
     const target = complaints.find(c => c.id === id);
     if (!target) return;
 
     target.officer = newOfficer;
+    render(); // Update UI langsung secara instan tanpa mereload penuh
+
     let fullDesc = buildFullDescription(target.desc, target.address, target.phone, target.rescheduledDate, target.officer, target.photoBefore, target.photoAfter);
 
     try {
       await sb.from(TABLE).update({ description: fullDesc }).eq("id", id);
       Swal.fire({ icon: 'success', title: 'Petugas Ditugaskan', text: `WO ${id} diserahkan ke ${newOfficer || 'Belum Ditugaskan'}`, timer: 1200, showConfirmButton: false });
-    } catch(e) { console.error("Gagal menugaskan petugas:", e); }
-
-    await load();
+    } catch(e) { console.error("Gagal menugaskan petugas di server:", e); }
   }
 
   async function autoAssignMerata() {
@@ -605,7 +606,7 @@
     }
 
     Swal.fire('Berhasil', `Berhasil membagikan ${unassigned.length} Work Order secara merata ke petugas!`, 'success');
-    await load();
+    render();
   }
 
   function copyFieldFormat(item) {
@@ -811,7 +812,6 @@ Catatan: ${item.desc || '-'}`;
     };
   }
 
-  /* 🛠️ PERBAIKAN UTAMA: DUAL-PATH INSTANT MANUAL ADD COMPLAINT */
   async function addComplaint(data){
     try {
       let receivedDateObj = (data && data.receivedAt) ? new Date(data.receivedAt) : new Date();
@@ -837,7 +837,6 @@ Catatan: ${item.desc || '-'}`;
         status: "baru",
       };
 
-      // 1. TAMBAHKAN KELOKAL SECARA INSTAN AGAR LANGSUNG TAMPIL
       complaints.unshift(item);
       formOpen = false;
       editingId = null;
@@ -845,7 +844,6 @@ Catatan: ${item.desc || '-'}`;
 
       Swal.fire({ icon: 'success', title: 'Berhasil Disimpan!', text: `Work Order ${item.id} berhasil ditambahkan.`, timer: 1500, showConfirmButton: false });
 
-      // 2. SINKRONKAN KE SUPABASE DI BACKGROUND
       let fullDesc = buildFullDescription(item.desc, item.address, item.phone, null, item.officer, null, null);
       const fullCust = item.meterId ? `${item.customer} (${item.meterId})` : item.customer;
 
@@ -866,7 +864,7 @@ Catatan: ${item.desc || '-'}`;
 
       sb.from(TABLE).insert(fullPayload).then(({ error }) => {
         if (error) {
-          console.warn("Gagal simpan ke Supabase DB, komplain tersimpan secara lokal:", error.message);
+          console.warn("Gagal simpan ke Supabase DB:", error.message);
         }
       });
 
@@ -886,13 +884,13 @@ Catatan: ${item.desc || '-'}`;
     const tomorrowStr = formatDateKey(tomorrow);
 
     target.rescheduledDate = tomorrowStr;
+    render();
+
     let fullDesc = buildFullDescription(target.desc, target.address, target.phone, tomorrowStr, target.officer, target.photoBefore, target.photoAfter);
 
     try {
       await sb.from(TABLE).update({ description: fullDesc }).eq("id", id);
     } catch(e) { console.error(e); }
-
-    await load();
   }
 
   async function updateComplaint(id, data){
@@ -993,7 +991,9 @@ Catatan: ${item.desc || '-'}`;
     await addComplaint(newComplaint);
   }
 
+  /* 🛠️ PERBAIKAN 2: JIKA FORM SEDANG DIBUKA, JANGAN OVERWRITE DENGAN REFRESH OTOMATIS */
   async function load(){
+    if (formOpen) return; // Mencegah form yang sedang diisi ke-refresh
     try{
       const { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: false });
       if(error) throw error;
@@ -1260,7 +1260,7 @@ Catatan: ${item.desc || '-'}`;
           }
           finishModalOpen = false;
           Swal.fire('Selesai!', 'Work Order telah diselesaikan, bukti foto & TTD terverifikasi.', 'success');
-          await load();
+          render();
         }}, "Verifikasi & Selesai"),
         el("button", { class: "btn-secondary", onclick: () => { finishModalOpen = false; render(); } }, "Batal")
       )
@@ -1682,15 +1682,18 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
     const { dateMap, itemScheduledDateMap } = calculateCalendarSchedule();
     let base = complaints;
 
+    /* 🛠️ PERBAIKAN 3: OPTIMALISASI PENCARIAN CERDAS PADA SEARCH BAR */
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      base = base.filter(c => 
-        (c.customer && c.customer.toLowerCase().includes(q)) ||
-        (c.id && c.id.toLowerCase().includes(q)) ||
-        (c.meterId && c.meterId.toLowerCase().includes(q)) ||
-        (c.address && c.address.toLowerCase().includes(q)) ||
-        (c.officer && c.officer.toLowerCase().includes(q))
-      );
+      const terms = searchQuery.toLowerCase().trim().split(/\s+/);
+      base = base.filter(c => {
+        const cInfo = catInfo(c.category);
+        const fullContent = [
+          c.id, c.customer, c.meterId, c.phone, c.address, c.area,
+          c.category, cInfo.label, c.desc, c.officer
+        ].filter(Boolean).join(" ").toLowerCase();
+
+        return terms.every(term => fullContent.includes(term));
+      });
     }
 
     if (quickFilter === "urgent") base = base.filter(c => urgencyLevel(c) === "tinggi");
@@ -1809,7 +1812,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
             el("input", {
               class: "search-input",
               type: "text",
-              placeholder: "🔍 Cari Pelanggan, WO, ID Meter, Alamat, atau Petugas...",
+              placeholder: "🔍 Cari WO, Pelanggan, ID Meter, WA, Alamat, Area, CASE, atau Petugas...",
               value: searchQuery,
               oninput: (e) => { searchQuery = e.target.value; render(); }
             }),
@@ -1881,8 +1884,13 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
 
   load();
   sb.channel("complaints-sync")
-    .on("postgres_changes", { event: "*", schema: "public", table: TABLE }, () => load())
+    .on("postgres_changes", { event: "*", schema: "public", table: TABLE }, () => {
+      if (!formOpen) load(); // Jangan reload jika user sedang mengisi form
+    })
     .subscribe();
-  setInterval(render, 60000);
+
+  setInterval(() => {
+    if (!formOpen) load(); // Refresh rutin aman tanpa mengganggu pengisian form
+  }, 60000);
 })();
 </script>
