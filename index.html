@@ -22,7 +22,6 @@
     --rendah-bg: #ECFDF5;
     
     --wa: #25D366;
-    --wa-bg: #DCF8C6;
     --wa-hover: #1EBE5D;
 
     --resched: #7C3AED;
@@ -63,13 +62,6 @@
     .dashboard-grid { grid-template-columns: 1fr; }
   }
 
-  /* SLA Alert Banner */
-  .sla-alert-banner {
-    background: #FEF2F2; border: 1px solid #FCA5A5; color: #991B1B;
-    padding: 10px 14px; border-radius: var(--radius); margin-bottom: 16px;
-    font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;
-  }
-
   /* Kalender Sidebar */
   .calendar-card {
     background: #0F172A; border-radius: var(--radius);
@@ -80,9 +72,7 @@
     font-size: 13px; font-weight: 700; color: #38BDF8; padding-bottom: 8px; margin-bottom: 10px;
     border-bottom: 1px solid #334155;
   }
-  .cal-month-nav {
-    display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
-  }
+  .cal-month-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
   .cal-month-title { font-size: 13px; font-weight: 700; color: #F8FAFC; }
   .cal-nav-btns { display: flex; gap: 4px; }
   .cal-nav-btn {
@@ -90,9 +80,7 @@
   }
   .cal-nav-btn:hover { color: #FFF; background: #334155; }
 
-  .cal-grid-embedded {
-    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center;
-  }
+  .cal-grid-embedded { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
   .cal-head-cell { font-size: 10px; font-weight: 700; color: #94A3B8; padding: 4px 0; text-transform: uppercase; }
   .cal-date-cell {
     padding: 4px 0; font-size: 12px; font-weight: 600; color: #E2E8F0;
@@ -102,44 +90,11 @@
   }
   .cal-date-cell:hover { background: #334155; }
   .cal-date-cell.other-month { color: #475569; }
-  .cal-date-cell.selected {
-    background: #38BDF8 !important; color: #0F172A !important; font-weight: 800;
-  }
+  .cal-date-cell.selected { background: #38BDF8 !important; color: #0F172A !important; font-weight: 800; }
   .cal-date-cell.has-tasks::after {
     content: ""; display: block; width: 4px; height: 4px; background: #38BDF8;
     border-radius: 50%; position: absolute; bottom: 1px;
   }
-  .cal-date-cell.selected.has-tasks::after { background: #0F172A; }
-  .cal-date-cell.has-high::after { background: var(--tinggi); }
-  .cal-date-cell.all-done::after { background: var(--rendah); }
-
-  .quota-card {
-    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 12px 14px; margin-top: 14px; box-shadow: var(--shadow-sm);
-  }
-  .quota-header { display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 700; color: var(--ink-soft); margin-bottom: 6px; }
-
-  /* Charts & Analytics */
-  .chart-card {
-    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 14px 18px; margin-bottom: 16px; box-shadow: var(--shadow-sm);
-  }
-  .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-  .chart-header h3 { font-size: 13.5px; font-weight: 700; margin: 0; color: var(--ink); }
-  .chart-header .total-badge { background: var(--accent-bg); color: var(--accent); font-weight: 700; font-size: 10.5px; padding: 3px 8px; border-radius: 12px; }
-  
-  .chart-list { display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; padding-right: 4px; }
-  .chart-item { font-size: 11.5px; }
-  .chart-label { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 3px; color: var(--ink-soft); }
-  .chart-bar-bg { background: #F1F5F9; border-radius: 4px; height: 6px; width: 100%; overflow: hidden; }
-  .chart-bar-fill { background: linear-gradient(90deg, #2563EB, #06B6D4); height: 100%; border-radius: 4px; transition: width 0.3s; }
-
-  .analytics-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border);
-  }
-  .analytics-box { background: #F8FAFC; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); }
-  .analytics-box .val { font-size: 14px; font-weight: 800; color: var(--ink); }
-  .analytics-box .lbl { font-size: 10.5px; color: var(--ink-soft); font-weight: 600; margin-top: 2px; }
 
   /* Summary Cards */
   .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 16px; }
@@ -149,19 +104,16 @@
   }
   .stat-card .num { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -0.03em; }
   .stat-card .lbl { font-size: 11.5px; font-weight: 600; color: var(--ink-soft); margin-top: 2px; }
-  
   .stat-card.tinggi { border-top-color: var(--tinggi); }
   .stat-card.tinggi .num { color: var(--tinggi); }
   .stat-card.selesai-stat { border-top-color: var(--rendah); }
   .stat-card.selesai-stat .num { color: var(--rendah); }
 
-  /* Filters & Actions */
-  .search-bar {
-    display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center;
-  }
+  /* Filters & Search */
+  .search-bar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
   .search-input {
     flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid var(--border);
-    border-radius: 8px; font-size: 12.5px; background: var(--panel); outline: none; transition: border-color 0.2s;
+    border-radius: 8px; font-size: 12.5px; background: var(--panel); outline: none;
   }
   .search-input:focus { border-color: var(--accent); }
   .quick-badge {
@@ -170,33 +122,25 @@
   }
   .quick-badge:hover, .quick-badge.active { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
 
-  .toolbar {
-    display: flex; gap: 10px; justify-content: space-between; align-items: center;
-    margin-bottom: 16px; flex-wrap: wrap;
-  }
+  .toolbar { display: flex; gap: 10px; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
   .toolbar-actions { display: flex; gap: 6px; flex-wrap: wrap; }
   .filters { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
   .filter-group { display: flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--ink-soft); font-weight: 600; }
 
   select {
     font-size: 12px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px;
-    background: var(--panel); color: var(--ink); outline: none; max-width: 200px; font-weight: 500; cursor: pointer;
+    background: var(--panel); color: var(--ink); outline: none; font-weight: 500; cursor: pointer;
   }
 
   button { font-family: inherit; cursor: pointer; border: none; font-size: 12px; font-weight: 600; border-radius: 6px; transition: all 0.2s; }
   .btn-primary { background: var(--accent); color: #fff; padding: 8px 14px; }
   .btn-primary:hover { background: var(--accent-hover); }
   .btn-secondary { background: var(--panel); border: 1px solid var(--border); color: var(--ink); padding: 7px 12px; }
-  .btn-secondary:hover { background: #F8FAFC; }
-  .btn-email { background: #8B5CF6; color: #FFF; padding: 8px 14px; }
-  .btn-email:hover { background: #7C3AED; }
-  .btn-history { background: #0284C7; color: #FFF; padding: 8px 14px; }
-  .btn-history:hover { background: #0369A1; }
+  .btn-autoassign { background: #0EA5E9; color: #FFF; padding: 8px 14px; }
+  .btn-autoassign:hover { background: #0284C7; }
   .btn-excel { background: #10B981; color: #FFF; padding: 8px 14px; }
-  .btn-excel:hover { background: #059669; }
-  .btn-text { background: none; color: var(--ink-soft); font-weight: 500; text-decoration: underline; padding: 4px; }
 
-  /* Panels */
+  /* Form Panels */
   .form-panel {
     background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 16px; margin-bottom: 20px; box-shadow: var(--shadow-md); display: none;
@@ -216,8 +160,7 @@
   .ticket {
     background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 12px 14px; margin-bottom: 10px; box-shadow: var(--shadow-sm);
-    display: flex; flex-direction: column; gap: 8px; position: relative;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    display: flex; flex-direction: column; gap: 8px; position: relative; transition: all 0.2s;
   }
   .ticket:hover { border-color: var(--border-hover); box-shadow: var(--shadow-md); }
   .ticket.selesai { opacity: 0.65; background: #F8FAFC; }
@@ -230,37 +173,26 @@
   .badge-tinggi { background: var(--tinggi-bg); color: var(--tinggi); }
   .badge-sedang { background: var(--sedang-bg); color: var(--sedang); }
   .badge-rendah { background: var(--rendah-bg); color: var(--rendah); }
-  .badge-selesai { background: #E2E8F0; color: #475569; }
 
   .ticket-main-info { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 11.5px; color: var(--ink-soft); }
   .case-tag { background: #F1F5F9; color: #334155; font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); }
+  .officer-badge { background: #E0F2FE; color: #0369A1; font-weight: 700; font-size: 10.5px; padding: 2px 6px; border-radius: 4px; border: 1px solid #BAE6FD; }
   
   .ticket-address { font-size: 11.5px; color: #334155; line-height: 1.3; }
   .ticket-desc { font-size: 12px; color: var(--ink); background: #F8FAFC; padding: 6px 8px; border-radius: 6px; border-left: 2px solid var(--border-hover); }
 
   .schedule-row-simple { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-soft); font-weight: 500; }
-  .deadline-tag { font-weight: 700; padding: 1px 5px; border-radius: 3px; font-size: 10px; }
-  .deadline-normal { background: #E2E8F0; color: #334155; }
-  .deadline-warning { background: var(--sedang-bg); color: var(--sedang); }
-  .deadline-overdue { background: var(--tinggi-bg); color: var(--tinggi); }
-
-  .ticket-map-container { width: 100%; height: 100px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-top: 2px; z-index: 1; }
-
+  
   .ticket-actions { display: flex; gap: 6px; margin-top: 2px; flex-wrap: wrap; align-items: center; }
   .ticket-actions button { font-size: 11px; padding: 5px 10px; border-radius: 4px; border: 1px solid var(--border); background: #FFF; color: var(--ink-soft); }
   .ticket-actions button.progress { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
   .ticket-actions button.done { border-color: var(--rendah); color: var(--rendah); background: var(--rendah-bg); }
-  .ticket-actions button.resched-btn { border-color: var(--resched); color: var(--resched); background: var(--resched-bg); }
-  .ticket-actions button.copy-btn { border-color: #0EA5E9; color: #0EA5E9; background: #F0F9FF; }
-  .ticket-actions button.del { margin-left: auto; border-color: transparent; color: var(--ink-muted); }
-  .ticket-actions button.del:hover { color: var(--tinggi); background: var(--tinggi-bg); }
   
   .btn-wa {
     background: var(--wa) !important; color: #FFF !important; border: none !important;
     display: inline-flex; align-items: center; gap: 4px; font-weight: 700 !important;
     text-decoration: none; font-size: 11px; padding: 5px 10px; border-radius: 4px;
   }
-  .btn-wa:hover { background: var(--wa-hover) !important; }
 
   .section-head {
     font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
@@ -268,14 +200,10 @@
   }
   .section-head .count { background: #E2E8F0; color: var(--ink); font-size: 10.5px; font-weight: 700; border-radius: 10px; padding: 1px 6px; }
   .empty { text-align: center; padding: 18px; color: var(--ink-soft); font-size: 12px; border: 1px dashed var(--border); border-radius: var(--radius); background: var(--panel); }
-
-  .history-item { background: #F8FAFC; border-left: 3px solid var(--accent); padding: 8px 10px; border-radius: 4px; margin-bottom: 6px; font-size: 11.5px; }
 </style>
 
-<!-- SheetJS & Leaflet Map JS -->
+<!-- Supabase SDK & SheetJS -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
@@ -286,463 +214,146 @@
 
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const CATEGORIES = [
-    { key: "BPPD", label: "Biaya Penambahan Pipa Dinas", opRisk: 1, custImpact: 1, keywords: ["biaya", "pipa dinas"] },
-    { key: "BPPDIND", label: "Biaya Penambahan Pipa Dinas Industri", opRisk: 2, custImpact: 2, keywords: ["pipa industri"] },
-    { key: "INFO-PLG", label: "Info ke Pelanggan", opRisk: 1, custImpact: 1, keywords: ["info", "tanya"] },
-    { key: "KATM", label: "Air Tidak Mengalir Domestic", opRisk: 3, custImpact: 3, keywords: ["tidak mengalir", "mati", "tidak keluar", "kering", "air mati"] },
-    { key: "KATMIND", label: "Air Tidak Mengalir Industri", opRisk: 3, custImpact: 3, keywords: ["air mati industri", "pabrik kering"] },
-    { key: "KATR", label: "Air Kotor Domestic", opRisk: 2, custImpact: 3, keywords: ["kotor", "keruh", "berbau", "hitam", "kuning"] },
-    { key: "KATRIND", label: "Air Kotor Industri", opRisk: 3, custImpact: 3, keywords: ["kotor industri"] },
-    { key: "KBBP", label: "Sudah Bayar Belum Pasang Meter", opRisk: 1, custImpact: 2, keywords: ["belum pasang", "sudah bayar"] },
-    { key: "KBGL", label: "Bekas Galian", opRisk: 2, custImpact: 1, keywords: ["galian", "lubang", "tanah"] },
-    { key: "KBSM", label: "Bocor Sebelum Meter", opRisk: 3, custImpact: 3, keywords: ["bocor sebelum meter", "bocor sebelum", "pipa bocor", "bocor deras"] },
-    { key: "KBSMIND", label: "Bocor Sebelum Meter Industri", opRisk: 3, custImpact: 3, keywords: ["bocor meter industri"] },
-    { key: "KBTR", label: "Belum Menerima Tagihan", opRisk: 1, custImpact: 1, keywords: ["belum terima tagihan"] },
-    { key: "KBTT", label: "Sudah Bayar Tapi di Tagih", opRisk: 1, custImpact: 1, keywords: ["sudah bayar ditagih"] },
-    { key: "KILL", label: "Illegal Consumption", opRisk: 3, custImpact: 2, keywords: ["ilegal", "pencurian", "bypass"] },
-    { key: "KKMR", label: "Kran Meter Rusak", opRisk: 2, custImpact: 2, keywords: ["kran rusak", "kran patah"] },
-    { key: "KKMRIND", label: "Kran Meter Rusak Industri", opRisk: 2, custImpact: 3, keywords: ["kran industri"] },
-    { key: "KLBC", label: "Pipa Jaringan Bocor", opRisk: 3, custImpact: 3, keywords: ["jaringan bocor", "pipa induk bocor", "bocor di jalan"] },
-    { key: "KMAL", label: "Meter Air Lepas", opRisk: 2, custImpact: 2, keywords: ["meter lepas", "copot"] },
-    { key: "KPMR", label: "Meter Rusak", opRisk: 2, custImpact: 2, keywords: ["meter rusak", "meter mati", "angka tidak jalan"] },
-    { key: "TR09", label: "Pindah Meter", opRisk: 2, custImpact: 1, keywords: ["pindah meter"] }
-  ];
+  // Daftar Petugas Lapangan
+  const OFFICERS = ["Budi Santoso", "Agus Setiawan", "Dedi Kurniawan", "Hendra Wijaya", "Eko Prasetyo"];
 
-  const SLA_DAYS = 14;
-  let MAX_PER_DAY = 10;
+  const CATEGORIES = [
+    { key: "KATM", label: "Air Tidak Mengalir Domestic" },
+    { key: "KATR", label: "Air Kotor Domestic" },
+    { key: "KBSM", label: "Bocor Sebelum Meter" },
+    { key: "KKMR", label: "Kran Meter Rusak" },
+    { key: "KPMR", label: "Meter Rusak" },
+    { key: "TR09", label: "Pindah Meter" }
+  ];
 
   let complaints = [];
   let searchQuery = "";
   let quickFilter = "semua";
-  let sortMode = "prioritas";
-  let categoryFilter = "semua";
-  let storageOk = true;
-  let activeMaps = {};
-  
-  let selectedDate = null;
-  let viewMonth = new Date();
+  let officerFilter = "semua";
   let formOpen = false;
-  let emailModalOpen = false;
-  let historyModalOpen = false;
-  let historySearchTerm = "";
   let editingId = null;
 
   function catInfo(key){
-    return CATEGORIES.find(c => c.key === key) || { key: key||"OTHERS", label: key||"Lainnya", opRisk: 1, custImpact: 1, keywords:[] };
-  }
-
-  function formatWA(phoneStr) {
-    if (!phoneStr) return "";
-    let clean = phoneStr.replace(/[^0-9]/g, '');
-    if (clean.startsWith('0')) clean = '62' + clean.slice(1);
-    return clean;
-  }
-
-  function computeUrgencyMetrics(item) {
-    const cInfo = catInfo(item.category);
-    const scoreOpRisk = item.urgent ? 3 : (cInfo.opRisk || 1);
-    const scoreCustImpact = item.urgent ? 3 : (cInfo.custImpact || 1);
-
-    const start = new Date(item.receivedAt);
-    const deadline = new Date(start.getTime() + SLA_DAYS * 24 * 60 * 60 * 1000);
-    const diffDays = Math.ceil((deadline - new Date()) / (1000 * 60 * 60 * 24));
-    let scoreSla = diffDays <= 3 ? 3 : (diffDays <= 7 ? 2 : 1);
-
-    const isIndustrial = (item.category && item.category.endsWith("IND")) || 
-                         (item.customer && item.customer.toLowerCase().includes("pt."));
-    const scoreCustType = isIndustrial ? 3 : 2;
-
-    const totalScore = (scoreOpRisk * 0.35) + (scoreCustImpact * 0.30) + (scoreSla * 0.20) + (scoreCustType * 0.15);
-    const roundedScore = Math.round(totalScore * 100) / 100;
-
-    let level = "rendah";
-    if (roundedScore >= 2.40) level = "tinggi";
-    else if (roundedScore >= 1.70) level = "sedang";
-
-    return { score: roundedScore, level: level };
-  }
-
-  function urgencyLevel(item){ return computeUrgencyMetrics(item).level; }
-
-  function hoursWaiting(item){
-    const ms = Date.now() - new Date(item.receivedAt).getTime();
-    return Math.max(0, ms / 3600000);
-  }
-
-  function priorityScore(item){
-    const metrics = computeUrgencyMetrics(item);
-    const hrs = Math.min(hoursWaiting(item), 336);
-    return (metrics.score * 1000) + hrs;
+    return CATEGORIES.find(c => c.key === key) || { key: key||"OTHERS", label: key||"Lainnya" };
   }
 
   function fmtDateTime(dateObj){
     return dateObj.toLocaleString("id-ID", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
   }
 
-  function fmtDateOnly(dateObj){
-    return dateObj.toLocaleString("id-ID", { day:"2-digit", month:"short", year:"numeric" });
-  }
-
-  function formatDateKey(d){
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
-
-  function parseCoords(str){
-    if(!str) return null;
-    const parts = str.split(",").map(p => parseFloat(p.trim()));
-    if(parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])){
-      return { lat: parts[0], lng: parts[1] };
-    }
-    return null;
-  }
-
-  function getDeadlineInfo(item){
-    const start = new Date(item.receivedAt);
-    const deadline = new Date(start.getTime() + SLA_DAYS * 24 * 60 * 60 * 1000);
-    const now = new Date();
-    const diffMs = deadline - now;
-    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-
-    let statusClass = "deadline-normal";
-    let statusText = `SLA ${diffDays}hr`;
-
-    if (diffMs < 0) {
-      statusClass = "deadline-overdue";
-      statusText = `Overdue (${Math.abs(diffDays)}hr)`;
-    } else if (diffDays <= 3) {
-      statusClass = "deadline-warning";
-      statusText = `SLA Urgent (${diffDays}hr)`;
-    }
-
-    return {
-      receivedText: fmtDateTime(start),
-      deadlineText: fmtDateTime(deadline),
-      statusClass,
-      statusText,
-      isOverdue: diffMs < 0
-    };
-  }
-
-  function copyFieldFormat(item) {
-    const cInfo = catInfo(item.category);
-    const textToCopy = 
-`*[LAPORAN PENGERJAAN MINOR REPAIR]*
-ID WO: ${item.id}
-Pelanggan: ${item.customer} ${item.meterId ? '('+item.meterId+')' : ''}
-Keluhan: [${item.category}] ${cInfo.label}
-Alamat: ${item.address || '-'}
-Area: ${item.area || 'Cikupa'}
-Status: ${item.status.toUpperCase()}
-Catatan: ${item.desc || '-'}`;
-
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      alert("Format laporan WO " + item.id + " berhasil disalin ke clipboard!");
-    });
-  }
-
-  function calculateCalendarSchedule(){
-    const dateMap = {}; 
-    const itemScheduledDateMap = {};
-
-    const completedItems = complaints.filter(c => c.status === "selesai");
-    completedItems.forEach(item => {
-      const dateKey = formatDateKey(new Date(item.receivedAt));
-      if (!dateMap[dateKey]) dateMap[dateKey] = [];
-      dateMap[dateKey].push(item);
-      itemScheduledDateMap[item.id] = new Date(item.receivedAt);
-    });
-
-    const rescheduledItems = complaints.filter(c => c.status !== "selesai" && c.rescheduledDate);
-    rescheduledItems.forEach(item => {
-      const dateKey = formatDateKey(new Date(item.rescheduledDate));
-      if (!dateMap[dateKey]) dateMap[dateKey] = [];
-      dateMap[dateKey].push(item);
-      itemScheduledDateMap[item.id] = new Date(item.rescheduledDate);
-    });
-
-    let unassigned = complaints
-      .filter(c => c.status !== "selesai" && !c.rescheduledDate)
-      .sort((a,b) => priorityScore(b) - priorityScore(a));
-
-    let currentDate = new Date();
-    currentDate.setHours(0,0,0,0);
-
-    while (unassigned.length > 0) {
-      const dateKey = formatDateKey(currentDate);
-      if (!dateMap[dateKey]) dateMap[dateKey] = [];
-
-      let availableSlots = MAX_PER_DAY - dateMap[dateKey].length;
-      if (availableSlots <= 0) {
-        currentDate.setDate(currentDate.getDate() + 1);
-        continue;
-      }
-
-      const seedItem = unassigned[0];
-      const targetArea = (seedItem.area || "TANPA-AREA").trim().toLowerCase();
-
-      const sameAreaItems = unassigned.filter(i => (i.area || "TANPA-AREA").trim().toLowerCase() === targetArea);
-      const otherAreaItems = unassigned.filter(i => (i.area || "TANPA-AREA").trim().toLowerCase() !== targetArea);
-
-      const batchForToday = sameAreaItems.slice(0, availableSlots);
-      const remainingSameArea = sameAreaItems.slice(availableSlots);
-
-      batchForToday.forEach(item => {
-        dateMap[dateKey].push(item);
-        itemScheduledDateMap[item.id] = new Date(currentDate);
-      });
-
-      unassigned = [...remainingSameArea, ...otherAreaItems].sort((a,b) => priorityScore(b) - priorityScore(a));
-
-      if (dateMap[dateKey].length >= MAX_PER_DAY) {
-        currentDate.setDate(currentDate.getDate() + 1);
-      }
-    }
-
-    return { dateMap, itemScheduledDateMap };
-  }
-
-  function exportToExcel(itemsToExport, itemScheduledDateMap) {
-    if (!itemsToExport || itemsToExport.length === 0) {
-      alert("Tidak ada data komplain untuk diunduh.");
+  // Algoritma Auto-Assign (Pembagian Merata)
+  async function autoAssignMerata() {
+    const unassigned = complaints.filter(c => !c.officer && c.status !== "selesai");
+    if (unassigned.length === 0) {
+      alert("Semua komplain yang aktif sudah memiliki petugas lapangan!");
       return;
     }
 
-    const excelData = itemsToExport.map(item => {
-      const caseDetails = catInfo(item.category);
-      const metrics = computeUrgencyMetrics(item);
-      const deadlineInfo = getDeadlineInfo(item);
-      const schedDate = itemScheduledDateMap[item.id];
-
-      return {
-        "ID Work Order": item.id,
-        "Nama Pelanggan": item.customer || "-",
-        "No WhatsApp": item.phone || "-",
-        "ID Meter": item.meterId || "-",
-        "Alamat Lengkap": item.address || "-",
-        "Area / Zona": item.area || "-",
-        "Kode CASE": item.category,
-        "Kategori Keluhan": caseDetails.label,
-        "Skor Urgensi": metrics.score,
-        "Level Urgensi": metrics.level.toUpperCase(),
-        "Deskripsi": item.desc || "-",
-        "Waktu Diterima": fmtDateTime(new Date(item.receivedAt)),
-        "Jadwal Pengerjaan": schedDate ? fmtDateOnly(schedDate) : "-",
-        "Batas SLA (14 Hari)": deadlineInfo.deadlineText,
-        "Status SLA": deadlineInfo.statusText,
-        "Status Work Order": item.status === "selesai" ? "Selesai" : item.status === "proses" ? "Dalam Proses" : "Belum Dikerjakan"
-      };
+    // Hitung beban kerja awal tiap petugas
+    const counts = {};
+    OFFICERS.forEach(o => counts[o] = 0);
+    complaints.forEach(c => {
+      if (c.officer && OFFICERS.includes(c.officer) && c.status !== "selesai") {
+        counts[c.officer]++;
+      }
     });
 
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Komplain");
+    for (let item of unassigned) {
+      // Cari petugas dengan jumlah tugas tersedikit
+      let minOfficer = OFFICERS[0];
+      let minCount = counts[OFFICERS[0]];
 
-    const dateStr = formatDateKey(new Date());
-    XLSX.writeFile(workbook, `Laporan_Minor_Repair_${dateStr}.xlsx`);
+      for (let o of OFFICERS) {
+        if (counts[o] < minCount) {
+          minCount = counts[o];
+          minOfficer = o;
+        }
+      }
+
+      // Assign ke petugas tersebut
+      item.officer = minOfficer;
+      counts[minOfficer]++;
+
+      // Update ke database
+      let fullDesc = `${item.desc} [Petugas: ${minOfficer}]`;
+      try {
+        await sb.from(TABLE).update({ description: fullDesc }).eq("id", item.id);
+      } catch(e) { console.error(e); }
+    }
+
+    alert(`Berhasil membagikan ${unassigned.length} Work Order secara merata ke petugas lapangan!`);
+    await load();
   }
 
   function rowToItem(row){
-    let extraAddr = row.address || "";
-    let extraMeter = row.meter_id || "";
-    let extraPhone = row.phone || "";
-    let reschedDate = null;
-
-    if (!extraAddr && row.description && row.description.includes("[Alamat:")) {
-      const mAddr = row.description.match(/\[Alamat:\s*(.*?)\]/);
-      if (mAddr) extraAddr = mAddr[1];
-    }
-    if (!extraPhone && row.description && row.description.includes("[WA:")) {
-      const mPhone = row.description.match(/\[WA:\s*(.*?)\]/);
-      if (mPhone) extraPhone = mPhone[1];
-    }
-    if (row.description && row.description.includes("[Resched:")) {
-      const mResched = row.description.match(/\[Resched:\s*(.*?)\]/);
-      if (mResched) reschedDate = mResched[1];
-    }
-    if (!extraMeter && row.customer && row.customer.includes("(") && row.customer.includes(")")) {
-      const mId = row.customer.match(/\((.*?)\)/);
-      if (mId) extraMeter = mId[1];
+    let extraOfficer = "";
+    if (row.description && row.description.includes("[Petugas:")) {
+      const mOff = row.description.match(/\[Petugas:\s*(.*?)\]/);
+      if (mOff) extraOfficer = mOff[1];
     }
 
     return {
       id: row.id,
       customer: row.customer ? row.customer.replace(/\s*\(.*?\)/, '') : "",
-      phone: extraPhone,
-      meterId: extraMeter,
-      address: extraAddr,
-      area: row.area,
+      phone: row.phone || "",
+      meterId: row.meter_id || "",
+      address: row.address || "",
+      area: row.area || "Cikupa",
       category: row.category,
-      desc: row.description ? row.description.replace(/\[Alamat:.*?\]/g, '').replace(/\[WA:.*?\]/g, '').replace(/\[Resched:.*?\]/g, '').trim() : "",
+      desc: row.description ? row.description.replace(/\[Petugas:.*?\]/g, '').trim() : "",
       receivedAt: row.received_at,
       urgent: row.urgent,
       coords: row.coords,
       status: row.status,
-      rescheduledDate: reschedDate,
-      createdAt: row.created_at,
+      officer: extraOfficer,
     };
   }
 
   async function addComplaint(data){
+    const item = {
+      id: "WO-" + Date.now().toString().slice(-6),
+      customer: data.customer,
+      phone: data.phone || "",
+      meterId: data.meterId || "",
+      address: data.address || "",
+      area: data.area || "Cikupa",
+      category: data.category || "KBSM",
+      desc: data.desc || "",
+      officer: data.officer || "",
+      receivedAt: new Date().toISOString(),
+      status: "baru",
+    };
+
+    let fullDesc = item.desc;
+    if (item.officer) fullDesc += ` [Petugas: ${item.officer}]`;
+
     try {
-      const item = {
-        id: "WO-" + Date.now().toString().slice(-6),
-        customer: (data && data.customer) ? data.customer : "Pelanggan Tanpa Nama",
-        phone: (data && data.phone) ? data.phone : "",
-        meterId: (data && data.meterId) ? data.meterId : "",
-        address: (data && data.address) ? data.address : "",
-        area: (data && data.area) ? data.area : "Cikupa",
-        category: (data && data.category) ? data.category : "KBSM",
-        desc: (data && data.desc) ? data.desc : "",
-        receivedAt: (data && data.receivedAt) ? data.receivedAt : new Date().toISOString(),
-        urgent: !!(data && data.urgent),
-        coords: (data && data.coords) ? data.coords : "",
-        status: "baru",
-      };
-
-      let fullDesc = item.desc;
-      if (item.address) fullDesc += ` [Alamat: ${item.address}]`;
-      if (item.phone) fullDesc += ` [WA: ${item.phone}]`;
-      const fullCust = item.meterId ? `${item.customer} (${item.meterId})` : item.customer;
-
-      const fullPayload = {
+      await sb.from(TABLE).insert({
         id: item.id,
-        customer: fullCust,
-        phone: item.phone || null,
-        meter_id: item.meterId || null,
-        address: item.address || null,
+        customer: item.customer,
         area: item.area,
         category: item.category,
         description: fullDesc,
         received_at: item.receivedAt,
-        urgent: item.urgent,
-        coords: item.coords,
         status: item.status
-      };
-
-      try {
-        await sb.from(TABLE).insert(fullPayload);
-      } catch(err) {
-        console.warn("Retrying with fallback...", err);
-      }
-
-      complaints.push(item);
-    } catch(globalErr) {
-      console.error("Error addComplaint:", globalErr);
-    } finally {
-      await load();
-    }
-  }
-
-  async function markAbsentAndReschedule(id) {
-    const target = complaints.find(c => c.id === id);
-    if (!target) return;
-
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = formatDateKey(tomorrow);
-
-    target.rescheduledDate = tomorrowStr;
-    let fullDesc = `${target.desc} [Alamat: ${target.address}] [WA: ${target.phone}] [Resched: ${tomorrowStr}]`;
-
-    try {
-      await sb.from(TABLE).update({ description: fullDesc }).eq("id", id);
+      });
     } catch(e) { console.error(e); }
 
     await load();
   }
 
-  async function updateComplaint(id, data){
-    let fullDesc = `${data.desc} [Alamat: ${data.address}] [WA: ${data.phone}]`;
-    const fullCust = data.meterId ? `${data.customer} (${data.meterId})` : data.customer;
-
-    try{
-      await sb.from(TABLE).update({
-        customer: fullCust,
-        phone: data.phone || null,
-        area: data.area,
-        category: data.category,
-        description: fullDesc,
-        received_at: data.receivedAt,
-        urgent: data.urgent,
-        coords: data.coords,
-      }).eq("id", id);
-    }catch(e){ console.error(e); }
-    await load();
-  }
-
   async function setStatus(id, status){
-    try{
+    try {
       await sb.from(TABLE).update({ status }).eq("id", id);
-    }catch(e){
-      const target = complaints.find(c => c.id === id);
-      if(target) target.status = status;
-    }
+    } catch(e) { console.error(e); }
     await load();
-  }
-
-  async function removeComplaint(id){
-    try{
-      await sb.from(TABLE).delete().eq("id", id);
-    }catch(e){
-      complaints = complaints.filter(c => c.id !== id);
-    }
-    await load();
-  }
-
-  async function processInboundEmail(emailRawText) {
-    if (!emailRawText.trim()) return;
-
-    const parseField = (pattern) => {
-      const match = emailRawText.match(pattern);
-      return match ? match[1].trim() : null;
-    };
-
-    const customer = parseField(/Nama Pelanggan\s*:\s*(.*)/i) || parseField(/Pelanggan\s*:\s*(.*)/i) || "Pelanggan Inbound Email";
-    const phone = parseField(/No WhatsApp\s*:\s*(.*)/i) || parseField(/No HP\s*:\s*(.*)/i) || "";
-    const meterId = parseField(/ID Meter\s*:\s*(.*)/i) || parseField(/ID Pelanggan\s*:\s*(.*)/i) || "-";
-    const address = parseField(/Alamat\s*:\s*(.*)/i) || "-";
-    const area = parseField(/Area\s*:\s*(.*)/i) || "Cikupa";
-    const coords = parseField(/Koordinat\s*:\s*(.*)/i) || "";
-    const desc = parseField(/Deskripsi\s*:\s*(.*)/i) || emailRawText.slice(0, 150);
-
-    let detectedCategory = parseField(/Jenis Case\s*:\s*(.*)/i);
-    if (!detectedCategory || !CATEGORIES.some(c => c.key === detectedCategory.toUpperCase())) {
-      const lowerText = (desc + " " + emailRawText).toLowerCase();
-      let matched = CATEGORIES.find(c => c.keywords.some(kw => lowerText.includes(kw)));
-      detectedCategory = matched ? matched.key : "KBSM";
-    }
-
-    const newComplaint = {
-      customer,
-      phone,
-      meterId,
-      address,
-      area,
-      category: detectedCategory.toUpperCase(),
-      desc: desc + " [Konversi Email Otomatis]",
-      receivedAt: new Date().toISOString(),
-      urgent: false,
-      coords
-    };
-
-    await addComplaint(newComplaint);
   }
 
   async function load(){
-    try{
-      const { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: true });
-      if(error) throw error;
-      if (data && data.length > 0) {
-        complaints = data.map(rowToItem);
-      }
-      storageOk = true;
-    }catch(e){
-      storageOk = false;
-    }
+    try {
+      const { data } = await sb.from(TABLE).select("*").order("created_at", { ascending: true });
+      if (data) complaints = data.map(rowToItem);
+    } catch(e) { console.error(e); }
     render();
   }
 
@@ -760,380 +371,78 @@ Catatan: ${item.desc || '-'}`;
     return e;
   }
 
-  function nowLocalInputValue(){
-    const d = new Date();
-    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-    return d.toISOString().slice(0,16);
-  }
-
   function renderForm(){
     if(!formOpen) return el("div");
 
-    const editing = editingId ? complaints.find(x => x.id === editingId) : null;
-    const toLocalInput = (iso) => {
-      try {
-        const d = new Date(iso);
-        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-        return d.toISOString().slice(0,16);
-      } catch(e) { return nowLocalInputValue(); }
-    };
-
-    const customerInput = el("input", { type:"text", placeholder:"Nama Pelanggan", value: editing ? editing.customer : "" });
-    const phoneInput = el("input", { type:"text", placeholder:"No WA (08xxxxxxxxxx)", value: editing ? editing.phone : "" });
-    const meterIdInput = el("input", { type:"text", placeholder:"ID Meter / Langganan", value: editing ? editing.meterId : "" });
-    const addressInput = el("input", { type:"text", placeholder:"Alamat Lengkap", value: editing ? editing.address : "" });
-    const areaInput = el("input", { type:"text", placeholder:"Area / Zona", value: editing ? editing.area : "" });
+    const customerInput = el("input", { type:"text", placeholder:"Nama Pelanggan" });
+    const addressInput = el("input", { type:"text", placeholder:"Alamat Lengkap" });
+    const areaInput = el("input", { type:"text", placeholder:"Area / Zona", value: "Cikupa" });
     const catSelect = el("select", {},
-      ...CATEGORIES.map(c => el("option", { value: c.key, selected: editing && editing.category===c.key ? "selected" : null }, `[${c.key}] ${c.label}`))
+      ...CATEGORIES.map(c => el("option", { value: c.key }, `[${c.key}] ${c.label}`))
     );
-
-    const descInput = el("textarea", { placeholder:"Detail komplain..." }, editing ? editing.desc : "");
-    const timeInput = el("input", { type:"datetime-local", value: editing ? toLocalInput(editing.receivedAt) : nowLocalInputValue() });
-    const urgentCheck = el("input", { type:"checkbox", checked: editing && editing.urgent ? "checked" : null });
-    const coordsInput = el("input", { type:"text", placeholder:"-6.1783, 106.6319 (opsional)", value: editing ? (editing.coords||"") : "" });
+    const officerSelect = el("select", {},
+      el("option", { value: "" }, "-- Pilih Petugas (Atau Auto-Assign) --"),
+      ...OFFICERS.map(o => el("option", { value: o }, o))
+    );
+    const descInput = el("textarea", { placeholder:"Detail komplain..." });
 
     return el("div", { class:"form-panel open" },
-      el("h2", {}, editing ? "Ubah Komplain " + editing.id : "Tambah Komplain Baru"),
+      el("h2", {}, "Tambah Work Order Baru"),
       el("div", { class:"field-row" },
         el("div", { class:"field" }, el("label", {}, "Nama Pelanggan *"), customerInput),
-        el("div", { class:"field" }, el("label", {}, "No WhatsApp"), phoneInput),
-        el("div", { class:"field" }, el("label", {}, "ID Meter"), meterIdInput),
-      ),
-      el("div", { class:"field-row" },
-        el("div", { class:"field" }, el("label", {}, "Alamat"), addressInput),
-        el("div", { class:"field" }, el("label", {}, "Area / Zona"), areaInput),
+        el("div", { class:"field" }, el("label", {}, "Alamat Lengkap"), addressInput),
       ),
       el("div", { class:"field-row" },
         el("div", { class:"field" }, el("label", {}, "CASE Keluhan"), catSelect),
-        el("div", { class:"field" }, el("label", {}, "Waktu Diterima"), timeInput),
+        el("div", { class:"field" }, el("label", {}, "Petugas Lapangan"), officerSelect),
       ),
       el("div", { class:"field-row" },
         el("div", { class:"field" }, el("label", {}, "Deskripsi"), descInput),
-        el("div", { class:"field" }, el("label", {}, "Koordinat GPS"), coordsInput),
-      ),
-      el("label", { style: "display:flex; align-items:center; gap:8px; font-size:12px; margin: 6px 0 14px; cursor:pointer;" }, 
-        urgentCheck, "Tandai mendesak (Prioritas Utama)"
       ),
       el("div", { style: "display:flex; gap:8px;" },
-        el("button", { class:"btn-primary", onclick: async (e) => {
-          if (e && e.preventDefault) e.preventDefault();
-          const valCust = customerInput ? customerInput.value.trim() : "";
-          if(!valCust){ alert("Nama Pelanggan wajib diisi!"); return; }
-
-          const data = {
-            customer: valCust,
-            phone: phoneInput ? phoneInput.value.trim() : "",
-            meterId: meterIdInput ? meterIdInput.value.trim() : "",
-            address: addressInput ? addressInput.value.trim() : "",
-            area: (areaInput && areaInput.value.trim()) ? areaInput.value.trim() : "Cikupa",
-            category: catSelect ? catSelect.value : "KBSM",
-            desc: descInput ? descInput.value.trim() : "",
-            receivedAt: (timeInput && timeInput.value) ? new Date(timeInput.value).toISOString() : new Date().toISOString(),
-            urgent: urgentCheck ? urgentCheck.checked : false,
-            coords: coordsInput ? coordsInput.value.trim() : "",
-          };
-
-          if(editing){ await updateComplaint(editing.id, data); } 
-          else { await addComplaint(data); }
-
-          formOpen = false; editingId = null; render();
-        }}, editing ? "Simpan Perubahan" : "Simpan Komplain"),
-        el("button", { class:"btn-secondary", onclick: () => { formOpen = false; editingId = null; render(); } }, "Batal")
+        el("button", { class:"btn-primary", onclick: async () => {
+          if (!customerInput.value.trim()) { alert("Nama wajib diisi!"); return; }
+          await addComplaint({
+            customer: customerInput.value.trim(),
+            address: addressInput.value.trim(),
+            area: areaInput.value.trim(),
+            category: catSelect.value,
+            officer: officerSelect.value,
+            desc: descInput.value.trim()
+          });
+          formOpen = false; render();
+        }}, "Simpan Komplain"),
+        el("button", { class:"btn-secondary", onclick: () => { formOpen = false; render(); } }, "Batal")
       )
     );
   }
 
-  function renderHistoryModal(){
-    if(!historyModalOpen) return el("div");
-
-    let historyResults = [];
-    if (historySearchTerm.trim()) {
-      const term = historySearchTerm.toLowerCase();
-      historyResults = complaints.filter(c => 
-        (c.meterId && c.meterId.toLowerCase().includes(term)) ||
-        (c.customer && c.customer.toLowerCase().includes(term))
-      );
-    }
-
-    return el("div", { class:"form-panel open", style: "background:#F0F9FF; border-color:#0284C7;" },
-      el("h2", { style:"color:#0369A1; margin-top:0;" }, "📜 Cari History Komplain Pelanggan"),
-      el("div", { class:"field-row" },
-        el("div", { class:"field" },
-          el("label", {}, "Masukkan ID Meter / Nama Pelanggan:"),
-          el("input", { 
-            type: "text", 
-            placeholder: "Contoh: PLG-99882 atau Bambang", 
-            value: historySearchTerm,
-            oninput: (e) => { historySearchTerm = e.target.value; render(); }
-          })
-        )
-      ),
-      historySearchTerm.trim() === "" 
-        ? el("p", { style:"font-size:11.5px; color:var(--ink-soft);" }, "Ketik ID Meter atau Nama Pelanggan di atas.")
-        : historyResults.length === 0
-          ? el("p", { style:"font-size:11.5px; color:var(--tinggi);" }, "Tidak ditemukan riwayat komplain.")
-          : el("div", { style:"max-height:220px; overflow-y:auto; margin-top:10px;" },
-              ...historyResults.map(item => {
-                const cInfo = catInfo(item.category);
-                return el("div", { class:"history-item" },
-                  el("div", { style:"display:flex; justify-content:space-between; font-weight:700;" },
-                    el("span", {}, `${item.id} - ${cInfo.label}`),
-                    el("span", { style: `color: ${item.status === 'selesai' ? 'var(--rendah)' : 'var(--tinggi)'}` }, item.status.toUpperCase())
-                  ),
-                  el("div", { style:"color:var(--ink-soft); font-size:10.5px; margin-top:2px;" }, `Waktu Lapor: ${fmtDateTime(new Date(item.receivedAt))}`),
-                  el("div", { style:"margin-top:4px;" }, item.desc)
-                );
-              })
-            ),
-      el("div", { style:"display:flex; gap:8px; margin-top:12px;" },
-        el("button", { class:"btn-secondary", onclick: () => { historyModalOpen = false; historySearchTerm = ""; render(); } }, "Tutup")
-      )
-    );
-  }
-
-  function renderEmailParserModal(){
-    if(!emailModalOpen) return el("div");
-
-    const defaultEmailContent = 
-`FW: [LAPORAN KELUHAN AIR MATI]
-Nama Pelanggan : Bambang Wijaya
-No WhatsApp : 081298765432
-ID Meter : PLG-99882
-Alamat : Jl. Raya Serang Km 14 No. 25, Cikupa
-Area : Cikupa
-Koordinat : -6.2231, 106.5134
-Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor deras. Mohon segera diperbaiki.`;
-
-    const emailTextArea = el("textarea", { style: "width:100%; height:140px; font-family:monospace; font-size:11.5px; padding:8px; border:1px solid var(--border); border-radius:6px;" }, defaultEmailContent);
-
-    return el("div", { class:"form-panel open", style: "background:#F3E8FF; border-color:#C084FC;" },
-      el("h2", { style:"color:#6B21A8; margin-top:0;" }, "🔄 Auto Inbound Email Webhook & Converter"),
-      emailTextArea,
-      el("div", { style:"display:flex; gap:8px; margin-top:10px;" },
-        el("button", { class:"btn-email", onclick: async () => {
-          await processInboundEmail(emailTextArea.value);
-          emailModalOpen = false; render();
-        }}, "⚡ Ekstrak Email Otomatis"),
-        el("button", { class:"btn-secondary", onclick: () => { emailModalOpen = false; render(); } }, "Tutup")
-      )
-    );
-  }
-
-  function renderCaseChart(){
-    const counts = {};
-    const customerMap = {};
-    let totalWaitHours = 0;
-
-    complaints.forEach(c => {
-      counts[c.category] = (counts[c.category] || 0) + 1;
-      const custKey = c.meterId || c.customer;
-      if (custKey) customerMap[custKey] = (customerMap[custKey] || 0) + 1;
-      totalWaitHours += hoursWaiting(c);
-    });
-
-    const totalDiterima = complaints.length;
-    const avgWaitHours = totalDiterima > 0 ? Math.round(totalWaitHours / totalDiterima) : 0;
-    const repeatCustomers = Object.values(customerMap).filter(val => val > 1).length;
-    const repeatRate = totalDiterima > 0 ? Math.round((repeatCustomers / Object.keys(customerMap).length) * 100) || 0 : 0;
-
-    const activeCases = Object.keys(counts).map(key => ({
-      key, count: counts[key], label: catInfo(key).label
-    })).sort((a,b) => b.count - a.count);
-
-    return el("div", { class: "chart-card" },
-      el("div", { class: "chart-header" },
-        el("h3", {}, "📊 Analytics & KPI Kinerja CASE"),
-        el("span", { class: "total-badge" }, `Total Diterima: ${totalDiterima}`)
-      ),
-      activeCases.length === 0 
-        ? el("div", { style: "font-size:11.5px; color:var(--ink-soft); text-align:center; padding:10px;" }, "Belum ada data komplain.")
-        : el("div", { class: "chart-list" },
-            ...activeCases.map(item => {
-              const pct = totalDiterima > 0 ? Math.round((item.count / totalDiterima) * 100) : 0;
-              return el("div", { class: "chart-item" },
-                el("div", { class: "chart-label" },
-                  el("span", {}, `[${item.key}] ${item.label}`),
-                  el("span", {}, `${item.count} kasus (${pct}%)`)
-                ),
-                el("div", { class: "chart-bar-bg" },
-                  el("div", { class: "chart-bar-fill", style: `width: ${pct}%` })
-                )
-              );
-            })
-          ),
-      el("div", { class: "analytics-grid" },
-        el("div", { class: "analytics-box" },
-          el("div", { class: "val" }, `${avgWaitHours} Jam`),
-          el("div", { class: "lbl" }, "Rata-Rata Waktu Menunggu")
-        ),
-        el("div", { class: "analytics-box" },
-          el("div", { class: "val" }, `${repeatRate}%`),
-          el("div", { class: "lbl" }, "Rasio Komplain Berulang")
-        ),
-        el("div", { class: "analytics-box" },
-          el("div", { class: "val" }, activeCases[0] ? activeCases[0].key : "-"),
-          el("div", { class: "lbl" }, "CASE Terbanyak")
-        )
-      )
-    );
-  }
-
-  function renderSidebarCalendar(dateMap){
-    const selectedKey = selectedDate ? formatDateKey(selectedDate) : null;
-    const headerTitle = selectedDate ? selectedDate.toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short" }) : "Semua Tanggal";
-
-    const year = viewMonth.getFullYear();
-    const month = viewMonth.getMonth();
-    const monthTitle = viewMonth.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
-
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const prevMonthLastDay = new Date(year, month, 0).getDate();
-    const startDayOfWeek = firstDay.getDay();
-
-    const dateCells = [];
-    for(let i = startDayOfWeek - 1; i >= 0; i--) dateCells.push({ dayNum: prevMonthLastDay - i, isOtherMonth: true });
-
-    for(let d = 1; d <= lastDay.getDate(); d++){
-      const fullDate = new Date(year, month, d);
-      const key = formatDateKey(fullDate);
-      const tasks = dateMap[key] || [];
-      dateCells.push({
-        dayNum: d, fullDate, key,
-        isSelected: key === selectedKey,
-        hasTasks: tasks.length > 0,
-        hasHigh: tasks.some(t => urgencyLevel(t) === "tinggi" && t.status !== "selesai"),
-        allDone: tasks.length > 0 && tasks.every(t => t.status === "selesai"),
-        isOtherMonth: false
-      });
-    }
-
-    const remainingSlots = 42 - dateCells.length;
-    for(let i = 1; i <= remainingSlots; i++) dateCells.push({ dayNum: i, isOtherMonth: true });
-
-    return el("div", { class: "calendar-card" },
-      el("div", { class: "cal-top-header" },
-        el("span", {}, headerTitle),
-        selectedDate ? el("button", { 
-          style: "font-size:10.5px; background:none; border:none; color:#38BDF8; cursor:pointer; font-weight:700;",
-          onclick: () => { selectedDate = null; render(); }
-        }, "Reset Filter") : null
-      ),
-      el("div", { class: "cal-month-nav" },
-        el("span", { class: "cal-month-title" }, monthTitle),
-        el("div", { class: "cal-nav-btns" },
-          el("button", { class: "cal-nav-btn", onclick: () => { viewMonth.setMonth(viewMonth.getMonth() - 1); render(); } }, "▲"),
-          el("button", { class: "cal-nav-btn", onclick: () => { viewMonth.setMonth(viewMonth.getMonth() + 1); render(); } }, "▼")
-        )
-      ),
-      el("div", { class: "cal-grid-embedded" },
-        ...["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"].map(h => el("div", { class: "cal-head-cell" }, h)),
-        ...dateCells.map(c => {
-          if (c.isOtherMonth) return el("div", { class: "cal-date-cell other-month" }, String(c.dayNum));
-          let classes = "cal-date-cell";
-          if (c.isSelected) classes += " selected";
-          if (c.hasTasks) classes += " has-tasks";
-          if (c.hasHigh) classes += " has-high";
-          if (c.allDone) classes += " all-done";
-
-          return el("div", {
-            class: classes,
-            onclick: () => {
-              selectedDate = (selectedDate && formatDateKey(selectedDate) === c.key) ? null : c.fullDate;
-              render();
-            }
-          }, String(c.dayNum));
-        })
-      ),
-      el("div", { class: "quota-card" },
-        el("div", { class: "quota-header" },
-          el("span", {}, "⚡ Auto Load-Balancer Kuota/Hari"),
-          el("span", { style: "color:var(--accent);" }, `${MAX_PER_DAY} Kasus`)
-        ),
-        el("input", {
-          type: "range", min: "5", max: "25", value: String(MAX_PER_DAY), style: "width:100%; cursor:pointer;",
-          oninput: (e) => { MAX_PER_DAY = parseInt(e.target.value, 10); render(); }
-        })
-      )
-    );
-  }
-
-  function renderTicket(item, itemScheduledDateMap){
-    const metrics = computeUrgencyMetrics(item);
-    const level = metrics.level;
-    const badgeText = level === "tinggi" ? "Urgent" : level === "sedang" ? "Medium" : "Low";
+  function renderTicket(item){
     const isDone = item.status === "selesai";
-    const coordsObj = parseCoords(item.coords);
-    const deadlineInfo = getDeadlineInfo(item);
-    const mapContainerId = "map-" + item.id;
     const caseDetails = catInfo(item.category);
-
-    const scheduledDateObj = itemScheduledDateMap[item.id];
-    const scheduledText = scheduledDateObj ? fmtDateOnly(scheduledDateObj) : "-";
-
-    const formattedPhone = formatWA(item.phone);
-    const waText = encodeURIComponent(
-      `Halo Bpk/Ibu ${item.customer},\n\nKami dari Petugas Lapangan Aetra Air Tangerang mengonfirmasi WO ${item.id} [${caseDetails.label}]. Petugas menuju lokasi. Terima kasih.`
-    );
-    const waUrl = formattedPhone ? `https://wa.me/${formattedPhone}?text=${waText}` : null;
 
     return el("div", { class: "ticket " + (isDone ? "selesai" : "") },
       el("div", { class:"ticket-top" },
         el("div", { style:"display:flex; align-items:center; gap:6px;" },
           el("span", { class:"ticket-id" }, item.id),
-          el("span", { class:"ticket-cust" }, item.customer),
-          item.meterId ? el("span", { style:"font-size:11px; color:var(--ink-soft);" }, `(${item.meterId})`) : null
+          el("span", { class:"ticket-cust" }, item.customer)
         ),
-        el("span", { class:`ticket-badge ${isDone ? 'badge-selesai' : 'badge-' + level}` }, isDone ? "Selesai" : badgeText)
+        item.officer 
+          ? el("span", { class: "officer-badge" }, `👷 ${item.officer}`)
+          : el("span", { style: "font-size:10.5px; color:var(--tinggi); font-weight:700;" }, "⚠️ Belum Ada Petugas")
       ),
       el("div", { class:"ticket-main-info" },
         el("span", { class:"case-tag" }, item.category),
         el("span", {}, caseDetails.label),
-        item.area ? el("span", { style:"font-weight:700; color:#92400E;" }, `• Area: ${item.area}`) : null
+        el("span", { style:"font-weight:700; color:#92400E;" }, `• Area: ${item.area}`)
       ),
       item.address ? el("div", { class:"ticket-address" }, `📍 ${item.address}`) : null,
       item.desc ? el("div", { class:"ticket-desc" }, item.desc) : null,
-      el("div", { class:"schedule-row-simple" },
-        el("span", {}, `📅 Pengerjaan: ${scheduledText}`),
-        el("span", { class:`deadline-tag ${deadlineInfo.statusClass}` }, deadlineInfo.statusText)
-      ),
-      coordsObj ? el("div", {},
-        el("div", { id: mapContainerId, class: "ticket-map-container" }),
-        el("div", { class:"ticket-loc" },
-          el("a", { href: "https://www.google.com/maps?q=" + encodeURIComponent(item.coords), target:"_blank", rel:"noopener", style:"font-size:11px; color:var(--accent); text-decoration:none;" }, "Buka Maps ↗")
-        )
-      ) : null,
       el("div", { class:"ticket-actions" },
-        waUrl ? el("a", { class:"btn-wa", href: waUrl, target:"_blank", rel:"noopener" }, "💬 WhatsApp") : null,
-        el("button", { class:"copy-btn", onclick: () => copyFieldFormat(item) }, "📋 Copy Format"),
-        !isDone ? el("button", { class:"resched-btn", onclick: () => markAbsentAndReschedule(item.id) }, "🏠 Reschedule") : null,
         !isDone && item.status !== "proses" ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Proses") : null,
-        !isDone ? el("button", { class:"done", onclick: () => setStatus(item.id, "selesai") }, "Selesai") : null,
-        isDone ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Buka Lagi") : null,
-        el("button", { onclick: () => { editingId = item.id; formOpen = true; render(); window.scrollTo({top:0, behavior:"smooth"}); } }, "Edit"),
-        el("button", { class:"del", onclick: () => removeComplaint(item.id) }, "Hapus")
+        !isDone ? el("button", { class:"done", onclick: () => setStatus(item.id, "selesai") }, "Selesai") : null
       )
     );
-  }
-
-  function initMaps(){
-    Object.keys(activeMaps).forEach(id => {
-      if(activeMaps[id] && activeMaps[id].remove) activeMaps[id].remove();
-      delete activeMaps[id];
-    });
-
-    complaints.forEach(item => {
-      const coords = parseCoords(item.coords);
-      const container = document.getElementById("map-" + item.id);
-      if(container && coords){
-        try {
-          const map = L.map(container, { attributionControl: false, zoomControl: false }).setView([coords.lat, coords.lng], 15);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-          L.marker([coords.lat, coords.lng]).addTo(map);
-          activeMaps[item.id] = map;
-        } catch(e) {}
-      }
-    });
   }
 
   function render(){
@@ -1141,147 +450,63 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
     if(!root) return;
     root.innerHTML = "";
 
-    const { dateMap, itemScheduledDateMap } = calculateCalendarSchedule();
     let base = complaints;
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      base = base.filter(c => 
-        (c.customer && c.customer.toLowerCase().includes(q)) ||
-        (c.id && c.id.toLowerCase().includes(q)) ||
-        (c.meterId && c.meterId.toLowerCase().includes(q)) ||
-        (c.address && c.address.toLowerCase().includes(q))
-      );
+      base = base.filter(c => c.customer.toLowerCase().includes(q) || c.id.toLowerCase().includes(q));
     }
 
-    if (quickFilter === "urgent") base = base.filter(c => urgencyLevel(c) === "tinggi");
-    else if (quickFilter === "proses") base = base.filter(c => c.status === "proses");
-    else if (quickFilter === "reschedule") base = base.filter(c => c.rescheduledDate);
-
-    if (categoryFilter !== "semua") base = base.filter(c => c.category === categoryFilter);
-
-    if (selectedDate) {
-      const selKey = formatDateKey(selectedDate);
-      base = base.filter(item => {
-        const schedDate = itemScheduledDateMap[item.id];
-        return schedDate && formatDateKey(schedDate) === selKey;
-      });
+    if (officerFilter !== "semua") {
+      base = base.filter(c => c.officer === officerFilter);
     }
 
-    const sortedByMode = (items) => {
-      if (sortMode === "prioritas") return [...items].sort((a,b) => priorityScore(b) - priorityScore(a));
-      else if (sortMode === "waktu-terbaru") return [...items].sort((a,b) => new Date(b.receivedAt) - new Date(a.receivedAt));
-      else if (sortMode === "waktu-lama") return [...items].sort((a,b) => new Date(a.receivedAt) - new Date(b.receivedAt));
-      else if (sortMode === "nama") return [...items].sort((a,b) => (a.customer || "").localeCompare(b.customer || ""));
-      return items;
-    };
-
-    const belum = sortedByMode(base.filter(c => c.status === "baru"));
-    const proses = sortedByMode(base.filter(c => c.status === "proses"));
-    const selesai = sortedByMode(base.filter(c => c.status === "selesai"));
-
-    const openAll = complaints.filter(c => c.status !== "selesai");
-    const totalSelesai = complaints.filter(c => c.status === "selesai").length;
-    const tinggiCount = openAll.filter(c => urgencyLevel(c) === "tinggi").length;
-    const overdueCount = openAll.filter(c => getDeadlineInfo(c).isOverdue).length;
-
-    const section = (title, items, isFirst) => el("div", {},
-      el("div", { class:"section-head" + (isFirst ? " first" : "") }, title, el("span", { class:"count" }, String(items.length))),
-      items.length === 0
-        ? el("div", { class:"empty" }, "Tidak ada komplain di seksi ini.")
-        : el("div", {}, ...items.map((item) => renderTicket(item, itemScheduledDateMap)))
-    );
+    const belum = base.filter(c => c.status === "baru");
+    const proses = base.filter(c => c.status === "proses");
+    const selesai = base.filter(c => c.status === "selesai");
 
     const wrap = el("div", { class:"wrap" },
       el("div", { class:"masthead" },
         el("div", { class:"brand-group" },
           el("img", { class: "brand-logo", src: "https://aetraairtangerang.co.id/wp-content/uploads/2021/03/logo-aetra.png", alt: "Aetra Logo" }),
           el("div", { class:"brand-title" },
-            el("h1", {}, "Papan Kerja Minor Repair (Advance)"),
+            el("h1", {}, "Papan Kerja & Distrbusi Petugas Lapangan"),
             el("span", { class:"unit" }, "Aetra Air Tangerang")
           )
         )
       ),
 
-      overdueCount > 0 ? el("div", { class: "sla-alert-banner" },
-        el("span", {}, `⚠️ Terdapat ${overdueCount} Work Order yang telah melewati batas waktu SLA (Overdue). Mohon secepatnya ditindaklanjuti.`),
-        el("button", { class:"btn-secondary", style:"font-size:11px; padding:4px 8px;", onclick: () => { quickFilter = "urgent"; render(); } }, "Tampilkan Urgent")
-      ) : null,
-
-      el("div", { class: "dashboard-grid" },
-        el("div", {},
-          el("div", { class:"summary" },
-            el("div", { class:"stat-card tinggi" }, el("div", { class:"num" }, String(tinggiCount)), el("div", { class:"lbl" }, "Prioritas Urgent")),
-            el("div", { class:"stat-card" }, el("div", { class:"num" }, String(openAll.length)), el("div", { class:"lbl" }, "Belum Selesai")),
-            el("div", { class:"stat-card selesai-stat" }, el("div", { class:"num" }, String(totalSelesai)), el("div", { class:"lbl" }, "Komplain Selesai"))
-          ),
-
-          renderCaseChart(),
-
-          el("div", { class: "search-bar" },
-            el("input", {
-              class: "search-input",
-              type: "text",
-              placeholder: "🔍 Cari Pelanggan, WO, ID Meter, atau Alamat...",
-              value: searchQuery,
-              oninput: (e) => { searchQuery = e.target.value; render(); }
-            }),
-            el("span", { class: `quick-badge ${quickFilter === "semua" ? "active" : ""}`, onclick: () => { quickFilter = "semua"; render(); } }, "Semua"),
-            el("span", { class: `quick-badge ${quickFilter === "urgent" ? "active" : ""}`, onclick: () => { quickFilter = "urgent"; render(); } }, "🔥 Urgent"),
-            el("span", { class: `quick-badge ${quickFilter === "proses" ? "active" : ""}`, onclick: () => { quickFilter = "proses"; render(); } }, "⚙️ Diproses"),
-            el("span", { class: `quick-badge ${quickFilter === "reschedule" ? "active" : ""}`, onclick: () => { quickFilter = "reschedule"; render(); } }, "🏠 Reschedule")
-          ),
-
-          el("div", { class:"toolbar" },
-            el("div", { class:"toolbar-actions" },
-              el("button", { class:"btn-primary", onclick: () => { formOpen = !formOpen; emailModalOpen = false; historyModalOpen = false; if(!formOpen) editingId=null; render(); } }, formOpen ? "Tutup Form" : "+ Manual Komplain"),
-              el("button", { class:"btn-email", onclick: () => { emailModalOpen = !emailModalOpen; formOpen = false; historyModalOpen = false; render(); } }, "🔄 Auto-Email Inbound"),
-              el("button", { class:"btn-history", onclick: () => { historyModalOpen = !historyModalOpen; formOpen = false; emailModalOpen = false; render(); } }, "📜 History Pelanggan"),
-              el("button", { class:"btn-excel", onclick: () => exportToExcel(base, itemScheduledDateMap) }, "📊 Export Excel")
-            ),
-            el("div", { class:"filters" },
-              el("div", { class:"filter-group" },
-                "CASE:",
-                el("select", { onchange: (e) => { categoryFilter = e.target.value; render(); } },
-                  el("option", { value:"semua", selected: categoryFilter==="semua" ? "selected" : null }, "Semua CASE"),
-                  ...CATEGORIES.map(c => el("option", { value: c.key, selected: categoryFilter===c.key ? "selected" : null }, `[${c.key}] ${c.label}`))
-                )
-              ),
-              el("div", { class:"filter-group" },
-                "Urutkan:",
-                el("select", { onchange: (e) => { sortMode = e.target.value; render(); } },
-                  el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "⚡ Skor Urgensi"),
-                  el("option", { value:"waktu-terbaru", selected: sortMode==="waktu-terbaru" ? "selected" : null }, "🕒 Waktu Terbaru"),
-                  el("option", { value:"waktu-lama", selected: sortMode==="waktu-lama" ? "selected" : null }, "⏳ Waktu Terlama"),
-                  el("option", { value:"nama", selected: sortMode==="nama" ? "selected" : null }, "🔤 Nama (A-Z)")
-                )
-              )
-            )
-          ),
-
-          renderForm(),
-          renderEmailParserModal(),
-          renderHistoryModal(),
-
-          section("Belum Dikerjakan", belum, true),
-          section("Sedang Dikerjakan", proses, false),
-          section("Selesai", selesai, false)
+      el("div", { class:"toolbar" },
+        el("div", { class:"toolbar-actions" },
+          el("button", { class:"btn-primary", onclick: () => { formOpen = !formOpen; render(); } }, "+ Tambah Komplain"),
+          el("button", { class:"btn-autoassign", onclick: () => autoAssignMerata() }, "⚖️ Auto-Assign Merata")
         ),
-
-        el("div", {},
-          renderSidebarCalendar(dateMap)
+        el("div", { class:"filters" },
+          el("div", { class:"filter-group" },
+            "Filter Petugas:",
+            el("select", { onchange: (e) => { officerFilter = e.target.value; render(); } },
+              el("option", { value:"semua" }, "Semua Petugas"),
+              ...OFFICERS.map(o => el("option", { value: o, selected: officerFilter===o ? "selected" : null }, o))
+            )
+          )
         )
-      )
+      ),
+
+      renderForm(),
+
+      el("div", { class: "section-head" }, "Belum Dikerjakan ", el("span", { class:"count" }, String(belum.length))),
+      ...belum.map(renderTicket),
+
+      el("div", { class: "section-head" }, "Sedang Dikerjakan ", el("span", { class:"count" }, String(proses.length))),
+      ...proses.map(renderTicket),
+
+      el("div", { class: "section-head" }, "Selesai ", el("span", { class:"count" }, String(selesai.length))),
+      ...selesai.map(renderTicket)
     );
 
     root.appendChild(wrap);
-    setTimeout(initMaps, 100);
   }
 
   load();
-  sb.channel("complaints-sync")
-    .on("postgres_changes", { event: "*", schema: "public", table: TABLE }, () => load())
-    .subscribe();
-  setInterval(render, 60000);
 })();
 </script>
