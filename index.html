@@ -262,8 +262,19 @@
   }
   .field textarea { resize: vertical; min-height: 45px; }
 
-  /* Digital Signature Canvas */
+  /* Digital Signature Canvas & Camera Upload UI */
   .signature-pad { border: 1px dashed var(--border); border-radius: 6px; background: #FFF; cursor: crosshair; touch-action: none; }
+  .photo-upload-box {
+    border: 1px dashed var(--border); border-radius: 6px; padding: 8px; text-align: center;
+    background: var(--bg); display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .photo-preview-img { width: 100%; height: 90px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); display: none; }
+  .photo-btn-group { display: flex; gap: 4px; width: 100%; }
+  .photo-btn-group label, .photo-btn-group button {
+    flex: 1; text-align: center; padding: 5px 2px; font-size: 10px; border-radius: 4px; cursor: pointer; font-weight: 700;
+  }
+  .btn-cam { background: #3B82F6; color: #FFF; }
+  .btn-file { background: #64748B; color: #FFF; }
 
   /* KARTU TIKET COMPLAINT */
   .ticket {
@@ -299,7 +310,7 @@
   .deadline-overdue { background: var(--tinggi-bg); color: var(--tinggi); }
 
   .photo-proof-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 4px; }
-  .photo-box img { width: 100%; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); }
+  .photo-box img { width: 100%; height: 80px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); }
   .photo-lbl { font-size: 9px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; margin-bottom: 2px; }
 
   .ticket-map-container { width: 100%; height: 95px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-top: 2px; z-index: 1; }
@@ -1006,12 +1017,69 @@ Catatan: ${item.desc || '-'}`;
     );
   }
 
-  /* 📸 UPLOAD BUKTI BEFORE/AFTER & ✍️ DIGITAL SIGNATURE MODAL (RESPONSIF TOUCH & MOUSE) */
+  /* 📸 UPLOAD BUKTI BEFORE/AFTER (KAMERA & FILE) + ✍️ DIGITAL SIGNATURE MODAL */
   function renderFinishModal(){
     if (!finishModalOpen || !finishTargetId) return el("div");
 
-    const photoBeforeInput = el("input", { type: "text", placeholder: "https://... foto_sebelum.jpg" });
-    const photoAfterInput = el("input", { type: "text", placeholder: "https://... foto_sesudah.jpg" });
+    let photoBeforeData = null;
+    let photoAfterData = null;
+
+    const target = complaints.find(c => c.id === finishTargetId);
+    if (target) {
+      photoBeforeData = target.photoBefore || null;
+      photoAfterData = target.photoAfter || null;
+    }
+
+    // Helper Kompresi Gambar agar Hemat Memori & Database
+    function handleImageFile(file, callback) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 800; // Resized maksimal 800px
+
+          if (width > height && width > maxDim) {
+            height *= maxDim / width;
+            width = maxDim;
+          } else if (height > maxDim) {
+            width *= maxDim / height;
+            height = maxDim;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          callback(canvas.toDataURL("image/jpeg", 0.7)); // Kompresi JPEG 70%
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Input Hidden Foto Before
+    const camBeforeInput = el("input", { type: "file", accept: "image/*", capture: "environment", style: "display:none;" });
+    const fileBeforeInput = el("input", { type: "file", accept: "image/*", style: "display:none;" });
+    const imgBeforePreview = el("img", { class: "photo-preview-img", src: photoBeforeData || "" });
+    if(photoBeforeData) imgBeforePreview.style.display = "block";
+
+    camBeforeInput.onchange = (e) => handleImageFile(e.target.files[0], (url) => { photoBeforeData = url; imgBeforePreview.src = url; imgBeforePreview.style.display = "block"; });
+    fileBeforeInput.onchange = (e) => handleImageFile(e.target.files[0], (url) => { photoBeforeData = url; imgBeforePreview.src = url; imgBeforePreview.style.display = "block"; });
+
+    // Input Hidden Foto After
+    const camAfterInput = el("input", { type: "file", accept: "image/*", capture: "environment", style: "display:none;" });
+    const fileAfterInput = el("input", { type: "file", accept: "image/*", style: "display:none;" });
+    const imgAfterPreview = el("img", { class: "photo-preview-img", src: photoAfterData || "" });
+    if(photoAfterData) imgAfterPreview.style.display = "block";
+
+    camAfterInput.onchange = (e) => handleImageFile(e.target.files[0], (url) => { photoAfterData = url; imgAfterPreview.src = url; imgAfterPreview.style.display = "block"; });
+    fileAfterInput.onchange = (e) => handleImageFile(e.target.files[0], (url) => { photoAfterData = url; imgAfterPreview.src = url; imgAfterPreview.style.display = "block"; });
+
+    // Canvas Signature Pad
     const canvas = el("canvas", { class: "signature-pad", width: 340, height: 120, style: "touch-action: none;" });
     const ctx = canvas.getContext("2d");
 
@@ -1022,10 +1090,7 @@ Catatan: ${item.desc || '-'}`;
       const rect = canvas.getBoundingClientRect();
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      return {
-        x: clientX - rect.left,
-        y: clientY - rect.top
-      };
+      return { x: clientX - rect.left, y: clientY - rect.top };
     }
 
     function startDrawing(e) {
@@ -1049,10 +1114,7 @@ Catatan: ${item.desc || '-'}`;
       if (e.cancelable) e.preventDefault();
     }
 
-    function stopDrawing() {
-      drawing = false;
-      ctx.beginPath();
-    }
+    function stopDrawing() { drawing = false; ctx.beginPath(); }
 
     canvas.addEventListener("mousedown", startDrawing);
     canvas.addEventListener("mousemove", draw);
@@ -1065,11 +1127,35 @@ Catatan: ${item.desc || '-'}`;
 
     return el("div", { class: "form-panel open", style: "background:var(--panel); border:1px solid var(--accent);" },
       el("h2", { style: "margin-top:0;" }, `📸 Bukti Pengerjaan & Tanda Tangan (${finishTargetId})`),
+      
       el("div", { class: "field-row" },
-        el("div", { class: "field" }, el("label", {}, "Foto Sebelum (Before):"), photoBeforeInput),
-        el("div", { class: "field" }, el("label", {}, "Foto Sesudah (After):"), photoAfterInput),
+        // BOX UPLOAD FOTO BEFORE
+        el("div", { class: "field" },
+          el("label", {}, "Foto Sebelum (Before):"),
+          el("div", { class: "photo-upload-box" },
+            imgBeforePreview,
+            el("div", { class: "photo-btn-group" },
+              el("label", { class: "btn-cam", onclick: () => camBeforeInput.click() }, "📷 Kamera"),
+              el("label", { class: "btn-file", onclick: () => fileBeforeInput.click() }, "📁 File"),
+              camBeforeInput, fileBeforeInput
+            )
+          )
+        ),
+        // BOX UPLOAD FOTO AFTER
+        el("div", { class: "field" },
+          el("label", {}, "Foto Sesudah (After):"),
+          el("div", { class: "photo-upload-box" },
+            imgAfterPreview,
+            el("div", { class: "photo-btn-group" },
+              el("label", { class: "btn-cam", onclick: () => camAfterInput.click() }, "📷 Kamera"),
+              el("label", { class: "btn-file", onclick: () => fileAfterInput.click() }, "📁 File"),
+              camAfterInput, fileAfterInput
+            )
+          )
+        )
       ),
-      el("div", { class: "field", style: "margin-bottom:10px;" },
+
+      el("div", { class: "field", style: "margin-bottom:10px; margin-top:6px;" },
         el("label", {}, "Tanda Tangan Pelanggan Digital (Gunakan Jari / Kursor):"),
         canvas,
         el("button", { 
@@ -1081,6 +1167,7 @@ Catatan: ${item.desc || '-'}`;
           } 
         }, "🧹 Hapus TTD")
       ),
+      
       el("div", { style: "display:flex; gap:8px;" },
         el("button", { class: "btn-primary", onclick: async () => {
           if (!hasSignature) {
@@ -1088,17 +1175,16 @@ Catatan: ${item.desc || '-'}`;
             return;
           }
 
-          const target = complaints.find(c => c.id === finishTargetId);
           if (target) {
             target.status = "selesai";
-            target.photoBefore = photoBeforeInput.value || null;
-            target.photoAfter = photoAfterInput.value || null;
+            target.photoBefore = photoBeforeData;
+            target.photoAfter = photoAfterData;
             let fullDesc = buildFullDescription(target.desc, target.address, target.phone, target.rescheduledDate, target.officer, target.photoBefore, target.photoAfter);
             
             await sb.from(TABLE).update({ status: "selesai", description: fullDesc }).eq("id", target.id);
           }
           finishModalOpen = false;
-          Swal.fire('Selesai!', 'Work Order telah diselesaikan & TTD terverifikasi.', 'success');
+          Swal.fire('Selesai!', 'Work Order telah diselesaikan, bukti foto & TTD terverifikasi.', 'success');
           await load();
         }}, "Verifikasi & Selesai"),
         el("button", { class: "btn-secondary", onclick: () => { finishModalOpen = false; render(); } }, "Batal")
