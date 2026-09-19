@@ -811,7 +811,7 @@ Catatan: ${item.desc || '-'}`;
     };
   }
 
-  /* 🛠️ FIX PERBAIKAN FORM TAMBAH KOMPLAIN MANUAL */
+  /* 🛠️ PERBAIKAN UTAMA: DUAL-PATH INSTANT MANUAL ADD COMPLAINT */
   async function addComplaint(data){
     try {
       let receivedDateObj = (data && data.receivedAt) ? new Date(data.receivedAt) : new Date();
@@ -837,6 +837,15 @@ Catatan: ${item.desc || '-'}`;
         status: "baru",
       };
 
+      // 1. TAMBAHKAN KELOKAL SECARA INSTAN AGAR LANGSUNG TAMPIL
+      complaints.unshift(item);
+      formOpen = false;
+      editingId = null;
+      render();
+
+      Swal.fire({ icon: 'success', title: 'Berhasil Disimpan!', text: `Work Order ${item.id} berhasil ditambahkan.`, timer: 1500, showConfirmButton: false });
+
+      // 2. SINKRONKAN KE SUPABASE DI BACKGROUND
       let fullDesc = buildFullDescription(item.desc, item.address, item.phone, null, item.officer, null, null);
       const fullCust = item.meterId ? `${item.customer} (${item.meterId})` : item.customer;
 
@@ -855,17 +864,14 @@ Catatan: ${item.desc || '-'}`;
         status: item.status
       };
 
-      const { error } = await sb.from(TABLE).insert(fullPayload);
-      if(error) {
-        console.error("Gagal simpan Supabase:", error);
-        complaints.push(item); // Fallback lokal
-      }
-      
-      Swal.fire({ icon: 'success', title: 'Berhasil!', text: `Komplain ${item.id} berhasil ditambahkan!`, timer: 1500, showConfirmButton: false });
+      sb.from(TABLE).insert(fullPayload).then(({ error }) => {
+        if (error) {
+          console.warn("Gagal simpan ke Supabase DB, komplain tersimpan secara lokal:", error.message);
+        }
+      });
+
     } catch(globalErr) { 
       console.error("Error addComplaint:", globalErr); 
-    } finally { 
-      await load(); 
     }
   }
 
@@ -891,6 +897,23 @@ Catatan: ${item.desc || '-'}`;
 
   async function updateComplaint(id, data){
     let target = complaints.find(c => c.id === id);
+    if(target) {
+      target.customer = data.customer;
+      target.phone = data.phone;
+      target.meterId = data.meterId;
+      target.address = data.address;
+      target.area = data.area;
+      target.category = data.category;
+      target.desc = data.desc;
+      target.receivedAt = data.receivedAt;
+      target.urgent = data.urgent;
+      target.coords = data.coords;
+    }
+
+    formOpen = false;
+    editingId = null;
+    render();
+
     let fullDesc = buildFullDescription(data.desc, data.address, data.phone, null, target ? target.officer : "", target ? target.photoBefore : null, target ? target.photoAfter : null);
     const fullCust = data.meterId ? `${data.customer} (${data.meterId})` : data.customer;
 
@@ -907,17 +930,16 @@ Catatan: ${item.desc || '-'}`;
       }).eq("id", id);
       Swal.fire({ icon: 'success', title: 'Diperbarui!', text: `Work Order ${id} berhasil diubah!`, timer: 1500, showConfirmButton: false });
     }catch(e){ console.error(e); }
-    await load();
   }
 
   async function setStatus(id, status){
+    const target = complaints.find(c => c.id === id);
+    if(target) target.status = status;
+    render();
+
     try{
       await sb.from(TABLE).update({ status }).eq("id", id);
-    }catch(e){
-      const target = complaints.find(c => c.id === id);
-      if(target) target.status = status;
-    }
-    await load();
+    }catch(e){ console.error(e); }
   }
 
   async function removeComplaint(id){
@@ -930,8 +952,9 @@ Catatan: ${item.desc || '-'}`;
       confirmButtonText: 'Ya, Hapus'
     }).then(async (result) => {
       if (result.isConfirmed) {
+        complaints = complaints.filter(c => c.id !== id);
+        render();
         try{ await sb.from(TABLE).delete().eq("id", id); } catch(e){}
-        await load();
         Swal.fire('Terhapus!', 'WO berhasil dihapus.', 'success');
       }
     });
@@ -972,7 +995,7 @@ Catatan: ${item.desc || '-'}`;
 
   async function load(){
     try{
-      const { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: true });
+      const { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: false });
       if(error) throw error;
       if (data && data.length > 0) complaints = data.map(rowToItem);
     }catch(e){ console.error(e); }
@@ -1070,8 +1093,6 @@ Catatan: ${item.desc || '-'}`;
 
           if(editing){ await updateComplaint(editing.id, data); } 
           else { await addComplaint(data); }
-
-          formOpen = false; editingId = null; render();
         }}, editing ? "Simpan Perubahan" : "Simpan Komplain"),
         el("button", { class:"btn-secondary", onclick: () => { formOpen = false; editingId = null; render(); } }, "Batal")
       )
