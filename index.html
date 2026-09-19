@@ -350,7 +350,7 @@
 
   const OFFICERS = ["Budi Santoso", "Agus Setiawan", "Dedi Kurniawan", "Hendra Wijaya", "Eko Prasetyo"];
 
-  // DAFTAR CASE LENGKAP DARI GAMBER TABEL
+  // DAFTAR CASE LENGKAP 42 KATEGORI DARI GAMBAR TABEL
   const CATEGORIES = [
     { key: "BPPD", label: "Biaya Penambahan Pipa Dinas", opRisk: 1, custImpact: 1, keywords: ["biaya", "pipa dinas"] },
     { key: "BPPDIND", label: "Biaya Penambahan Pipa Dinas Industri", opRisk: 2, custImpact: 2, keywords: ["pipa dinas industri"] },
@@ -378,7 +378,7 @@
     { key: "KPCT", label: "Pengajuan Cicilan Tagihan", opRisk: 1, custImpact: 2, keywords: ["cicilan", "pengajuan cicilan"] },
     { key: "KPDB", label: "Double Bayar", opRisk: 2, custImpact: 2, keywords: ["double bayar", "bayar dua kali"] },
     { key: "KPGP", label: "Permintaan Balik Nama", opRisk: 1, custImpact: 1, keywords: ["balik nama"] },
-    { key: "KPKT", label: "Penyambungan Kembali Akibat Tunggakan", opRisk: 2, custImpact: 2, keywords: ["penyambungan kembali", "tunggakan"] },
+    { key: "KPKT", label: "Penyambungan Kembali Akibat Tunggakkan", opRisk: 2, custImpact: 2, keywords: ["penyambungan kembali", "tunggakan"] },
     { key: "KPMR", label: "Meter Rusak", opRisk: 2, custImpact: 2, keywords: ["meter rusak", "meter mati", "angka tidak jalan"] },
     { key: "KPMRIND", label: "Meter Rusak Industri", opRisk: 3, custImpact: 3, keywords: ["meter rusak industri"] },
     { key: "KPPA", label: "Revisi Nama", opRisk: 1, custImpact: 1, keywords: ["revisi nama"] },
@@ -517,7 +517,7 @@
     
     const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    return { text: `⏳ Sisa ${days}d${hours}h`, isOverdue: false };
+    return { text: `⏳ Sisa ${days}d ${hours}h`, isOverdue: false };
   }
 
   function getDeadlineInfo(item){
@@ -556,7 +556,7 @@
 
     try {
       await sb.from(TABLE).update({ description: fullDesc }).eq("id", id);
-      Swal.fire({ icon: 'success', title: 'Petugas Ditugaskan', text: `WO ${id} diserahkan ke${newOfficer || 'Belum Ditugaskan'}`, timer: 1200, showConfirmButton: false });
+      Swal.fire({ icon: 'success', title: 'Petugas Ditugaskan', text: `WO ${id} diserahkan ke ${newOfficer || 'Belum Ditugaskan'}`, timer: 1200, showConfirmButton: false });
     } catch(e) { console.error("Gagal menugaskan petugas:", e); }
 
     await load();
@@ -606,8 +606,8 @@
     const textToCopy = 
 `*[LAPORAN PENGERJAAN MINOR REPAIR]*
 ID WO: ${item.id}
-Pelanggan: ${item.customer}${item.meterId ? '('+item.meterId+')' : ''}
-Keluhan: [${item.category}]${cInfo.label}
+Pelanggan: ${item.customer} ${item.meterId ? '('+item.meterId+')' : ''}
+Keluhan: [${item.category}] ${cInfo.label}
 Petugas Lapangan: ${item.officer || 'Belum Ditugaskan'}
 Alamat: ${item.address || '-'}
 Area: ${item.area || 'Cikupa'}
@@ -998,9 +998,8 @@ Catatan: ${item.desc || '-'}`;
     const addressInput = el("input", { type:"text", placeholder:"Alamat Lengkap", value: editing ? editing.address : "" });
     const areaInput = el("input", { type:"text", placeholder:"Area / Zona", value: editing ? editing.area : "" });
     
-    // DROPDOWN LENGKAP PADA FORM MANUAL
     const catSelect = el("select", {},
-      ...CATEGORIES.map(c => el("option", { value: c.key, selected: editing && editing.category===c.key ? "selected" : null }, `[${c.key}]${c.label}`))
+      ...CATEGORIES.map(c => el("option", { value: c.key, selected: editing && editing.category===c.key ? "selected" : null }, `[${c.key}] ${c.label}`))
     );
 
     const descInput = el("textarea", { placeholder:"Detail komplain..." }, editing ? editing.desc : "");
@@ -1261,65 +1260,555 @@ Catatan: ${item.desc || '-'}`;
                 const cInfo = catInfo(item.category);
                 return el("div", { class:"history-item", style:"background:var(--panel); padding:8px; margin-bottom:6px; border-radius:6px; border:1px solid #BAE6FD;" },
                   el("div", { style:"display:flex; justify-content:space-between; font-weight:700;" },
-                    el("span", {}, `${item.id} -${cInfoBerdasarkan tabel pada gambar, berikut adalah daftar lengkap kode dan deskripsi **CASE** keluhan pelanggan yang dapat ditambahkan ke dalam pilihan input manual maupun sistem konversi email otomatis:
+                    el("span", {}, `${item.id} - ${cInfo.label}`),
+                    el("span", { style: `color: ${item.status === 'selesai' ? 'var(--rendah)' : 'var(--tinggi)'}` }, item.status.toUpperCase())
+                  ),
+                  el("div", { style:"color:var(--ink-soft); font-size:10.5px; margin-top:2px;" }, `Waktu Lapor: ${fmtDateTime(new Date(item.receivedAt))}`),
+                  el("div", { style:"margin-top:4px;" }, item.desc)
+                );
+              })
+            ),
+      el("div", { style:"display:flex; gap:8px; margin-top:12px;" },
+        el("button", { class:"btn-secondary", onclick: () => { historyModalOpen = false; historySearchTerm = ""; render(); } }, "Tutup")
+      )
+    );
+  }
 
----
+  function renderEmailParserModal(){
+    if(!emailModalOpen) return el("div");
 
-### Daftar Kode & Deskripsi Case Keluhan
+    const defaultEmailContent = 
+`FW: [LAPORAN KELUHAN AIR MATI]
+Nama Pelanggan : Bambang Wijaya
+No WhatsApp : 081298765432
+ID Meter : PLG-99882
+Alamat : Jl. Raya Serang Km 14 No. 25, Cikupa
+Area : Cikupa
+Koordinat : -6.2231, 106.5134
+Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor deras. Mohon segera diperbaiki.`;
 
-| Kode Case | Deskripsi Keluhan |
-| :--- | :--- |
-| **BPPD** | Biaya Penambahan Pipa Dinas |
-| **BPPDIND** | Biaya Penambahan Pipa Dinas Industri |
-| **INFO-PLG** | Info ke Pelanggan |
-| **KATM** | Air Tidak Mengalir Domestic |
-| **KATMIND** | Air Tidak Mengalir Industri |
-| **KATR** | Air Kotor Domestic |
-| **KATRIND** | Air Kotor Industri |
-| **KBBP** | Sudah Bayar Belum Pasang Meter |
-| **KBGL** | Bekas Galian |
-| **KBSM** | Bocor Sebelum Meter |
-| **KBSMIND** | Bocor Sebelum Meter Industri |
-| **KBTR** | Belum Menerima Tagihan |
-| **KBTT** | Sudah Bayar Tapi di Tagih |
-| **KILL** | Illegal Consumption |
-| **KKMR** | Kran Meter Rusak |
-| **KKMRIND** | Kran Meter Rusak Industri |
-| **KLBC** | Pipa Jaringan Bocor |
-| **KMAL** | Meter Air Lepas |
-| **KMALIND** | Meter Air Lepas Industri |
-| **KMDT** | Meter Dipasang Terbalik |
-| **KMTA** | Meter Tidak Ada |
-| **KPAP** | Perubahan Alamat Premise |
-| **KPAT** | Perubahan Alamat Billing |
-| **KPCT** | Pengajuan Cicilan Tagihan |
-| **KPDB** | Double Bayar |
-| **KPGP** | Permintaan Balik Nama |
-| **KPKT** | Penyambungan Kembali Akibat Tunggakkan |
-| **KPMR** | Meter Rusak |
-| **KPMRIND** | Meter Rusak Industri |
-| **KPPA** | Revisi Nama |
-| **KPPM** | Perilaku Pembaca Meter |
-| **KPPR** | Pipa Dinas Rusak |
-| **KPPS** | Permintaan Pemutusan Sambungan |
-| **KPPSIND** | Permintaan Pemutusan Sambungan Industri |
-| **KPSB** | Salah Bayar |
-| **KPSM** | Petugas Penyegelan |
-| **KRMT** | Permintaan Relokasi Meter (teknis) |
-| **KRPR** | Rekening Pembayaran Rendah |
-| **KRPT** | Rekening Pembayaran Tinggi |
-| **KSPM** | Meter Tertukar |
-| **KTST** | Tidak Sesuai Tarif |
-| **KTST-RC** | Tidak Sesuai Tarif - Re Class |
-| **LAPUL** | Lapor Ulang |
-| **PPMI** | Permintaan Penyesuaian Meter Industri |
-| **TERAREQ** | Tera Meter Request |
-| **TRO9** | Pindah Meter |
-| **TRO9IND** | Pindah Meter Industri |
+    const emailTextArea = el("textarea", { style: "width:100%; height:140px; font-family:monospace; font-size:11.5px; padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--panel); color:var(--ink);" }, defaultEmailContent);
 
----
+    return el("div", { class:"form-panel open", style: "background:#F3E8FF; border-color:#C084FC;" },
+      el("h2", { style:"color:#6B21A8; margin-top:0;" }, "🔄 Auto Inbound Email Webhook & Converter"),
+      emailTextArea,
+      el("div", { style:"display:flex; gap:8px; margin-top:10px;" },
+        el("button", { class:"btn-email", onclick: async () => {
+          await processInboundEmail(emailTextArea.value);
+          emailModalOpen = false; render();
+        }}, "⚡ Ekstrak Email Otomatis"),
+        el("button", { class:"btn-secondary", onclick: () => { emailModalOpen = false; render(); } }, "Tutup")
+      )
+    );
+  }
 
-<Elicitations message="Apakah kamu membutuhkan opsi format data ini untuk integrasi sistem?">
-  <Elicitation label="Format JSON" query="Tolong ubah daftar case keluhan di atas menjadi format JSON." />
-  <Elicitation label="Format SQL Insert" query="Tolong buatkan query SQL INSERT untuk memasukkan data case keluhan di atas ke database." />
-</Elicitations>
+  function initFleetMap() {
+    const container = document.getElementById("fleet-map-container");
+    if (!container) return;
+
+    if (fleetMapObj) { fleetMapObj.remove(); fleetMapObj = null; }
+    
+    fleetMapObj = L.map(container, { zoomControl: false }).setView([OFFICE_COORDS.lat, OFFICE_COORDS.lng], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(fleetMapObj);
+
+    L.marker([OFFICE_COORDS.lat, OFFICE_COORDS.lng]).addTo(fleetMapObj).bindPopup("<b>Kantor Cikupa</b>");
+
+    complaints.forEach(c => {
+      if (c.status !== "selesai" && c.coords) {
+        const parts = c.coords.split(",").map(p => parseFloat(p.trim()));
+        if (parts.length === 2 && !isNaN(parts[0])) {
+          L.circleMarker([parts[0], parts[1]], {
+            radius: 6,
+            fillColor: c.urgent ? '#EF4444' : '#2563EB',
+            color: '#FFF', weight: 1, fillOpacity: 0.8
+          }).addTo(fleetMapObj).bindPopup(`<b>${c.id}</b><br>${c.customer}`);
+        }
+      }
+    });
+  }
+
+  function renderDonutChart() {
+    const canvas = document.getElementById("donutChartCanvas");
+    if (!canvas) return;
+
+    const belum = complaints.filter(c => c.status === "baru").length;
+    const proses = complaints.filter(c => c.status === "proses").length;
+    const selesai = complaints.filter(c => c.status === "selesai").length;
+
+    if (donutChartObj) donutChartObj.destroy();
+
+    donutChartObj = new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels: ['Belum', 'Diproses', 'Selesai'],
+        datasets: [{
+          data: [belum, proses, selesai],
+          backgroundColor: ['#3B82F6', '#F59E0B', '#10B981']
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+  }
+
+  function renderCaseChart(){
+    const counts = {};
+    const customerMap = {};
+    const officerDoneCounts = {};
+
+    OFFICERS.forEach(o => officerDoneCounts[o] = 0);
+    let totalWaitHours = 0;
+
+    complaints.forEach(c => {
+      counts[c.category] = (counts[c.category] || 0) + 1;
+      const custKey = c.meterId || c.customer;
+      if (custKey) customerMap[custKey] = (customerMap[custKey] || 0) + 1;
+      totalWaitHours += hoursWaiting(c);
+
+      if (c.status === "selesai" && c.officer && OFFICERS.includes(c.officer)) {
+        officerDoneCounts[c.officer]++;
+      }
+    });
+
+    const totalDiterima = complaints.length;
+    const avgWaitHours = totalDiterima > 0 ? Math.round(totalWaitHours / totalDiterima) : 0;
+    const repeatCustomers = Object.values(customerMap).filter(val => val > 1).length;
+    const repeatRate = totalDiterima > 0 ? Math.round((repeatCustomers / Object.keys(customerMap).length) * 100) || 0 : 0;
+
+    const activeCases = Object.keys(counts).map(key => ({
+      key, count: counts[key], label: catInfo(key).label
+    })).sort((a,b) => b.count - a.count);
+
+    return el("div", { class: "chart-card" },
+      el("div", { class: "chart-header" },
+        el("h3", {}, "📊 Analytics & KPI Kinerja CASE"),
+        el("span", { class: "total-badge" }, `Total: ${totalDiterima}`)
+      ),
+
+      activeCases.length === 0 
+        ? el("div", { style: "font-size:11px; color:var(--ink-soft); text-align:center; padding:8px;" }, "Belum ada data komplain.")
+        : el("div", { class: "chart-list" },
+            ...activeCases.map(item => {
+              const pct = totalDiterima > 0 ? Math.round((item.count / totalDiterima) * 100) : 0;
+              return el("div", { class: "chart-item" },
+                el("div", { class: "chart-label" },
+                  el("span", {}, `[${item.key}] ${item.label}`),
+                  el("span", {}, `${item.count} (${pct}%)`)
+                ),
+                el("div", { class: "chart-bar-bg" },
+                  el("div", { class: "chart-bar-fill", style: `width: ${pct}%` })
+                )
+              );
+            })
+          ),
+
+      el("div", { style: "margin-top:10px; padding-top:8px; border-top:1px dashed var(--border);" },
+        el("div", { style: "font-size:10.5px; font-weight:700; color:var(--ink-soft); margin-bottom:4px;" }, "🏆 PRODUKTIVITAS PETUGAS (SELESAI):"),
+        el("div", { class: "officer-done-grid" },
+          ...OFFICERS.map(off => el("div", { class: "officer-done-box" },
+            el("span", { class: "officer-done-name" }, `👷 ${off}`),
+            el("span", { class: "officer-done-count" }, `${officerDoneCounts[off]} WO`)
+          ))
+        )
+      ),
+
+      el("div", { class: "analytics-grid" },
+        el("div", { class: "analytics-box" },
+          el("div", { class: "val" }, `${avgWaitHours} Jam`),
+          el("div", { class: "lbl" }, "Rata Wait Time")
+        ),
+        el("div", { class: "analytics-box" },
+          el("div", { class: "val" }, `${repeatRate}%`),
+          el("div", { class: "lbl" }, "Rasio Berulang")
+        ),
+        el("div", { class: "analytics-box" },
+          el("div", { class: "val" }, activeCases[0] ? activeCases[0].key : "-"),
+          el("div", { class: "lbl" }, "Top CASE")
+        )
+      )
+    );
+  }
+
+  function renderSidebarCalendar(dateMap){
+    const selectedKey = selectedDate ? formatDateKey(selectedDate) : null;
+    const headerTitle = selectedDate ? selectedDate.toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short" }) : "Semua Tanggal Kerja";
+
+    const year = viewMonth.getFullYear();
+    const month = viewMonth.getMonth();
+    const monthTitle = viewMonth.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const prevMonthLastDay = new Date(year, month, 0).getDate();
+    const startDayOfWeek = firstDay.getDay();
+
+    const dateCells = [];
+    for(let i = startDayOfWeek - 1; i >= 0; i--) dateCells.push({ dayNum: prevMonthLastDay - i, isOtherMonth: true });
+
+    for(let d = 1; d <= lastDay.getDate(); d++){
+      const fullDate = new Date(year, month, d);
+      const key = formatDateKey(fullDate);
+      const tasks = dateMap[key] || [];
+      const weekend = isWeekend(fullDate);
+
+      dateCells.push({
+        dayNum: d, fullDate, key,
+        isSelected: key === selectedKey,
+        isWeekend: weekend,
+        hasTasks: tasks.length > 0,
+        hasHigh: tasks.some(t => urgencyLevel(t) === "tinggi" && t.status !== "selesai"),
+        allDone: tasks.length > 0 && tasks.every(t => t.status === "selesai"),
+        isOtherMonth: false
+      });
+    }
+
+    const remainingSlots = 42 - dateCells.length;
+    for(let i = 1; i <= remainingSlots; i++) dateCells.push({ dayNum: i, isOtherMonth: true });
+
+    const headers = [
+      { t: "Min", w: true }, { t: "Sen", w: false }, { t: "Sel", w: false },
+      { t: "Rab", w: false }, { t: "Kam", w: false }, { t: "Jum", w: false }, { t: "Sab", w: true }
+    ];
+
+    return el("div", { class: "calendar-card" },
+      el("div", { class: "cal-top-header" },
+        el("span", {}, headerTitle),
+        selectedDate ? el("button", { 
+          style: "font-size:10px; background:none; border:none; color:#38BDF8; cursor:pointer; font-weight:700;",
+          onclick: () => { selectedDate = null; render(); }
+        }, "Reset Filter") : null
+      ),
+      el("div", { class: "cal-month-nav" },
+        el("span", { class: "cal-month-title" }, monthTitle),
+        el("div", { class: "cal-nav-btns" },
+          el("button", { class: "cal-nav-btn", onclick: () => { viewMonth.setMonth(viewMonth.getMonth() - 1); render(); } }, "▲"),
+          el("button", { class: "cal-nav-btn", onclick: () => { viewMonth.setMonth(viewMonth.getMonth() + 1); render(); } }, "▼")
+        )
+      ),
+      el("div", { class: "cal-grid-embedded" },
+        ...headers.map(h => el("div", { class: "cal-head-cell " + (h.w ? "weekend-head" : "") }, h.t)),
+        ...dateCells.map(c => {
+          if (c.isOtherMonth) return el("div", { class: "cal-date-cell other-month" }, String(c.dayNum));
+          let classes = "cal-date-cell";
+          if (c.isWeekend) classes += " weekend-day";
+          if (c.isSelected) classes += " selected";
+          if (c.hasTasks) classes += " has-tasks";
+          if (c.hasHigh) classes += " has-high";
+          if (c.allDone) classes += " all-done";
+
+          return el("div", {
+            class: classes,
+            title: c.isWeekend ? "Hari Libur (Sabtu/Minggu) - Kasus Otomatis Dialihkan ke Senin" : "Hari Kerja Operasional",
+            onclick: () => {
+              if (c.isWeekend) return;
+              selectedDate = (selectedDate && formatDateKey(selectedDate) === c.key) ? null : c.fullDate;
+              render();
+            }
+          }, String(c.dayNum));
+        })
+      ),
+      el("div", { class: "quota-card" },
+        el("div", { class: "quota-header" },
+          el("span", {}, "⚡ Auto Load-Balancer Kuota/Hari Kerja"),
+          el("span", { style: "color:var(--accent);" }, `${MAX_PER_DAY} Kasus`)
+        ),
+        el("input", {
+          type: "range", min: "5", max: "25", value: String(MAX_PER_DAY), style: "width:100%; cursor:pointer;",
+          oninput: (e) => { MAX_PER_DAY = parseInt(e.target.value, 10); render(); }
+        })
+      )
+    );
+  }
+
+  function renderTicket(item, itemScheduledDateMap){
+    const metrics = computeUrgencyMetrics(item);
+    const level = metrics.level;
+    const badgeText = level === "tinggi" ? "Urgent" : level === "sedang" ? "Medium" : "Low";
+    const isDone = item.status === "selesai";
+    const coordsObj = parseCoords(item.coords);
+    const deadlineInfo = getDeadlineInfo(item);
+    const slaCountdown = getSLACountdown(item.receivedAt);
+    const mapContainerId = "map-" + item.id;
+    const caseDetails = catInfo(item.category);
+
+    const scheduledDateObj = itemScheduledDateMap[item.id];
+    const scheduledText = scheduledDateObj ? fmtDateOnly(scheduledDateObj) : "-";
+
+    const formattedPhone = formatWA(item.phone);
+    const waText = encodeURIComponent(
+      `Halo Bpk/Ibu ${item.customer},\n\nKami dari Petugas Lapangan Aetra Air Tangerang (${item.officer || 'Petugas Lapangan'}) mengonfirmasi WO ${item.id} [${caseDetails.label}]. Petugas menuju lokasi. Terima kasih.`
+    );
+    const waUrl = formattedPhone ? `https://wa.me/${formattedPhone}?text=${waText}` : null;
+
+    const googleMapsRouteUrl = coordsObj 
+      ? `https://www.google.com/maps/dir/?api=1&destination=${coordsObj.lat},${coordsObj.lng}&travelmode=driving`
+      : null;
+
+    const officerSelectCard = el("select", {
+      class: "officer-select-inline " + (!item.officer ? "unassigned" : ""),
+      onchange: (e) => assignOfficerToWO(item.id, e.target.value)
+    },
+      el("option", { value: "" }, "⚠️ Pilih Petugas Lapangan"),
+      ...OFFICERS.map(off => el("option", { value: off, selected: item.officer === off ? "selected" : null }, `👷 ${off}`))
+    );
+
+    return el("div", { class: "ticket " + (isDone ? "selesai" : "") },
+      el("div", { class:"ticket-top" },
+        el("div", { style:"display:flex; align-items:center; gap:5px;" },
+          el("span", { class:"ticket-id" }, item.id),
+          el("span", { class:"ticket-cust" }, item.customer),
+          item.meterId ? el("span", { style:"font-size:10.5px; color:var(--ink-soft);" }, `(${item.meterId})`) : null
+        ),
+        el("div", { style: "display:flex; gap:5px; align-items:center;" },
+          !isDone ? el("span", { class: "countdown-badge" }, slaCountdown.text) : null,
+          el("span", { class:`ticket-badge ${isDone ? 'badge-selesai' : 'badge-' + level}` }, isDone ? "Selesai" : badgeText)
+        )
+      ),
+      el("div", { class:"ticket-main-info" },
+        el("span", { class:"case-tag" }, item.category),
+        el("span", {}, caseDetails.label),
+        officerSelectCard,
+        item.area ? el("span", { style:"font-weight:700; color:#92400E;" }, `• Area: ${item.area}`) : null
+      ),
+      item.address ? el("div", { class:"ticket-address" }, `📍 ${item.address}`) : null,
+      item.desc ? el("div", { class:"ticket-desc" }, item.desc) : null,
+      
+      (item.photoBefore || item.photoAfter) ? el("div", { class: "photo-proof-grid" },
+        item.photoBefore ? el("div", { class: "photo-box" }, el("div", { class: "photo-lbl" }, "BEFORE"), el("img", { src: item.photoBefore })) : null,
+        item.photoAfter ? el("div", { class: "photo-box" }, el("div", { class: "photo-lbl" }, "AFTER"), el("img", { src: item.photoAfter })) : null,
+      ) : null,
+
+      el("div", { class:"schedule-row-simple" },
+        el("span", {}, `📅 Pengerjaan: ${scheduledText}`),
+        el("span", { class:`deadline-tag ${deadlineInfo.statusClass}` }, deadlineInfo.statusText)
+      ),
+      coordsObj ? el("div", {},
+        el("div", { id: mapContainerId, class: "ticket-map-container" }),
+        el("div", { style:"display:flex; justify-content:space-between; align-items:center; margin-top:3px;" },
+          el("span", { style:"font-size:10px; color:var(--ink-soft);" }, `📍 ${coordsObj.lat.toFixed(4)}, ${coordsObj.lng.toFixed(4)}`),
+          el("a", { href: googleMapsRouteUrl, target:"_blank", rel:"noopener", class:"btn-nav-route" }, "🚗 Petunjuk Rute ↗")
+        )
+      ) : null,
+      el("div", { class:"ticket-actions" },
+        waUrl ? el("a", { class:"btn-wa", href: waUrl, target:"_blank", rel:"noopener" }, "💬 WhatsApp") : null,
+        el("button", { class:"copy-btn", onclick: () => copyFieldFormat(item) }, "📋 Copy Format"),
+        !isDone ? el("button", { class:"resched-btn", onclick: () => markAbsentAndReschedule(item.id) }, "🏠 Reschedule") : null,
+        !isDone && item.status !== "proses" ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Proses") : null,
+        !isDone ? el("button", { class:"done", onclick: () => { finishTargetId = item.id; finishModalOpen = true; render(); } }, "Selesai") : null,
+        isDone ? el("button", { class:"progress", onclick: () => setStatus(item.id, "proses") }, "Buka Lagi") : null,
+        el("button", { onclick: () => { editingId = item.id; formOpen = true; render(); } }, "Edit"),
+        el("button", { class:"del", onclick: () => removeComplaint(item.id) }, "Hapus")
+      )
+    );
+  }
+
+  function initMaps(){
+    Object.keys(activeMaps).forEach(id => {
+      if(activeMaps[id] && activeMaps[id].remove) {
+        try { activeMaps[id].remove(); } catch(e){}
+      }
+      delete activeMaps[id];
+    });
+
+    complaints.forEach(item => {
+      const coords = parseCoords(item.coords);
+      const container = document.getElementById("map-" + item.id);
+      if(container && coords){
+        try {
+          const map = L.map(container, { attributionControl: false, zoomControl: false });
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+          L.marker([OFFICE_COORDS.lat, OFFICE_COORDS.lng]).addTo(map).bindPopup("Kantor Aetra Cikupa");
+          L.marker([coords.lat, coords.lng]).addTo(map).bindPopup("Lokasi Pelanggan");
+
+          const routeLine = L.polyline([
+            [OFFICE_COORDS.lat, OFFICE_COORDS.lng],
+            [coords.lat, coords.lng]
+          ], { color: '#0284C7', weight: 4, opacity: 0.8, dashArray: '6, 6' }).addTo(map);
+
+          map.fitBounds(routeLine.getBounds(), { padding: [15, 15] });
+          activeMaps[item.id] = map;
+        } catch(e) {}
+      }
+    });
+  }
+
+  function render(){
+    const root = document.getElementById("app-root");
+    if(!root) return;
+    root.innerHTML = "";
+
+    const { dateMap, itemScheduledDateMap } = calculateCalendarSchedule();
+    let base = complaints;
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      base = base.filter(c => 
+        (c.customer && c.customer.toLowerCase().includes(q)) ||
+        (c.id && c.id.toLowerCase().includes(q)) ||
+        (c.meterId && c.meterId.toLowerCase().includes(q)) ||
+        (c.address && c.address.toLowerCase().includes(q)) ||
+        (c.officer && c.officer.toLowerCase().includes(q))
+      );
+    }
+
+    if (quickFilter === "urgent") base = base.filter(c => urgencyLevel(c) === "tinggi");
+    else if (quickFilter === "proses") base = base.filter(c => c.status === "proses");
+    else if (quickFilter === "reschedule") base = base.filter(c => c.rescheduledDate);
+
+    if (categoryFilter !== "semua") base = base.filter(c => c.category === categoryFilter);
+    if (officerFilter !== "semua") base = base.filter(c => c.officer === officerFilter);
+
+    if (selectedDate) {
+      const selKey = formatDateKey(selectedDate);
+      base = base.filter(item => {
+        const schedDate = itemScheduledDateMap[item.id];
+        return schedDate && formatDateKey(schedDate) === selKey;
+      });
+    }
+
+    const sortedByMode = (items) => {
+      if (sortMode === "prioritas") return [...items].sort((a,b) => priorityScore(b) - priorityScore(a));
+      else if (sortMode === "waktu-terbaru") return [...items].sort((a,b) => new Date(b.receivedAt) - new Date(a.receivedAt));
+      else if (sortMode === "waktu-lama") return [...items].sort((a,b) => new Date(a.receivedAt) - new Date(b.receivedAt));
+      else if (sortMode === "nama") return [...items].sort((a,b) => (a.customer || "").localeCompare(b.customer || ""));
+      return items;
+    };
+
+    const belum = sortedByMode(base.filter(c => c.status === "baru"));
+    const proses = sortedByMode(base.filter(c => c.status === "proses"));
+    const selesai = sortedByMode(base.filter(c => c.status === "selesai"));
+
+    const openAll = complaints.filter(c => c.status !== "selesai");
+    const totalSelesai = complaints.filter(c => c.status === "selesai").length;
+    const tinggiCount = openAll.filter(c => urgencyLevel(c) === "tinggi").length;
+    const overdueCount = openAll.filter(c => getDeadlineInfo(c).isOverdue).length;
+
+    const section = (title, items, isFirst) => el("div", {},
+      el("div", { class:"section-head" + (isFirst ? " first" : "") }, title, el("span", { class:"count" }, String(items.length))),
+      items.length === 0
+        ? el("div", { class:"empty" }, "Tidak ada komplain di seksi ini.")
+        : el("div", {}, ...items.map((item) => renderTicket(item, itemScheduledDateMap)))
+    );
+
+    const wrap = el("div", { class:"wrap" },
+      el("div", { class:"masthead" },
+        el("div", { class:"brand-group" },
+          el("img", { class: "brand-logo", src: "https://aetraairtangerang.co.id/wp-content/uploads/2021/03/logo-aetra.png", alt: "Aetra Logo" }),
+          el("div", { class:"brand-title" },
+            el("h1", {}, "Papan Kerja Minor Repair"),
+            el("span", { class:"unit" }, "Aetra Air Tangerang")
+          )
+        ),
+        el("button", { class: "btn-secondary", onclick: () => {
+          isDarkMode = !isDarkMode;
+          document.body.classList.toggle("dark-mode", isDarkMode);
+        }}, isDarkMode ? "☀️ Mode Terang" : "🌙 Mode Gelap")
+      ),
+
+      overdueCount > 0 ? el("div", { class: "sla-alert-banner" },
+        el("span", {}, `⚠️ Terdapat ${overdueCount} Work Order yang telah melewati batas waktu SLA (Overdue). Mohon secepatnya ditindaklanjuti.`),
+        el("button", { class:"btn-secondary", style:"font-size:10.5px; padding:3px 6px;", onclick: () => { quickFilter = "urgent"; render(); } }, "Tampilkan Urgent")
+      ) : null,
+
+      el("div", { class: "dashboard-grid-balanced" },
+        
+        el("div", { class: "left-col-sidebar" },
+          el("div", { class: "fleet-map-card" },
+            el("div", { class: "fleet-map-header" }, el("span", {}, "🗺️ Fleet Map Sebaran Kasus")),
+            el("div", { id: "fleet-map-container" })
+          ),
+          el("div", { class:"summary" },
+            el("div", { class:"stat-card tinggi" }, el("div", { class:"num" }, String(tinggiCount)), el("div", { class:"lbl" }, "Urgent")),
+            el("div", { class:"stat-card" }, el("div", { class:"num" }, String(openAll.length)), el("div", { class:"lbl" }, "Aktif")),
+            el("div", { class:"stat-card selesai-stat" }, el("div", { class:"num" }, String(totalSelesai)), el("div", { class:"lbl" }, "Selesai"))
+          ),
+          renderCaseChart(),
+          el("div", { class: "chart-card" },
+            el("div", { class: "chart-header" }, el("h3", {}, "📊 Komposisi Status Work Order")),
+            el("div", { style: "height:140px; position:relative;" }, el("canvas", { id: "donutChartCanvas" }))
+          ),
+          renderSidebarCalendar(dateMap)
+        ),
+
+        el("div", { class: "right-col-content" },
+          el("div", { class: "search-bar" },
+            el("input", {
+              class: "search-input",
+              type: "text",
+              placeholder: "🔍 Cari Pelanggan, WO, ID Meter, Alamat, atau Petugas...",
+              value: searchQuery,
+              oninput: (e) => { searchQuery = e.target.value; render(); }
+            }),
+            el("span", { class: `quick-badge ${quickFilter === "semua" ? "active" : ""}`, onclick: () => { quickFilter = "semua"; render(); } }, "Semua"),
+            el("span", { class: `quick-badge ${quickFilter === "urgent" ? "active" : ""}`, onclick: () => { quickFilter = "urgent"; render(); } }, "🔥 Urgent"),
+            el("span", { class: `quick-badge ${quickFilter === "proses" ? "active" : ""}`, onclick: () => { quickFilter = "proses"; render(); } }, "⚙️ Diproses"),
+            el("span", { class: `quick-badge ${quickFilter === "reschedule" ? "active" : ""}`, onclick: () => { quickFilter = "reschedule"; render(); } }, "🏠 Reschedule")
+          ),
+
+          el("div", { class:"toolbar" },
+            el("div", { class:"toolbar-actions" },
+              el("button", { class:"btn-primary", onclick: () => { formOpen = !formOpen; emailModalOpen = false; historyModalOpen = false; if(!formOpen) editingId=null; render(); } }, formOpen ? "Tutup Form" : "+ Manual Komplain"),
+              el("button", { class:"btn-autoassign", onclick: () => autoAssignMerata() }, "⚖️ Auto-Assign"),
+              el("button", { class:"btn-email", onclick: () => { emailModalOpen = !emailModalOpen; formOpen = false; historyModalOpen = false; render(); } }, "🔄 Email Parser"),
+              el("button", { class:"btn-history", onclick: () => { historyModalOpen = !historyModalOpen; formOpen = false; emailModalOpen = false; render(); } }, "📜 History"),
+              el("button", { class:"btn-excel", onclick: () => exportToExcel(base, itemScheduledDateMap) }, "📊 Export Excel")
+            ),
+            el("div", { class:"filters" },
+              el("div", { class:"filter-group" },
+                "Filter Petugas:",
+                el("select", { onchange: (e) => { officerFilter = e.target.value; render(); } },
+                  el("option", { value:"semua", selected: officerFilter==="semua" ? "selected" : null }, "Semua Petugas"),
+                  ...OFFICERS.map(o => el("option", { value: o, selected: officerFilter===o ? "selected" : null }, o))
+                )
+              ),
+              el("div", { class:"filter-group" },
+                "CASE:",
+                el("select", { onchange: (e) => { categoryFilter = e.target.value; render(); } },
+                  el("option", { value:"semua", selected: categoryFilter==="semua" ? "selected" : null }, "Semua CASE"),
+                  ...CATEGORIES.map(c => el("option", { value: c.key, selected: categoryFilter===c.key ? "selected" : null }, `[${c.key}] ${c.label}`))
+                )
+              ),
+              el("div", { class:"filter-group" },
+                "Urutkan:",
+                el("select", { onchange: (e) => { sortMode = e.target.value; render(); } },
+                  el("option", { value:"prioritas", selected: sortMode==="prioritas" ? "selected" : null }, "⚡ Skor Urgensi"),
+                  el("option", { value:"waktu-terbaru", selected: sortMode==="waktu-terbaru" ? "selected" : null }, "🕒 Waktu Terbaru"),
+                  el("option", { value:"waktu-lama", selected: sortMode==="waktu-lama" ? "selected" : null }, "⏳ Waktu Terlama"),
+                  el("option", { value:"nama", selected: sortMode==="nama" ? "selected" : null }, "🔤 Nama (A-Z)")
+                )
+              )
+            )
+          ),
+
+          renderForm(),
+          renderEmailParserModal(),
+          renderHistoryModal(),
+          renderFinishModal(),
+
+          selectedDate ? el("div", { class: "filter-date-banner", style:"background:#E0F2FE; color:#0369A1; padding:6px 10px; border-radius:6px; font-size:11.5px; font-weight:700; display:flex; justify-content:space-between; align-items:center;" },
+            el("span", {}, `📅 Menampilkan Kasus Tanggal Kerja: ${fmtDateOnly(selectedDate)}`),
+            el("button", { style: "color:#0284C7; font-size:11px; background:none; border:none; cursor:pointer;", onclick: () => { selectedDate = null; render(); } }, "Tampilkan Semua")
+          ) : null,
+
+          section("Belum Dikerjakan", belum, true),
+          section("Sedang Dikerjakan", proses, false),
+          section("Selesai", selesai, false)
+        )
+      )
+    );
+
+    root.appendChild(wrap);
+    setTimeout(() => {
+      initMaps();
+      initFleetMap();
+      renderDonutChart();
+    }, 100);
+  }
+
+  load();
+  sb.channel("complaints-sync")
+    .on("postgres_changes", { event: "*", schema: "public", table: TABLE }, () => load())
+    .subscribe();
+  setInterval(render, 60000);
+})();
+</script>
