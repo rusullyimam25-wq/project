@@ -554,20 +554,17 @@
     };
   }
 
-  /* 🛠️ PERBAIKAN PRESISI: MENGUBAH PETUGAS TANPA MEMBUAT WO HILANG */
   async function assignOfficerToWO(id, newOfficer) {
     const target = complaints.find(c => c.id === id);
     if (!target) return;
 
     target.officer = newOfficer;
 
-    // Jika user sedang memfilter berdasarkan petugas tertentu, ubah filter ke petugas baru
-    // agar WO tidak mendadak hilang dari layar karena tidak cocok dengan filter lama.
     if (officerFilter !== "semua" && officerFilter !== newOfficer) {
       officerFilter = "semua"; 
     }
 
-    render(); // Re-render instan tanpa memanggil load() penuh
+    render();
 
     let fullDesc = buildFullDescription(target.desc, target.address, target.phone, target.rescheduledDate, target.officer, target.photoBefore, target.photoAfter);
 
@@ -977,32 +974,381 @@ Catatan: ${item.desc || '-'}`;
 
     const customer = parseField(/Nama Pelanggan\s*:\s*(.*)/i) || parseField(/Pelanggan\s*:\s*(.*)/i) || "Pelanggan Inbound Email";
     const phone = parseField(/No WhatsApp\s*:\s*(.*)/i) || parseField(/No HP\s*:\s*(.*)/i) || "";
-    const meterId = parseField(/ID Meter\Masalah Work Order (WO) yang hilang setelah mengganti petugas lapangan biasanya terjadi karena **filter tampilan sistem**, **status pengerjaan**, atau **sinkronisasi data** (terutama jika menggunakan aplikasi seluler/FSM).
+    const meterId = parseField(/ID Meter\s*:\s*(.*)/i) || parseField(/ID Pelanggan\s*:\s*(.*)/i) || "-";
+    const address = parseField(/Alamat\s*:\s*(.*)/i) || "-";
+    const area = parseField(/Area\s*:\s*(.*)/i) || "Cikupa";
+    const coords = parseField(/Koordinat\s*:\s*(.*)/i) || "";
+    const desc = parseField(/Deskripsi\s*:\s*(.*)/i) || emailRawText.slice(0, 150);
 
-Berikut langkah-langkah pengecekan awal yang bisa kamu lakukan:
+    let detectedCategory = parseField(/Jenis Case\s*:\s*(.*)/i) || parseField(/Case\s*:\s*(.*)/i);
+    if (!detectedCategory || !CATEGORIES.some(c => c.key === detectedCategory.toUpperCase())) {
+      const lowerText = (desc + " " + emailRawText).toLowerCase();
+      let matched = CATEGORIES.find(c => c.keywords.some(kw => lowerText.includes(kw)));
+      detectedCategory = matched ? matched.key : "KBSM";
+    }
 
-<Steps>
-  <Step title="Cek Filter Tampilan (Filter View)" subtitle="Paling sering terjadi">
-    Ubah filter tampilan dari <i>"Assigned to Me"</i> atau <i>"My Team"</i> menjadi <b>"All Work Orders"</b> atau <b>"All Statuses"</b>.
-    <br/><i>Cara verifikasi:</i> Jika WO muncul kembali di daftar utama, artinya data sebenarnya tidak hilang, hanya keluar dari tampilan filter petugas lama.
-  </Step>
+    const newComplaint = {
+      customer, phone, meterId, address, area,
+      category: detectedCategory.toUpperCase(),
+      desc: desc + " [Konversi Email Otomatis]",
+      receivedAt: new Date().toISOString(), urgent: false, coords
+    };
 
-  <Step title="Periksa Hak Akses & Status WO" subtitle="Sistem berbasis peran">
-    Pastikan status WO tidak otomatis berubah menjadi <i>Draft</i>, <i>Unassigned</i>, atau <i>Pending Approval</i> setelah nama petugas dihapus/diganti.
-    <br/><i>Cara verifikasi:</i> Buka menu pencarian utama sistem dan ketik nomor tiket/WO secara langsung untuk melihat statusnya saat ini.
-  </Step>
+    await addComplaint(newComplaint);
+  }
 
-  <Step title="Lakukan Sync Data (Jika Akses Lewat Mobile/App)" subtitle="Koneksi terputus">
-    Jika kamu menggunakan aplikasi lapangan (FSM/CMMS), lakukan **Force Sync** atau **Refresh Data** manual dari menu pengaturan aplikasi.
-    <br/><i>Cara verifikasi:</i> Cek apakah perubahan penugasan berhasil terkirim ke server utama tanpa eror.
-  </Step>
-</Steps>
+  async function load(){
+    if (formOpen) return;
+    try{
+      const { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: false });
+      if(error) throw error;
+      if (data && data.length > 0) complaints = data.map(rowToItem);
+    }catch(e){ console.error(e); }
+    render();
+  }
 
----
+  function el(tag, attrs, ...children){
+    const e = document.createElement(tag);
+    if(attrs) for(const k in attrs){
+      if(k === "class") e.className = attrs[k];
+      else if(k.startsWith("on")) e.addEventListener(k.slice(2), attrs[k]);
+      else e.setAttribute(k, attrs[k]);
+    }
+    children.flat().forEach(c => {
+      if(c === null || c === undefined) return;
+      e.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    });
+    return e;
+  }
 
-Untuk membantu menyelesaikan kendala ini secara tepat, **aplikasi atau sistem apa yang sedang kamu gunakan** (misalnya: SAP FSM, Salesforce, Odoo, Maximo, atau aplikasi internal perusahaan)?
+  function nowLocalInputValue(){
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  }
 
-<Elicitations message="Pilih langkah lanjutan atau jelaskan kondisi sistem kamu:">
-  <Elicitation label="Cek filter daftar WO" query="Saya sudah cek filter All Work Orders tapi tiketnya tetap tidak ketemu, apa langkah selanjutnya?" />
-  <Elicitation label="Masalah terjadi di aplikasi mobile" query="Masalah ini terjadi saat saya mengubah petugas lewat aplikasi mobile/HP." />
-</Elicitations>
+  function renderForm(){
+    if(!formOpen) return el("div");
+
+    const editing = editingId ? complaints.find(x => x.id === editingId) : null;
+    const toLocalInput = (iso) => {
+      try {
+        const d = new Date(iso);
+        if(isNaN(d.getTime())) return nowLocalInputValue();
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      } catch(e) { return nowLocalInputValue(); }
+    };
+
+    const customerInput = el("input", { type:"text", placeholder:"Nama Pelanggan", value: editing ? editing.customer : "" });
+    const phoneInput = el("input", { type:"text", placeholder:"No WA (08xxxxxxxxxx)", value: editing ? editing.phone : "" });
+    const meterIdInput = el("input", { type:"text", placeholder:"ID Meter / Langganan", value: editing ? editing.meterId : "" });
+    const addressInput = el("input", { type:"text", placeholder:"Alamat Lengkap", value: editing ? editing.address : "" });
+    const areaInput = el("input", { type:"text", placeholder:"Area / Zona (Cikupa)", value: editing ? editing.area : "Cikupa" });
+    
+    const catSelect = el("select", {},
+      ...CATEGORIES.map(c => el("option", { value: c.key, selected: editing && editing.category===c.key ? "selected" : null }, `[${c.key}] ${c.label}`))
+    );
+
+    const descInput = el("textarea", { placeholder:"Detail komplain..." }, editing ? editing.desc : "");
+    const timeInput = el("input", { type:"datetime-local", value: editing ? toLocalInput(editing.receivedAt) : nowLocalInputValue() });
+    const urgentCheck = el("input", { type:"checkbox", checked: editing && editing.urgent ? "checked" : null });
+    const coordsInput = el("input", { type:"text", placeholder:"-6.1783, 106.6319 (opsional)", value: editing ? (editing.coords||"") : "" });
+
+    return el("div", { class:"form-panel open" },
+      el("h2", {}, editing ? "Ubah Komplain " + editing.id : "Tambah Komplain Manual Baru"),
+      el("div", { class:"field-row" },
+        el("div", { class:"field" }, el("label", {}, "Nama Pelanggan *"), customerInput),
+        el("div", { class:"field" }, el("label", {}, "No WhatsApp"), phoneInput),
+        el("div", { class:"field" }, el("label", {}, "ID Meter"), meterIdInput),
+      ),
+      el("div", { class:"field-row" },
+        el("div", { class:"field" }, el("label", {}, "Alamat Lengkap"), addressInput),
+        el("div", { class:"field" }, el("label", {}, "Area / Zona"), areaInput),
+      ),
+      el("div", { class:"field-row" },
+        el("div", { class:"field" }, el("label", {}, "CASE Keluhan (Pilih Jenis Case)"), catSelect),
+        el("div", { class:"field" }, el("label", {}, "Waktu Diterima"), timeInput),
+      ),
+      el("div", { class:"field-row" },
+        el("div", { class:"field" }, el("label", {}, "Deskripsi Keluhan"), descInput),
+        el("div", { class:"field" }, el("label", {}, "Koordinat GPS"), coordsInput),
+      ),
+      el("label", { style: "display:flex; align-items:center; gap:8px; font-size:12px; margin: 6px 0 14px; cursor:pointer;" }, 
+        urgentCheck, "Tandai mendesak (Prioritas Utama)"
+      ),
+      el("div", { style: "display:flex; gap:8px;" },
+        el("button", { class:"btn-primary", onclick: async (e) => {
+          if (e && e.preventDefault) e.preventDefault();
+          const valCust = customerInput ? customerInput.value.trim() : "";
+          if(!valCust){ Swal.fire('Error', 'Nama Pelanggan wajib diisi!', 'error'); return; }
+
+          const data = {
+            customer: valCust,
+            phone: phoneInput ? phoneInput.value.trim() : "",
+            meterId: meterIdInput ? meterIdInput.value.trim() : "",
+            address: addressInput ? addressInput.value.trim() : "",
+            area: (areaInput && areaInput.value.trim()) ? areaInput.value.trim() : "Cikupa",
+            category: catSelect ? catSelect.value : "KBSM",
+            desc: descInput ? descInput.value.trim() : "",
+            receivedAt: (timeInput && timeInput.value) ? new Date(timeInput.value).toISOString() : new Date().toISOString(),
+            urgent: urgentCheck ? urgentCheck.checked : false,
+            coords: coordsInput ? coordsInput.value.trim() : "",
+          };
+
+          if(editing){ await updateComplaint(editing.id, data); } 
+          else { await addComplaint(data); }
+        }}, editing ? "Simpan Perubahan" : "Simpan Komplain"),
+        el("button", { class:"btn-secondary", onclick: () => { formOpen = false; editingId = null; render(); } }, "Batal")
+      )
+    );
+  }
+
+  function renderFinishModal(){
+    if (!finishModalOpen || !finishTargetId) return el("div");
+
+    let photoBeforeData = null;
+    let photoAfterData = null;
+
+    const target = complaints.find(c => c.id === finishTargetId);
+    if (target) {
+      photoBeforeData = target.photoBefore || null;
+      photoAfterData = target.photoAfter || null;
+    }
+
+    function handleImageFile(file, callback) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 800;
+
+          if (width > height && width > maxDim) {
+            height *= maxDim / width;
+            width = maxDim;
+          } else if (height > maxDim) {
+            width *= maxDim / height;
+            height = maxDim;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          callback(canvas.toDataURL("image/jpeg", 0.7));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    const camBeforeInput = el("input", { type: "file", accept: "image/*", capture: "environment", style: "display:none;" });
+    const fileBeforeInput = el("input", { type: "file", accept: "image/*", style: "display:none;" });
+    const imgBeforePreview = el("img", { class: "photo-preview-img", src: photoBeforeData || "" });
+    if(photoBeforeData) imgBeforePreview.style.display = "block";
+
+    camBeforeInput.onchange = (e) => handleImageFile(e.target.files[0], (url) => { photoBeforeData = url; imgBeforePreview.src = url; imgBeforePreview.style.display = "block"; });
+    fileBeforeInput.onchange = (e) => handleImageFile(e.target.files[0], (url) => { photoBeforeData = url; imgBeforePreview.src = url; imgBeforePreview.style.display = "block"; });
+
+    const camAfterInput = el("input", { type: "file", accept: "image/*", capture: "environment", style: "display:none;" });
+    const fileAfterInput = el("input", { type: "file", accept: "image/*", style: "display:none;" });
+    const imgAfterPreview = el("img", { class: "photo-preview-img", src: photoAfterData || "" });
+    if(photoAfterData) imgAfterPreview.style.display = "block";
+
+    camAfterInput.onchange = (e) => handleImageFile(e.target.files[0], (url) => { photoAfterData = url; imgAfterPreview.src = url; imgAfterPreview.style.display = "block"; });
+    fileAfterInput.onchange = (e) => handleImageFile(e.target.files[0], (url) => { photoAfterData = url; imgAfterPreview.src = url; imgAfterPreview.style.display = "block"; });
+
+    const canvas = el("canvas", { class: "signature-pad", width: 340, height: 120, style: "touch-action: none;" });
+    const ctx = canvas.getContext("2d");
+
+    let drawing = false;
+    let hasSignature = false;
+
+    function getCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+
+    function startDrawing(e) {
+      drawing = true;
+      hasSignature = true;
+      const pos = getCoords(e);
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+      if (e.cancelable) e.preventDefault();
+    }
+
+    function draw(e) {
+      if (!drawing) return;
+      const pos = getCoords(e);
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = isDarkMode ? "#38BDF8" : "#0F172A";
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+      if (e.cancelable) e.preventDefault();
+    }
+
+    function stopDrawing() { drawing = false; ctx.beginPath(); }
+
+    canvas.addEventListener("mousedown", startDrawing);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", stopDrawing);
+    canvas.addEventListener("mouseleave", stopDrawing);
+
+    canvas.addEventListener("touchstart", startDrawing, { passive: false });
+    canvas.addEventListener("touchmove", draw, { passive: false });
+    canvas.addEventListener("touchend", stopDrawing);
+
+    return el("div", { class: "form-panel open", style: "background:var(--panel); border:1px solid var(--accent);" },
+      el("h2", { style: "margin-top:0;" }, `📸 Bukti Pengerjaan & Tanda Tangan (${finishTargetId})`),
+      
+      el("div", { class: "field-row" },
+        el("div", { class: "field" },
+          el("label", {}, "Foto Sebelum (Before):"),
+          el("div", { class: "photo-upload-box" },
+            imgBeforePreview,
+            el("div", { class: "photo-btn-group" },
+              el("label", { class: "btn-cam", onclick: () => camBeforeInput.click() }, "📷 Kamera"),
+              el("label", { class: "btn-file", onclick: () => fileBeforeInput.click() }, "📁 File"),
+              camBeforeInput, fileBeforeInput
+            )
+          )
+        ),
+        el("div", { class: "field" },
+          el("label", {}, "Foto Sesudah (After):"),
+          el("div", { class: "photo-upload-box" },
+            imgAfterPreview,
+            el("div", { class: "photo-btn-group" },
+              el("label", { class: "btn-cam", onclick: () => camAfterInput.click() }, "📷 Kamera"),
+              el("label", { class: "btn-file", onclick: () => fileAfterInput.click() }, "📁 File"),
+              camAfterInput, fileAfterInput
+            )
+          )
+        )
+      ),
+
+      el("div", { class: "field", style: "margin-bottom:10px; margin-top:6px;" },
+        el("label", {}, "Tanda Tangan Pelanggan Digital:"),
+        canvas,
+        el("button", { 
+          class: "btn-secondary", 
+          style: "width:100px; margin-top:4px; font-size:10px;", 
+          onclick: () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            hasSignature = false;
+          } 
+        }, "🧹 Hapus TTD")
+      ),
+      
+      el("div", { style: "display:flex; gap:8px;" },
+        el("button", { class: "btn-primary", onclick: async () => {
+          if (!hasSignature) {
+            Swal.fire('Peringatan', 'Harap bubuhkan tanda tangan pelanggan terlebih dahulu!', 'warning');
+            return;
+          }
+
+          if (target) {
+            target.status = "selesai";
+            target.photoBefore = photoBeforeData;
+            target.photoAfter = photoAfterData;
+            let fullDesc = buildFullDescription(target.desc, target.address, target.phone, target.rescheduledDate, target.officer, target.photoBefore, target.photoAfter);
+            
+            await sb.from(TABLE).update({ status: "selesai", description: fullDesc }).eq("id", target.id);
+          }
+          finishModalOpen = false;
+          Swal.fire('Selesai!', 'Work Order telah diselesaikan, bukti foto & TTD terverifikasi.', 'success');
+          render();
+        }}, "Verifikasi & Selesai"),
+        el("button", { class: "btn-secondary", onclick: () => { finishModalOpen = false; render(); } }, "Batal")
+      )
+    );
+  }
+
+  function renderHistoryModal(){
+    if(!historyModalOpen) return el("div");
+
+    let historyResults = [];
+    if (historySearchTerm.trim()) {
+      const term = historySearchTerm.toLowerCase();
+      historyResults = complaints.filter(c => 
+        (c.meterId && c.meterId.toLowerCase().includes(term)) ||
+        (c.customer && c.customer.toLowerCase().includes(term))
+      );
+    }
+
+    return el("div", { class:"form-panel open", style: "background:#F0F9FF; border-color:#0284C7;" },
+      el("h2", { style:"color:#0369A1; margin-top:0;" }, "📜 Cari History Komplain Pelanggan"),
+      el("div", { class:"field-row" },
+        el("div", { class:"field" },
+          el("label", {}, "Masukkan ID Meter / Nama Pelanggan:"),
+          el("input", { 
+            type: "text", 
+            placeholder: "Contoh: PLG-99882 atau Bambang", 
+            value: historySearchTerm,
+            oninput: (e) => { historySearchTerm = e.target.value; render(); }
+          })
+        )
+      ),
+      historySearchTerm.trim() === "" 
+        ? el("p", { style:"font-size:11.5px; color:var(--ink-soft);" }, "Ketik ID Meter atau Nama Pelanggan di atas.")
+        : historyResults.length === 0
+          ? el("p", { style:"font-size:11.5px; color:var(--tinggi);" }, "Tidak ditemukan riwayat komplain.")
+          : el("div", { style:"max-height:220px; overflow-y:auto; margin-top:10px;" },
+              ...historyResults.map(item => {
+                const cInfo = catInfo(item.category);
+                return el("div", { class:"history-item", style:"background:var(--panel); padding:8px; margin-bottom:6px; border-radius:6px; border:1px solid #BAE6FD;" },
+                  el("div", { style:"display:flex; justify-content:space-between; font-weight:700;" },
+                    el("span", {}, `${item.id} - ${cInfo.label}`),
+                    el("span", { style: `color: ${item.status === 'selesai' ? 'var(--rendah)' : 'var(--tinggi)'}` }, item.status.toUpperCase())
+                  ),
+                  el("div", { style:"color:var(--ink-soft); font-size:10.5px; margin-top:2px;" }, `Waktu Lapor: ${fmtDateTime(new Date(item.receivedAt))}`),
+                  el("div", { style:"margin-top:4px;" }, item.desc)
+                );
+              })
+            ),
+      el("div", { style:"display:flex; gap:8px; margin-top:12px;" },
+        el("button", { class:"btn-secondary", onclick: () => { historyModalOpen = false; historySearchTerm = ""; render(); } }, "Tutup")
+      )
+    );
+  }
+
+  function renderEmailParserModal(){
+    if(!emailModalOpen) return el("div");
+
+    const defaultEmailContent = 
+`FW: [LAPORAN KELUHAN AIR MATI]
+Nama Pelanggan : Bambang Wijaya
+No WhatsApp : 081298765432
+ID Meter : PLG-99882
+Alamat : Jl. Raya Serang Km 14 No. 25, Cikupa
+Area : Cikupa
+Koordinat : -6.2231, 106.5134
+Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor deras. Mohon segera diperbaiki.`;
+
+    const emailTextArea = el("textarea", { style: "width:100%; height:140px; font-family:monospace; font-size:11.5px; padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--panel); color:var(--ink);" }, defaultEmailContent);
+
+    return el("div", { class:"form-panel open", style: "background:#F3E8FF; border-color:#C084FC;" },
+      el("h2", { style:"color:#6B21A8; margin-top:0;" }, "🔄 Auto Inbound Email Webhook & Converter"),
+      emailTextArea,
+      el("div", { style:"display:flex; gap:8px; margin-top:10px;" },
+        el("button", { class:"btn-email", onclick: async () => {
+          await processInboundEmail(emailTextArea.value);
+          emailModalOpen = false; render();
+        }}, "⚡ Ekstrak Email Otomatis"),
+        el("button", { class:"btn-secondary", onclick: () => { emailModalOpen = false;Bisa dibantu kirimkan **kode yang ingin diperbaiki** beserta **pesan error** atau **bahasa pemrogramannya**? 
+
+Agar kodenya bisa langsung diperbaiki, kamu bisa menyertakan detail berikut:
+
+1. **Potongan Kode:** Tempel kodenya di sini.
+2. **Konteks:** Bahasa/framework yang dipakai (misalnya HTML/CSS, React, Python, Flutter, atau PHP).
+3. **Masalah:** Apakah layar menjadi putih (blank), ada error tertentu di konsol/terminal, atau tampilan tidak sesuai harapan?
+
+Setelah kamu kirim kodenya, saya akan bantu periksa dan berikan perbaikannya.
