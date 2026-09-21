@@ -432,8 +432,12 @@
   let historySearchTerm = "";
   let editingId = null;
 
-  // Flag proteksi agar auto-refresh tidak menimpa komplain yang baru saja disimpan
-  let isSaving = false;
+  // FLAG SYNC LOCK: Menghindari masalah hilang komplain baru saat auto-refresh
+  let syncLock = false;
+  function triggerSyncLock(duration = 5000) {
+    syncLock = true;
+    setTimeout(() => { syncLock = false; }, duration);
+  }
 
   function catInfo(key){
     return CATEGORIES.find(c => c.key === key) || { key: key||"OTHERS", label: key||"Lainnya", opRisk: 1, custImpact: 1, keywords:[] };
@@ -578,8 +582,8 @@
     };
   }
 
-  /* FIX: Memperbaiki logika penggantian Petugas Lapangan tanpa error */
   async function assignOfficerToWO(id, newOfficer) {
+    triggerSyncLock();
     const target = complaints.find(c => c.id === id);
     if (!target) return;
 
@@ -589,20 +593,13 @@
     let fullDesc = buildFullDescription(target.desc, target.address, target.phone, target.rescheduledDate, target.officer, target.photoBefore, target.photoAfter);
 
     try {
-      const { error } = await sb.from(TABLE).update({ 
-        description: fullDesc
-      }).eq("id", id);
-
-      if (error) throw error;
-
+      await sb.from(TABLE).update({ description: fullDesc }).eq("id", id);
       Swal.fire({ icon: 'success', title: 'Petugas Ditugaskan', text: `WO ${id} diserahkan ke ${newOfficer || 'Belum Ditugaskan'}`, timer: 1200, showConfirmButton: false });
-    } catch(e) { 
-      console.error("Gagal menugaskan petugas di server:", e);
-      Swal.fire('Error', 'Gagal memperbarui petugas di server: ' + e.message, 'error');
-    }
+    } catch(e) { console.error("Gagal menugaskan petugas di server:", e); }
   }
 
   async function autoAssignMerata() {
+    triggerSyncLock();
     const unassigned = complaints.filter(c => !c.officer && c.status !== "selesai");
     if (unassigned.length === 0) {
       Swal.fire('Info', 'Semua komplain aktif sudah memiliki petugas lapangan!', 'info');
@@ -844,9 +841,8 @@ Catatan: ${item.desc || '-'}`;
     };
   }
 
-  /* FIX: Mengatasi Masalah Komplain Hilang Sendiri Saat Penambahan Manual */
   async function addComplaint(data){
-    isSaving = true; // Kunci sinkronisasi sementara
+    triggerSyncLock(8000); // Kunci sinkronisasi agar tidak tertimpa saat fetch otomatis
     try {
       let receivedDateObj = (data && data.receivedAt) ? new Date(data.receivedAt) : new Date();
       if (isNaN(receivedDateObj.getTime())) receivedDateObj = new Date();
@@ -855,10 +851,10 @@ Catatan: ${item.desc || '-'}`;
         receivedDateObj = getNextWorkingDay(receivedDateObj);
       }
 
-      const newId = "WO-" + Date.now().toString().slice(-6);
+      const generatedId = "WO-" + Date.now().toString().slice(-6);
 
       const item = {
-        id: newId,
+        id: generatedId,
         customer: (data && data.customer) ? data.customer : "Pelanggan Tanpa Nama",
         phone: (data && data.phone) ? data.phone : "",
         meterId: (data && data.meterId) ? data.meterId : "",
@@ -899,17 +895,16 @@ Catatan: ${item.desc || '-'}`;
       };
 
       const { error } = await sb.from(TABLE).insert(fullPayload);
-      if (error) {
-        console.warn("Gagal simpan ke Supabase DB:", error.message);
+      if(error) {
+        console.error("Gagal simpan ke Supabase DB:", error);
       }
     } catch(globalErr) { 
       console.error("Error addComplaint:", globalErr); 
-    } finally {
-      setTimeout(() => { isSaving = false; }, 3000); // Buka kunci sinkronisasi setelah jeda 3 detik
     }
   }
 
   async function markAbsentAndReschedule(id) {
+    triggerSyncLock();
     const target = complaints.find(c => c.id === id);
     if (!target) return;
 
@@ -930,7 +925,7 @@ Catatan: ${item.desc || '-'}`;
   }
 
   async function updateComplaint(id, data){
-    isSaving = true;
+    triggerSyncLock(8000);
     let target = complaints.find(c => c.id === id);
     if(target) {
       target.customer = data.customer;
@@ -966,14 +961,11 @@ Catatan: ${item.desc || '-'}`;
         coords: data.coords,
       }).eq("id", id);
       Swal.fire({ icon: 'success', title: 'Diperbarui!', text: `Work Order ${id} berhasil diubah!`, timer: 1500, showConfirmButton: false });
-    }catch(e){ 
-      console.error(e); 
-    } finally {
-      setTimeout(() => { isSaving = false; }, 3000);
-    }
+    }catch(e){ console.error(e); }
   }
 
   async function setStatus(id, status){
+    triggerSyncLock();
     const target = complaints.find(c => c.id === id);
     if(target) target.status = status;
     render();
@@ -993,6 +985,7 @@ Catatan: ${item.desc || '-'}`;
       confirmButtonText: 'Ya, Hapus'
     }).then(async (result) => {
       if (result.isConfirmed) {
+        triggerSyncLock();
         complaints = complaints.filter(c => c.id !== id);
         render();
         try{ await sb.from(TABLE).delete().eq("id", id); } catch(e){}
@@ -1035,7 +1028,8 @@ Catatan: ${item.desc || '-'}`;
   }
 
   async function load(){
-    if (formOpen || isSaving) return; // Mencegah reset/penimpaan data lokal saat mengedit atau menyimpan
+    // Jangan overwrite data lokal jika form sedang terbuka atau sistem baru saja melakukan aksi simpan/update
+    if (formOpen || syncLock) return;
     try{
       const { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: false });
       if(error) throw error;
@@ -1293,6 +1287,7 @@ Catatan: ${item.desc || '-'}`;
           }
 
           if (target) {
+            triggerSyncLock();
             target.status = "selesai";
             target.photoBefore = photoBeforeData;
             target.photoAfter = photoAfterData;
@@ -1930,14 +1925,17 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
   }
 
   load();
+
+  // Memastikan WebSocket sync tidak menimpa state saat lock aktif
   sb.channel("complaints-sync")
     .on("postgres_changes", { event: "*", schema: "public", table: TABLE }, () => {
-      if (!formOpen && !isSaving) load();
+      if (!formOpen && !syncLock) load();
     })
     .subscribe();
 
+  // Periodic Refresh
   setInterval(() => {
-    if (!formOpen && !isSaving) load();
-  }, 60000);
+    if (!formOpen && !syncLock) load();
+  }, 30000);
 })();
 </script>
