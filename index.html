@@ -682,7 +682,6 @@
     } catch(e) {}
   }
 
-  // DI-PERBAIKI: PENYERASIAN PAYLOAD SESUAI DENGAN SCHEMA SUPABASE
   async function addComplaint(data){
     let receivedDateObj = (data && data.receivedAt) ? new Date(data.receivedAt) : new Date();
     if (isNaN(receivedDateObj.getTime())) receivedDateObj = new Date();
@@ -709,7 +708,6 @@
     let fullDesc = buildFullDescription(item.desc, item.address, item.phone, null, item.officer, null, null);
     const fullCust = item.meterId ? `${item.customer} (${item.meterId})` : item.customer;
 
-    // Payload dikirim hanya untuk kolom yang tersedia secara bawaan di Supabase
     const fullPayload = {
       id: item.id,
       customer: fullCust,
@@ -740,11 +738,16 @@
     }
   }
 
+  // FIX: PERBAIKAN RE-RENDER & UPDATE STATE PETUGAS SECARA REALTIME
   async function assignOfficerToWO(id, newOfficer) {
     const target = complaints.find(c => c.id === id);
     if (!target) return;
 
+    // Update state lokal langsung
     target.officer = newOfficer;
+    saveLocal();
+    render(); // Re-render tampilan langsung tanpa tunda
+
     let fullDesc = buildFullDescription(target.desc, target.address, target.phone, target.rescheduledDate, target.officer, target.photoBefore, target.photoAfter);
 
     try {
@@ -939,7 +942,6 @@ Catatan: ${item.desc || '-'}`;
     } catch(e){}
   }
 
-  // DI-PERBAIKI: PENYESUAIAN UPDATE BERSAMA SCHEMA SUPABASE
   async function updateComplaint(id, data){
     let target = complaints.find(c => c.id === id);
 
@@ -1604,6 +1606,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
       ? `https://www.google.com/maps/dir/?api=1&destination=${coordsObj.lat},${coordsObj.lng}&travelmode=driving`
       : null;
 
+    // FIX: MEMASTIKAN VALUE PETUGAS DITERAPKAN DI TIAP OPSI CARD / TICKET
     const officerSelectCard = el("select", {
       class: "officer-select-inline " + (!item.officer ? "unassigned" : ""),
       onchange: (e) => assignOfficerToWO(item.id, e.target.value)
@@ -1864,6 +1867,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
             el("div", { class:"filters" },
               el("div", { class:"filter-group" },
                 "Filter Petugas:",
+                // FIX: SINKRONISASI UPDATE FILTER PETUGAS
                 el("select", { onchange: (e) => { officerFilter = e.target.value; render(); } },
                   el("option", { value:"semua", selected: officerFilter==="semua" ? "selected" : null }, "Semua Petugas"),
                   ...OFFICERS.map(o => el("option", { value: o, selected: officerFilter===o ? "selected" : null }, o))
