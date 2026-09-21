@@ -66,6 +66,13 @@
   .brand-title h1 { font-size: 16px; font-weight: 800; margin: 0; color: var(--ink); letter-spacing: -0.02em; }
   .brand-title .unit { font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase; }
 
+  .live-status-indicator {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700;
+    padding: 4px 8px; border-radius: 12px; background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0;
+  }
+  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #10B981; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
+
   .dashboard-grid-balanced {
     display: grid; grid-template-columns: 380px 1fr; gap: 16px;
     flex: 1; height: calc(100vh - 90px); overflow: hidden;
@@ -246,19 +253,6 @@
     border-radius: 6px; outline: none; background: var(--panel); color: var(--ink);
   }
   .field textarea { resize: vertical; min-height: 45px; }
-
-  .signature-pad { border: 1px dashed var(--border); border-radius: 6px; background: #FFF; cursor: crosshair; touch-action: none; }
-  .photo-upload-box {
-    border: 1px dashed var(--border); border-radius: 6px; padding: 8px; text-align: center;
-    background: var(--bg); display: flex; flex-direction: column; align-items: center; gap: 6px;
-  }
-  .photo-preview-img { width: 100%; height: 90px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); display: none; }
-  .photo-btn-group { display: flex; gap: 4px; width: 100%; }
-  .photo-btn-group label {
-    flex: 1; text-align: center; padding: 5px 2px; font-size: 10px; border-radius: 4px; cursor: pointer; font-weight: 700;
-  }
-  .btn-cam { background: #3B82F6; color: #FFF; }
-  .btn-file { background: #64748B; color: #FFF; }
 
   .ticket {
     background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
@@ -570,22 +564,196 @@
     return { receivedText: fmtDateTime(start), deadlineText: fmtDateTime(deadline), statusClass, statusText, isOverdue: diffMs < 0 };
   }
 
+  function buildFullDescription(desc, address, phone, reschedDate, officer, photoBefore, photoAfter) {
+    let result = desc || "";
+    if (address) result += ` [Alamat: ${address}]`;
+    if (phone) result += ` [WA: ${phone}]`;
+    if (reschedDate) result += ` [Resched: ${reschedDate}]`;
+    if (officer) result += ` [Petugas: ${officer}]`;
+    if (photoBefore) result += ` [Before: ${photoBefore}]`;
+    if (photoAfter) result += ` [After: ${photoAfter}]`;
+    return result;
+  }
+
+  function rowToItem(row){
+    let extraAddr = row.address || "";
+    let extraMeter = row.meter_id || "";
+    let extraPhone = row.phone || "";
+    let extraOfficer = "";
+    let reschedDate = null;
+    let photoBefore = null;
+    let photoAfter = null;
+
+    if (row.description) {
+      if (row.description.includes("[Alamat:")) {
+        const mAddr = row.description.match(/\[Alamat:\s*(.*?)\]/);
+        if (mAddr) extraAddr = mAddr[1];
+      }
+      if (row.description.includes("[WA:")) {
+        const mPhone = row.description.match(/\[WA:\s*(.*?)\]/);
+        if (mPhone) extraPhone = mPhone[1];
+      }
+      if (row.description.includes("[Resched:")) {
+        const mResched = row.description.match(/\[Resched:\s*(.*?)\]/);
+        if (mResched) reschedDate = mResched[1];
+      }
+      if (row.description.includes("[Petugas:")) {
+        const mOff = row.description.match(/\[Petugas:\s*(.*?)\]/);
+        if (mOff) extraOfficer = mOff[1];
+      }
+      if (row.description.includes("[Before:")) {
+        const mBef = row.description.match(/\[Before:\s*(.*?)\]/);
+        if (mBef) photoBefore = mBef[1];
+      }
+      if (row.description.includes("[After:")) {
+        const mAft = row.description.match(/\[After:\s*(.*?)\]/);
+        if (mAft) photoAfter = mAft[1];
+      }
+    }
+
+    if (!extraMeter && row.customer && row.customer.includes("(") && row.customer.includes(")")) {
+      const mId = row.customer.match(/\((.*?)\)/);
+      if (mId) extraMeter = mId[1];
+    }
+
+    return {
+      id: row.id,
+      customer: row.customer ? row.customer.replace(/\s*\(.*?\)/, '') : "",
+      phone: extraPhone,
+      meterId: extraMeter,
+      address: extraAddr,
+      area: row.area,
+      category: row.category,
+      desc: row.description ? row.description.replace(/\[Alamat:.*?\]/g, '').replace(/\[WA:.*?\]/g, '').replace(/\[Resched:.*?\]/g, '').replace(/\[Petugas:.*?\]/g, '').replace(/\[Before:.*?\]/g, '').replace(/\[After:.*?\]/g, '').trim() : "",
+      receivedAt: row.received_at,
+      urgent: row.urgent,
+      coords: row.coords,
+      status: row.status,
+      rescheduledDate: reschedDate,
+      officer: extraOfficer,
+      photoBefore: photoBefore,
+      photoAfter: photoAfter,
+      createdAt: row.created_at,
+    };
+  }
+
+  // SINKRONISASI AKTIF SUPABASE (LOAD DATA SERVER BERSAMA LOCAL)
+  async function load(){
+    try {
+      const { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: false });
+      if(!error && data) {
+        complaints = data.map(rowToItem);
+        saveLocal();
+        render();
+      } else {
+        complaints = loadLocal();
+        render();
+      }
+    } catch(e) { 
+      complaints = loadLocal();
+      render();
+    }
+  }
+
+  // AMBIL DATA OTOMATIS BERKALA (AUTO-POLLING TIAP 5 DETIK SEBAGAI CADANGAN SINKRONISASI SERVER)
+  function initAutoPolling() {
+    setInterval(async () => {
+      try {
+        const { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: false });
+        if(!error && data) {
+          const fetchedItems = data.map(rowToItem);
+          if (JSON.stringify(fetchedItems) !== JSON.stringify(complaints)) {
+            complaints = fetchedItems;
+            saveLocal();
+            render();
+          }
+        }
+      } catch(e){}
+    }, 5000);
+  }
+
+  function initRealtimeSync() {
+    try {
+      sb.channel('realtime-complaints-v2')
+        .on('postgres_changes', { event: '*', schema: 'public', table: TABLE }, () => {
+          load();
+        })
+        .subscribe();
+    } catch(e) {}
+  }
+
+  async function addComplaint(data){
+    let receivedDateObj = (data && data.receivedAt) ? new Date(data.receivedAt) : new Date();
+    if (isNaN(receivedDateObj.getTime())) receivedDateObj = new Date();
+    if (isWeekend(receivedDateObj)) receivedDateObj = getNextWorkingDay(receivedDateObj);
+
+    const generatedId = "WO-" + Date.now().toString().slice(-6);
+
+    const item = {
+      id: generatedId,
+      customer: (data && data.customer) ? data.customer : "Pelanggan Tanpa Nama",
+      phone: (data && data.phone) ? data.phone : "",
+      meterId: (data && data.meterId) ? data.meterId : "",
+      address: (data && data.address) ? data.address : "",
+      area: (data && data.area) ? data.area : "Cikupa",
+      category: (data && data.category) ? data.category : "KBSM",
+      desc: (data && data.desc) ? data.desc : "",
+      officer: "",
+      receivedAt: receivedDateObj.toISOString(),
+      urgent: !!(data && data.urgent),
+      coords: (data && data.coords) ? data.coords : "",
+      status: "baru",
+    };
+
+    let fullDesc = buildFullDescription(item.desc, item.address, item.phone, null, item.officer, null, null);
+    const fullCust = item.meterId ? `${item.customer} (${item.meterId})` : item.customer;
+
+    const fullPayload = {
+      id: item.id,
+      customer: fullCust,
+      phone: item.phone || null,
+      meter_id: item.meterId || null,
+      address: item.address || null,
+      area: item.area,
+      category: item.category,
+      description: fullDesc,
+      received_at: item.receivedAt,
+      urgent: item.urgent,
+      coords: item.coords,
+      status: item.status
+    };
+
+    // Tampilkan Indikator Penyimpanan
+    Swal.fire({ title: 'Menyimpan...', text: 'Mengirim data ke server bersama', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+    const { error } = await sb.from(TABLE).insert(fullPayload);
+    if (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Menyimpan ke Server',
+        html: `Data tidak dapat dikirim ke server bersama.<br><br><b>Penyebab:</b> RLS (Row Level Security) Supabase belum dikonfigurasi.<br><small>${error.message}</small>`
+      });
+    } else {
+      await load();
+      formOpen = false;
+      editingId = null;
+      render();
+      Swal.fire({ icon: 'success', title: 'Berhasil Tersimpan', text: 'Data tersimpan ke server dan otomatis ter-update di seluruh laptop!', timer: 1500, showConfirmButton: false });
+    }
+  }
+
   async function assignOfficerToWO(id, newOfficer) {
     const target = complaints.find(c => c.id === id);
     if (!target) return;
 
     target.officer = newOfficer;
-    saveLocal();
-    render();
-
     let fullDesc = buildFullDescription(target.desc, target.address, target.phone, target.rescheduledDate, target.officer, target.photoBefore, target.photoAfter);
 
     try {
       await sb.from(TABLE).update({ description: fullDesc }).eq("id", id);
+      await load();
       Swal.fire({ icon: 'success', title: 'Petugas Ditugaskan', text: `WO ${id} diserahkan ke ${newOfficer || 'Belum Ditugaskan'}`, timer: 1200, showConfirmButton: false });
-    } catch(e) {
-      console.warn("Update server ditunda, tersimpan di perangkat lokal.");
-    }
+    } catch(e) {}
   }
 
   async function autoAssignMerata() {
@@ -621,9 +789,8 @@
       try { await sb.from(TABLE).update({ description: fullDesc }).eq("id", item.id); } catch(e){}
     }
 
-    saveLocal();
-    Swal.fire('Berhasil', `Berhasil membagikan ${unassigned.length} Work Order secara merata ke petugas!`, 'success');
-    render();
+    await load();
+    Swal.fire('Berhasil', `Berhasil membagikan ${unassigned.length} Work Order secara merata!`, 'success');
   }
 
   function copyFieldFormat(item) {
@@ -756,152 +923,6 @@ Catatan: ${item.desc || '-'}`;
     XLSX.writeFile(workbook, `Laporan_Minor_Repair_${dateStr}.xlsx`);
   }
 
-  function buildFullDescription(desc, address, phone, reschedDate, officer, photoBefore, photoAfter) {
-    let result = desc || "";
-    if (address) result += ` [Alamat: ${address}]`;
-    if (phone) result += ` [WA: ${phone}]`;
-    if (reschedDate) result += ` [Resched: ${reschedDate}]`;
-    if (officer) result += ` [Petugas: ${officer}]`;
-    if (photoBefore) result += ` [Before: ${photoBefore}]`;
-    if (photoAfter) result += ` [After: ${photoAfter}]`;
-    return result;
-  }
-
-  function rowToItem(row){
-    let extraAddr = row.address || "";
-    let extraMeter = row.meter_id || "";
-    let extraPhone = row.phone || "";
-    let extraOfficer = "";
-    let reschedDate = null;
-    let photoBefore = null;
-    let photoAfter = null;
-
-    if (row.description) {
-      if (row.description.includes("[Alamat:")) {
-        const mAddr = row.description.match(/\[Alamat:\s*(.*?)\]/);
-        if (mAddr) extraAddr = mAddr[1];
-      }
-      if (row.description.includes("[WA:")) {
-        const mPhone = row.description.match(/\[WA:\s*(.*?)\]/);
-        if (mPhone) extraPhone = mPhone[1];
-      }
-      if (row.description.includes("[Resched:")) {
-        const mResched = row.description.match(/\[Resched:\s*(.*?)\]/);
-        if (mResched) reschedDate = mResched[1];
-      }
-      if (row.description.includes("[Petugas:")) {
-        const mOff = row.description.match(/\[Petugas:\s*(.*?)\]/);
-        if (mOff) extraOfficer = mOff[1];
-      }
-      if (row.description.includes("[Before:")) {
-        const mBef = row.description.match(/\[Before:\s*(.*?)\]/);
-        if (mBef) photoBefore = mBef[1];
-      }
-      if (row.description.includes("[After:")) {
-        const mAft = row.description.match(/\[After:\s*(.*?)\]/);
-        if (mAft) photoAfter = mAft[1];
-      }
-    }
-
-    if (!extraMeter && row.customer && row.customer.includes("(") && row.customer.includes(")")) {
-      const mId = row.customer.match(/\((.*?)\)/);
-      if (mId) extraMeter = mId[1];
-    }
-
-    return {
-      id: row.id,
-      customer: row.customer ? row.customer.replace(/\s*\(.*?\)/, '') : "",
-      phone: extraPhone,
-      meterId: extraMeter,
-      address: extraAddr,
-      area: row.area,
-      category: row.category,
-      desc: row.description ? row.description.replace(/\[Alamat:.*?\]/g, '').replace(/\[WA:.*?\]/g, '').replace(/\[Resched:.*?\]/g, '').replace(/\[Petugas:.*?\]/g, '').replace(/\[Before:.*?\]/g, '').replace(/\[After:.*?\]/g, '').trim() : "",
-      receivedAt: row.received_at,
-      urgent: row.urgent,
-      coords: row.coords,
-      status: row.status,
-      rescheduledDate: reschedDate,
-      officer: extraOfficer,
-      photoBefore: photoBefore,
-      photoAfter: photoAfter,
-      createdAt: row.created_at,
-    };
-  }
-
-  // PENANGANAN ADD COMPLAINT DENGAN FALLBACK LOKAL (ANTI ERROR GAGAL SIMPAN)
-  async function addComplaint(data){
-    try {
-      let receivedDateObj = (data && data.receivedAt) ? new Date(data.receivedAt) : new Date();
-      if (isNaN(receivedDateObj.getTime())) receivedDateObj = new Date();
-
-      if (isWeekend(receivedDateObj)) {
-        receivedDateObj = getNextWorkingDay(receivedDateObj);
-      }
-
-      const generatedId = "WO-" + Date.now().toString().slice(-6);
-
-      const item = {
-        id: generatedId,
-        customer: (data && data.customer) ? data.customer : "Pelanggan Tanpa Nama",
-        phone: (data && data.phone) ? data.phone : "",
-        meterId: (data && data.meterId) ? data.meterId : "",
-        address: (data && data.address) ? data.address : "",
-        area: (data && data.area) ? data.area : "Cikupa",
-        category: (data && data.category) ? data.category : "KBSM",
-        desc: (data && data.desc) ? data.desc : "",
-        officer: "",
-        receivedAt: receivedDateObj.toISOString(),
-        urgent: !!(data && data.urgent),
-        coords: (data && data.coords) ? data.coords : "",
-        status: "baru",
-      };
-
-      // 1. Simpan Lokal Dulu Agar Pengguna Langsung Melihat Hasilnya (Tanpa Error)
-      complaints.unshift(item);
-      saveLocal();
-
-      formOpen = false;
-      editingId = null;
-      render();
-
-      Swal.fire({ 
-        icon: 'success', 
-        title: 'Tersimpan Terlebih Dahulu', 
-        text: `Work Order ${item.id} berhasil tersimpan di aplikasi perangkat ini!`, 
-        timer: 1600, 
-        showConfirmButton: false 
-      });
-
-      // 2. Coba kirim ke Supabase Server secara Asinkron (Tanpa Mematikan Aplikasi jika RLS Menolak)
-      let fullDesc = buildFullDescription(item.desc, item.address, item.phone, null, item.officer, null, null);
-      const fullCust = item.meterId ? `${item.customer} (${item.meterId})` : item.customer;
-
-      const fullPayload = {
-        id: item.id,
-        customer: fullCust,
-        phone: item.phone || null,
-        meter_id: item.meterId || null,
-        address: item.address || null,
-        area: item.area,
-        category: item.category,
-        description: fullDesc,
-        received_at: item.receivedAt,
-        urgent: item.urgent,
-        coords: item.coords,
-        status: item.status
-      };
-
-      const { error } = await sb.from(TABLE).insert(fullPayload);
-      if (error) {
-        console.warn("Koneksi Supabase RLS terbatas. Data tetap tersimpan lokal.", error);
-      }
-
-    } catch(globalErr) { 
-      console.error("Error addComplaint:", globalErr); 
-    }
-  }
-
   async function markAbsentAndReschedule(id) {
     const target = complaints.find(c => c.id === id);
     if (!target) return;
@@ -911,37 +932,17 @@ Catatan: ${item.desc || '-'}`;
     tomorrow = getNextWorkingDay(tomorrow);
 
     const tomorrowStr = formatDateKey(tomorrow);
-
     target.rescheduledDate = tomorrowStr;
-    saveLocal();
-    render();
-
     let fullDesc = buildFullDescription(target.desc, target.address, target.phone, tomorrowStr, target.officer, target.photoBefore, target.photoAfter);
 
     try {
       await sb.from(TABLE).update({ description: fullDesc }).eq("id", id);
-    } catch(e) { console.warn(e); }
+      await load();
+    } catch(e){}
   }
 
   async function updateComplaint(id, data){
     let target = complaints.find(c => c.id === id);
-    if(target) {
-      target.customer = data.customer;
-      target.phone = data.phone;
-      target.meterId = data.meterId;
-      target.address = data.address;
-      target.area = data.area;
-      target.category = data.category;
-      target.desc = data.desc;
-      target.receivedAt = data.receivedAt;
-      target.urgent = data.urgent;
-      target.coords = data.coords;
-    }
-
-    saveLocal();
-    formOpen = false;
-    editingId = null;
-    render();
 
     let fullDesc = buildFullDescription(data.desc, data.address, data.phone, target ? target.rescheduledDate : null, target ? target.officer : "", target ? target.photoBefore : null, target ? target.photoAfter : null);
     const fullCust = data.meterId ? `${data.customer} (${data.meterId})` : data.customer;
@@ -959,20 +960,19 @@ Catatan: ${item.desc || '-'}`;
         urgent: data.urgent,
         coords: data.coords,
       }).eq("id", id);
+
+      await load();
+      formOpen = false;
+      editingId = null;
+      render();
       Swal.fire({ icon: 'success', title: 'Diperbarui!', text: `Work Order ${id} berhasil diubah!`, timer: 1500, showConfirmButton: false });
-    } catch(e) {
-      console.warn("Update server ditunda.");
-    }
+    } catch(e) {}
   }
 
   async function setStatus(id, status){
-    const target = complaints.find(c => c.id === id);
-    if(target) target.status = status;
-    saveLocal();
-    render();
-
     try {
       await sb.from(TABLE).update({ status }).eq("id", id);
+      await load();
     } catch(e){}
   }
 
@@ -986,11 +986,11 @@ Catatan: ${item.desc || '-'}`;
       confirmButtonText: 'Ya, Hapus'
     }).then(async (result) => {
       if (result.isConfirmed) {
-        complaints = complaints.filter(c => c.id !== id);
-        saveLocal();
-        render();
-        try { await sb.from(TABLE).delete().eq("id", id); } catch(e){}
-        Swal.fire('Terhapus!', 'WO berhasil dihapus.', 'success');
+        try { 
+          await sb.from(TABLE).delete().eq("id", id); 
+          await load();
+          Swal.fire('Terhapus!', 'WO berhasil dihapus.', 'success');
+        } catch(e){}
       }
     });
   }
@@ -1026,44 +1026,6 @@ Catatan: ${item.desc || '-'}`;
     };
 
     await addComplaint(newComplaint);
-  }
-
-  async function load(){
-    const localData = loadLocal();
-    if (localData && localData.length > 0) {
-      complaints = localData;
-      render();
-    }
-
-    try{
-      const { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: false });
-      if(!error && data) {
-        const remoteItems = data.map(rowToItem);
-        const merged = [...remoteItems];
-        complaints.forEach(localItem => {
-          if(!merged.some(r => r.id === localItem.id)) {
-            merged.unshift(localItem);
-          }
-        });
-        complaints = merged;
-        saveLocal();
-        render();
-      }
-    }catch(e){ 
-      console.warn("Memuat cadangan lokal.");
-      complaints = loadLocal();
-      render();
-    }
-  }
-
-  function initRealtimeSync() {
-    try {
-      sb.channel('realtime-complaints')
-        .on('postgres_changes', { event: '*', schema: 'public', table: TABLE }, () => {
-          load();
-        })
-        .subscribe();
-    } catch(e) {}
   }
 
   function el(tag, attrs, ...children){
@@ -1315,16 +1277,14 @@ Catatan: ${item.desc || '-'}`;
           }
 
           if (target) {
-            target.status = "selesai";
-            target.photoBefore = photoBeforeData;
-            target.photoAfter = photoAfterData;
-            saveLocal();
-            let fullDesc = buildFullDescription(target.desc, target.address, target.phone, target.rescheduledDate, target.officer, target.photoBefore, target.photoAfter);
-            try { await sb.from(TABLE).update({ status: "selesai", description: fullDesc }).eq("id", target.id); } catch(e){}
+            let fullDesc = buildFullDescription(target.desc, target.address, target.phone, target.rescheduledDate, target.officer, photoBeforeData, photoAfterData);
+            try { 
+              await sb.from(TABLE).update({ status: "selesai", description: fullDesc }).eq("id", target.id); 
+              await load();
+            } catch(e){}
           }
           finishModalOpen = false;
-          Swal.fire('Selesai!', 'Work Order telah diselesaikan, bukti foto & TTD terverifikasi.', 'success');
-          render();
+          Swal.fire('Selesai!', 'Work Order telah diselesaikan.', 'success');
         }}, "Verifikasi & Selesai"),
         el("button", { class: "btn-secondary", onclick: () => { finishModalOpen = false; render(); } }, "Batal")
       )
@@ -1845,10 +1805,16 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
             el("span", { class:"unit" }, "Aetra Air Tangerang")
           )
         ),
-        el("button", { class: "btn-secondary", onclick: () => {
-          isDarkMode = !isDarkMode;
-          document.body.classList.toggle("dark-mode", isDarkMode);
-        }}, isDarkMode ? "☀️ Mode Terang" : "🌙 Mode Gelap")
+        el("div", { style: "display:flex; align-items:center; gap:10px;" },
+          el("div", { class: "live-status-indicator" },
+            el("span", { class: "live-dot" }),
+            "Live Server Sync Active"
+          ),
+          el("button", { class: "btn-secondary", onclick: () => {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle("dark-mode", isDarkMode);
+          }}, isDarkMode ? "☀️ Mode Terang" : "🌙 Mode Gelap")
+        )
       ),
 
       overdueCount > 0 ? el("div", { class: "sla-alert-banner" },
@@ -1953,5 +1919,6 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
 
   load();
   initRealtimeSync();
+  initAutoPolling();
 })();
 </script>
