@@ -682,6 +682,7 @@
     } catch(e) {}
   }
 
+  // DI-PERBAIKI: PENYERASIAN PAYLOAD SESUAI DENGAN SCHEMA SUPABASE
   async function addComplaint(data){
     let receivedDateObj = (data && data.receivedAt) ? new Date(data.receivedAt) : new Date();
     if (isNaN(receivedDateObj.getTime())) receivedDateObj = new Date();
@@ -708,12 +709,10 @@
     let fullDesc = buildFullDescription(item.desc, item.address, item.phone, null, item.officer, null, null);
     const fullCust = item.meterId ? `${item.customer} (${item.meterId})` : item.customer;
 
+    // Payload dikirim hanya untuk kolom yang tersedia secara bawaan di Supabase
     const fullPayload = {
       id: item.id,
       customer: fullCust,
-      phone: item.phone || null,
-      meter_id: item.meterId || null,
-      address: item.address || null,
       area: item.area,
       category: item.category,
       description: fullDesc,
@@ -723,7 +722,6 @@
       status: item.status
     };
 
-    // Tampilkan Indikator Penyimpanan
     Swal.fire({ title: 'Menyimpan...', text: 'Mengirim data ke server bersama', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
     const { error } = await sb.from(TABLE).insert(fullPayload);
@@ -731,14 +729,14 @@
       Swal.fire({
         icon: 'error',
         title: 'Gagal Menyimpan ke Server',
-        html: `Data tidak dapat dikirim ke server bersama.<br><br><b>Penyebab:</b> RLS (Row Level Security) Supabase belum dikonfigurasi.<br><small>${error.message}</small>`
+        html: `Data gagal disimpan ke Supabase.<br><br><small>${error.message}</small>`
       });
     } else {
       await load();
       formOpen = false;
       editingId = null;
       render();
-      Swal.fire({ icon: 'success', title: 'Berhasil Tersimpan', text: 'Data tersimpan ke server dan otomatis ter-update di seluruh laptop!', timer: 1500, showConfirmButton: false });
+      Swal.fire({ icon: 'success', title: 'Berhasil Tersimpan', text: 'Data tersimpan ke server dan ter-update di seluruh laptop!', timer: 1500, showConfirmButton: false });
     }
   }
 
@@ -941,6 +939,7 @@ Catatan: ${item.desc || '-'}`;
     } catch(e){}
   }
 
+  // DI-PERBAIKI: PENYESUAIAN UPDATE BERSAMA SCHEMA SUPABASE
   async function updateComplaint(id, data){
     let target = complaints.find(c => c.id === id);
 
@@ -950,9 +949,6 @@ Catatan: ${item.desc || '-'}`;
     try {
       await sb.from(TABLE).update({
         customer: fullCust,
-        phone: data.phone || null,
-        meter_id: data.meterId || null,
-        address: data.address || null,
         area: data.area,
         category: data.category,
         description: fullDesc,
