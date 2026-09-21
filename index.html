@@ -436,6 +436,27 @@
     return CATEGORIES.find(c => c.key === key) || { key: key||"OTHERS", label: key||"Lainnya", opRisk: 1, custImpact: 1, keywords:[] };
   }
 
+  function getZonaByArea(areaStr) {
+    if (!areaStr) return "ZONA 2";
+    
+    const text = areaStr.toLowerCase();
+
+    const zona1Keywords = ["sepatan timur", "sepatan", "pasar kemis", "pasarkemis", "sindang jaya 1", "sindang jaya zona 1"];
+    const zona2Keywords = ["cikupa", "balaraja", "jayanti", "sukamulya", "sindang jaya 2", "sindang jaya zona 2", "sindang jaya"];
+
+    for (let kw of zona1Keywords) {
+      if (text.includes(kw)) return "ZONA 1";
+    }
+
+    for (let kw of zona2Keywords) {
+      if (text.includes(kw)) return "ZONA 2";
+    }
+
+    if (text.includes("sindang jaya")) return "ZONA 1";
+
+    return "ZONA 2";
+  }
+
   function formatWA(phoneStr) {
     if (!phoneStr) return "";
     let clean = phoneStr.replace(/[^0-9]/g, '');
@@ -554,13 +575,12 @@
     };
   }
 
-  /* 🛠️ PERBAIKAN 1: PILIH PETUGAS KINI TIDAK MENYEBABKAN WORK ORDER HILANG */
   async function assignOfficerToWO(id, newOfficer) {
     const target = complaints.find(c => c.id === id);
     if (!target) return;
 
     target.officer = newOfficer;
-    render(); // Update UI langsung secara instan tanpa mereload penuh
+    render();
 
     let fullDesc = buildFullDescription(target.desc, target.address, target.phone, target.rescheduledDate, target.officer, target.photoBefore, target.photoAfter);
 
@@ -991,9 +1011,8 @@ Catatan: ${item.desc || '-'}`;
     await addComplaint(newComplaint);
   }
 
-  /* 🛠️ PERBAIKAN 2: JIKA FORM SEDANG DIBUKA, JANGAN OVERWRITE DENGAN REFRESH OTOMATIS */
   async function load(){
-    if (formOpen) return; // Mencegah form yang sedang diisi ke-refresh
+    if (formOpen) return;
     try{
       const { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: false });
       if(error) throw error;
@@ -1039,7 +1058,7 @@ Catatan: ${item.desc || '-'}`;
     const phoneInput = el("input", { type:"text", placeholder:"No WA (08xxxxxxxxxx)", value: editing ? editing.phone : "" });
     const meterIdInput = el("input", { type:"text", placeholder:"ID Meter / Langganan", value: editing ? editing.meterId : "" });
     const addressInput = el("input", { type:"text", placeholder:"Alamat Lengkap", value: editing ? editing.address : "" });
-    const areaInput = el("input", { type:"text", placeholder:"Area / Zona (Cikupa)", value: editing ? editing.area : "Cikupa" });
+    const areaInput = el("input", { type:"text", placeholder:"Area / Kecamatan (Sepatan, Cikupa, dll.)", value: editing ? editing.area : "Cikupa" });
     
     const catSelect = el("select", {},
       ...CATEGORIES.map(c => el("option", { value: c.key, selected: editing && editing.category===c.key ? "selected" : null }, `[${c.key}] ${c.label}`))
@@ -1059,7 +1078,7 @@ Catatan: ${item.desc || '-'}`;
       ),
       el("div", { class:"field-row" },
         el("div", { class:"field" }, el("label", {}, "Alamat Lengkap"), addressInput),
-        el("div", { class:"field" }, el("label", {}, "Area / Zona"), areaInput),
+        el("div", { class:"field" }, el("label", {}, "Area / Kecamatan"), areaInput),
       ),
       el("div", { class:"field-row" },
         el("div", { class:"field" }, el("label", {}, "CASE Keluhan (Pilih Jenis Case)"), catSelect),
@@ -1682,7 +1701,6 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
     const { dateMap, itemScheduledDateMap } = calculateCalendarSchedule();
     let base = complaints;
 
-    /* 🛠️ PERBAIKAN 3: OPTIMALISASI PENCARIAN CERDAS PADA SEARCH BAR */
     if (searchQuery.trim()) {
       const terms = searchQuery.toLowerCase().trim().split(/\s+/);
       base = base.filter(c => {
@@ -1728,14 +1746,20 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
         sorted.sort((a,b) => (a.customer || "").localeCompare(b.customer || ""));
       }
 
-      const areaGroups = {};
+      const groupedByZonaAndArea = {};
+
       sorted.forEach(item => {
-        const zone = (item.area || "Area Cikupa").trim();
-        if (!areaGroups[zone]) areaGroups[zone] = [];
-        areaGroups[zone].push(item);
+        const areaName = (item.area || "Cikupa").trim();
+        const zona = getZonaByArea(areaName);
+        const groupKey = `${zona} - KECAMATAN/AREA: ${areaName.toUpperCase()}`;
+
+        if (!groupedByZonaAndArea[groupKey]) {
+          groupedByZonaAndArea[groupKey] = [];
+        }
+        groupedByZonaAndArea[groupKey].push(item);
       });
 
-      return areaGroups;
+      return groupedByZonaAndArea;
     };
 
     const belumGroups = processSmartSort(base.filter(c => c.status === "baru"));
@@ -1758,7 +1782,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
           : el("div", {},
               ...zones.map(zoneName => el("div", {},
                 el("div", { class: "area-group-header" },
-                  el("span", {}, `🗺️ ZONA DAERAH BERDEKATAN: ${zoneName.toUpperCase()}`),
+                  el("span", {}, `🗺️ ${zoneName}`),
                   el("span", { class: "area-badge" }, `${groups[zoneName].length} WO`)
                 ),
                 ...groups[zoneName].map(item => renderTicket(item, itemScheduledDateMap))
@@ -1885,12 +1909,12 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
   load();
   sb.channel("complaints-sync")
     .on("postgres_changes", { event: "*", schema: "public", table: TABLE }, () => {
-      if (!formOpen) load(); // Jangan reload jika user sedang mengisi form
+      if (!formOpen) load();
     })
     .subscribe();
 
   setInterval(() => {
-    if (!formOpen) load(); // Refresh rutin aman tanpa mengganggu pengisian form
+    if (!formOpen) load();
   }, 60000);
 })();
 </script>
