@@ -352,6 +352,7 @@
   const SUPABASE_URL = "https://bprmrbwmoadocyslhsqr.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwcm1yYndtb2Fkb2N5c2xoc3FyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzODc4ODgsImV4cCI6MjEwNDk2Mzg4OH0.oaCUIBFy2ii_ZBrR-XMpuL-UsGvTaH2CGmTpncvf5K8";
   const TABLE = "complaints";
+  const LOCAL_STORAGE_KEY = "aetra_work_orders_backup";
 
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const OFFICE_COORDS = { lat: -6.2231, lng: 106.5134 };
@@ -432,11 +433,22 @@
   let historySearchTerm = "";
   let editingId = null;
 
-  // FLAG SYNC LOCK: Menghindari masalah hilang komplain baru saat auto-refresh
-  let syncLock = false;
-  function triggerSyncLock(duration = 5000) {
-    syncLock = true;
-    setTimeout(() => { syncLock = false; }, duration);
+  // HELPER LOCAL STORAGE AGAR WORK ORDER TIDAK HILANG
+  function saveLocal() {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(complaints));
+    } catch(e) {
+      console.error("Gagal simpan lokal:", e);
+    }
+  }
+
+  function loadLocal() {
+    try {
+      const data = localStorage.getItem(LOCAL_STORAGE_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch(e) {
+      return [];
+    }
   }
 
   function catInfo(key){
@@ -583,11 +595,11 @@
   }
 
   async function assignOfficerToWO(id, newOfficer) {
-    triggerSyncLock();
     const target = complaints.find(c => c.id === id);
     if (!target) return;
 
     target.officer = newOfficer;
+    saveLocal();
     render();
 
     let fullDesc = buildFullDescription(target.desc, target.address, target.phone, target.rescheduledDate, target.officer, target.photoBefore, target.photoAfter);
@@ -599,7 +611,6 @@
   }
 
   async function autoAssignMerata() {
-    triggerSyncLock();
     const unassigned = complaints.filter(c => !c.officer && c.status !== "selesai");
     if (unassigned.length === 0) {
       Swal.fire('Info', 'Semua komplain aktif sudah memiliki petugas lapangan!', 'info');
@@ -634,6 +645,7 @@
       } catch(e) { console.error(e); }
     }
 
+    saveLocal();
     Swal.fire('Berhasil', `Berhasil membagikan ${unassigned.length} Work Order secara merata ke petugas!`, 'success');
     render();
   }
@@ -842,7 +854,6 @@ Catatan: ${item.desc || '-'}`;
   }
 
   async function addComplaint(data){
-    triggerSyncLock(8000); // Kunci sinkronisasi agar tidak tertimpa saat fetch otomatis
     try {
       let receivedDateObj = (data && data.receivedAt) ? new Date(data.receivedAt) : new Date();
       if (isNaN(receivedDateObj.getTime())) receivedDateObj = new Date();
@@ -869,13 +880,17 @@ Catatan: ${item.desc || '-'}`;
         status: "baru",
       };
 
+      // 1. Simpan ke array memori & localStorage seketika
       complaints.unshift(item);
+      saveLocal();
+
       formOpen = false;
       editingId = null;
       render();
 
       Swal.fire({ icon: 'success', title: 'Berhasil Disimpan!', text: `Work Order ${item.id} berhasil ditambahkan.`, timer: 1500, showConfirmButton: false });
 
+      // 2. Kirim ke Database Supabase
       let fullDesc = buildFullDescription(item.desc, item.address, item.phone, null, item.officer, null, null);
       const fullCust = item.meterId ? `${item.customer} (${item.meterId})` : item.customer;
 
@@ -904,7 +919,6 @@ Catatan: ${item.desc || '-'}`;
   }
 
   async function markAbsentAndReschedule(id) {
-    triggerSyncLock();
     const target = complaints.find(c => c.id === id);
     if (!target) return;
 
@@ -915,6 +929,7 @@ Catatan: ${item.desc || '-'}`;
     const tomorrowStr = formatDateKey(tomorrow);
 
     target.rescheduledDate = tomorrowStr;
+    saveLocal();
     render();
 
     let fullDesc = buildFullDescription(target.desc, target.address, target.phone, tomorrowStr, target.officer, target.photoBefore, target.photoAfter);
@@ -925,7 +940,6 @@ Catatan: ${item.desc || '-'}`;
   }
 
   async function updateComplaint(id, data){
-    triggerSyncLock(8000);
     let target = complaints.find(c => c.id === id);
     if(target) {
       target.customer = data.customer;
@@ -940,6 +954,7 @@ Catatan: ${item.desc || '-'}`;
       target.coords = data.coords;
     }
 
+    saveLocal();
     formOpen = false;
     editingId = null;
     render();
@@ -965,9 +980,9 @@ Catatan: ${item.desc || '-'}`;
   }
 
   async function setStatus(id, status){
-    triggerSyncLock();
     const target = complaints.find(c => c.id === id);
     if(target) target.status = status;
+    saveLocal();
     render();
 
     try{
@@ -985,8 +1000,8 @@ Catatan: ${item.desc || '-'}`;
       confirmButtonText: 'Ya, Hapus'
     }).then(async (result) => {
       if (result.isConfirmed) {
-        triggerSyncLock();
         complaints = complaints.filter(c => c.id !== id);
+        saveLocal();
         render();
         try{ await sb.from(TABLE).delete().eq("id", id); } catch(e){}
         Swal.fire('Terhapus!', 'WO berhasil dihapus.', 'success');
@@ -1028,14 +1043,32 @@ Catatan: ${item.desc || '-'}`;
   }
 
   async function load(){
-    // Jangan overwrite data lokal jika form sedang terbuka atau sistem baru saja melakukan aksi simpan/update
-    if (formOpen || syncLock) return;
+    // 1. Ambil data lokal terlebih dahulu agar UI instan dan tidak ada data hilang saat refresh
+    const localData = loadLocal();
+    if (localData && localData.length > 0) {
+      complaints = localData;
+      render();
+    }
+
+    // 2. Sinkronkan dengan Supabase Database
     try{
       const { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: false });
-      if(error) throw error;
-      if (data && data.length > 0) complaints = data.map(rowToItem);
-    }catch(e){ console.error(e); }
-    render();
+      if(!error && data) {
+        const remoteItems = data.map(rowToItem);
+        
+        // Gabungkan data lokal yang belum sempat tersimpan di server
+        const merged = [...remoteItems];
+        complaints.forEach(localItem => {
+          if(!merged.some(r => r.id === localItem.id)) {
+            merged.unshift(localItem);
+          }
+        });
+
+        complaints = merged;
+        saveLocal();
+        render();
+      }
+    }catch(e){ console.error("Mode offline/server error, memakai data lokal:", e); }
   }
 
   function el(tag, attrs, ...children){
@@ -1287,10 +1320,10 @@ Catatan: ${item.desc || '-'}`;
           }
 
           if (target) {
-            triggerSyncLock();
             target.status = "selesai";
             target.photoBefore = photoBeforeData;
             target.photoAfter = photoAfterData;
+            saveLocal();
             let fullDesc = buildFullDescription(target.desc, target.address, target.phone, target.rescheduledDate, target.officer, target.photoBefore, target.photoAfter);
             
             await sb.from(TABLE).update({ status: "selesai", description: fullDesc }).eq("id", target.id);
@@ -1924,18 +1957,7 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
     }, 100);
   }
 
+  // Load awal saat halaman dibuka
   load();
-
-  // Memastikan WebSocket sync tidak menimpa state saat lock aktif
-  sb.channel("complaints-sync")
-    .on("postgres_changes", { event: "*", schema: "public", table: TABLE }, () => {
-      if (!formOpen && !syncLock) load();
-    })
-    .subscribe();
-
-  // Periodic Refresh
-  setInterval(() => {
-    if (!formOpen && !syncLock) load();
-  }, 30000);
 })();
 </script>
