@@ -637,7 +637,7 @@
     };
   }
 
-  // SINKRONISASI AKTIF SUPABASE (LOAD DATA SERVER BERSAMA LOCAL)
+  // SINKRONISASI SUPABASE TERPERBAIKI
   async function load(){
     try {
       const { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: false });
@@ -655,14 +655,14 @@
     }
   }
 
-  // AMBIL DATA OTOMATIS BERKALA (AUTO-POLLING TIAP 5 DETIK SEBAGAI CADANGAN SINKRONISASI SERVER)
   function initAutoPolling() {
     setInterval(async () => {
       try {
         const { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: false });
         if(!error && data) {
           const fetchedItems = data.map(rowToItem);
-          if (JSON.stringify(fetchedItems) !== JSON.stringify(complaints)) {
+          // Hanya update jika terjadi penambahan/penghapusan komplain baru dari luar
+          if (fetchedItems.length !== complaints.length) {
             complaints = fetchedItems;
             saveLocal();
             render();
@@ -738,22 +738,20 @@
     }
   }
 
-  // FIX: PERBAIKAN RE-RENDER & UPDATE STATE PETUGAS SECARA REALTIME
+  // FIXED FULL FIX: UPDATE PETUGAS DENGAN UPDATE INSTAN KE DESCRIPTION MEMORI LOKAL LALU KE SUPABASE
   async function assignOfficerToWO(id, newOfficer) {
     const target = complaints.find(c => c.id === id);
     if (!target) return;
 
-    // Update state lokal langsung
     target.officer = newOfficer;
     saveLocal();
-    render(); // Re-render tampilan langsung tanpa tunda
+    render(); // Tampilan kartu dan filter langsung berubah instan
 
     let fullDesc = buildFullDescription(target.desc, target.address, target.phone, target.rescheduledDate, target.officer, target.photoBefore, target.photoAfter);
 
     try {
       await sb.from(TABLE).update({ description: fullDesc }).eq("id", id);
-      await load();
-      Swal.fire({ icon: 'success', title: 'Petugas Ditugaskan', text: `WO ${id} diserahkan ke ${newOfficer || 'Belum Ditugaskan'}`, timer: 1200, showConfirmButton: false });
+      Swal.fire({ icon: 'success', title: 'Petugas Ditugaskan', text: `WO ${id} diserahkan ke ${newOfficer || 'Belum Ditugaskan'}`, timer: 1000, showConfirmButton: false });
     } catch(e) {}
   }
 
@@ -790,7 +788,8 @@
       try { await sb.from(TABLE).update({ description: fullDesc }).eq("id", item.id); } catch(e){}
     }
 
-    await load();
+    saveLocal();
+    render();
     Swal.fire('Berhasil', `Berhasil membagikan ${unassigned.length} Work Order secara merata!`, 'success');
   }
 
@@ -938,7 +937,8 @@ Catatan: ${item.desc || '-'}`;
 
     try {
       await sb.from(TABLE).update({ description: fullDesc }).eq("id", id);
-      await load();
+      saveLocal();
+      render();
     } catch(e){}
   }
 
@@ -1606,7 +1606,6 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
       ? `https://www.google.com/maps/dir/?api=1&destination=${coordsObj.lat},${coordsObj.lng}&travelmode=driving`
       : null;
 
-    // FIX: MEMASTIKAN VALUE PETUGAS DITERAPKAN DI TIAP OPSI CARD / TICKET
     const officerSelectCard = el("select", {
       class: "officer-select-inline " + (!item.officer ? "unassigned" : ""),
       onchange: (e) => assignOfficerToWO(item.id, e.target.value)
@@ -1867,7 +1866,6 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
             el("div", { class:"filters" },
               el("div", { class:"filter-group" },
                 "Filter Petugas:",
-                // FIX: SINKRONISASI UPDATE FILTER PETUGAS
                 el("select", { onchange: (e) => { officerFilter = e.target.value; render(); } },
                   el("option", { value:"semua", selected: officerFilter==="semua" ? "selected" : null }, "Semua Petugas"),
                   ...OFFICERS.map(o => el("option", { value: o, selected: officerFilter===o ? "selected" : null }, o))
