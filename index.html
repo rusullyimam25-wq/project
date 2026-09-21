@@ -432,6 +432,9 @@
   let historySearchTerm = "";
   let editingId = null;
 
+  // Flag proteksi agar auto-refresh tidak menimpa komplain yang baru saja disimpan
+  let isSaving = false;
+
   function catInfo(key){
     return CATEGORIES.find(c => c.key === key) || { key: key||"OTHERS", label: key||"Lainnya", opRisk: 1, custImpact: 1, keywords:[] };
   }
@@ -575,6 +578,7 @@
     };
   }
 
+  /* FIX: Memperbaiki logika penggantian Petugas Lapangan tanpa error */
   async function assignOfficerToWO(id, newOfficer) {
     const target = complaints.find(c => c.id === id);
     if (!target) return;
@@ -585,9 +589,17 @@
     let fullDesc = buildFullDescription(target.desc, target.address, target.phone, target.rescheduledDate, target.officer, target.photoBefore, target.photoAfter);
 
     try {
-      await sb.from(TABLE).update({ description: fullDesc }).eq("id", id);
+      const { error } = await sb.from(TABLE).update({ 
+        description: fullDesc
+      }).eq("id", id);
+
+      if (error) throw error;
+
       Swal.fire({ icon: 'success', title: 'Petugas Ditugaskan', text: `WO ${id} diserahkan ke ${newOfficer || 'Belum Ditugaskan'}`, timer: 1200, showConfirmButton: false });
-    } catch(e) { console.error("Gagal menugaskan petugas di server:", e); }
+    } catch(e) { 
+      console.error("Gagal menugaskan petugas di server:", e);
+      Swal.fire('Error', 'Gagal memperbarui petugas di server: ' + e.message, 'error');
+    }
   }
 
   async function autoAssignMerata() {
@@ -832,7 +844,9 @@ Catatan: ${item.desc || '-'}`;
     };
   }
 
+  /* FIX: Mengatasi Masalah Komplain Hilang Sendiri Saat Penambahan Manual */
   async function addComplaint(data){
+    isSaving = true; // Kunci sinkronisasi sementara
     try {
       let receivedDateObj = (data && data.receivedAt) ? new Date(data.receivedAt) : new Date();
       if (isNaN(receivedDateObj.getTime())) receivedDateObj = new Date();
@@ -841,8 +855,10 @@ Catatan: ${item.desc || '-'}`;
         receivedDateObj = getNextWorkingDay(receivedDateObj);
       }
 
+      const newId = "WO-" + Date.now().toString().slice(-6);
+
       const item = {
-        id: "WO-" + Date.now().toString().slice(-6),
+        id: newId,
         customer: (data && data.customer) ? data.customer : "Pelanggan Tanpa Nama",
         phone: (data && data.phone) ? data.phone : "",
         meterId: (data && data.meterId) ? data.meterId : "",
@@ -882,14 +898,14 @@ Catatan: ${item.desc || '-'}`;
         status: item.status
       };
 
-      sb.from(TABLE).insert(fullPayload).then(({ error }) => {
-        if (error) {
-          console.warn("Gagal simpan ke Supabase DB:", error.message);
-        }
-      });
-
+      const { error } = await sb.from(TABLE).insert(fullPayload);
+      if (error) {
+        console.warn("Gagal simpan ke Supabase DB:", error.message);
+      }
     } catch(globalErr) { 
       console.error("Error addComplaint:", globalErr); 
+    } finally {
+      setTimeout(() => { isSaving = false; }, 3000); // Buka kunci sinkronisasi setelah jeda 3 detik
     }
   }
 
@@ -913,8 +929,8 @@ Catatan: ${item.desc || '-'}`;
     } catch(e) { console.error(e); }
   }
 
-  /* FIX: Memperbarui objek komplain secara tepat tanpa mengubah atau membuat ID baru */
   async function updateComplaint(id, data){
+    isSaving = true;
     let target = complaints.find(c => c.id === id);
     if(target) {
       target.customer = data.customer;
@@ -950,7 +966,11 @@ Catatan: ${item.desc || '-'}`;
         coords: data.coords,
       }).eq("id", id);
       Swal.fire({ icon: 'success', title: 'Diperbarui!', text: `Work Order ${id} berhasil diubah!`, timer: 1500, showConfirmButton: false });
-    }catch(e){ console.error(e); }
+    }catch(e){ 
+      console.error(e); 
+    } finally {
+      setTimeout(() => { isSaving = false; }, 3000);
+    }
   }
 
   async function setStatus(id, status){
@@ -1015,7 +1035,7 @@ Catatan: ${item.desc || '-'}`;
   }
 
   async function load(){
-    if (formOpen) return;
+    if (formOpen || isSaving) return; // Mencegah reset/penimpaan data lokal saat mengedit atau menyimpan
     try{
       const { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: false });
       if(error) throw error;
@@ -1912,12 +1932,12 @@ Deskripsi : Air mati total sejak kemarin sore dan pipa sebelum meteran bocor der
   load();
   sb.channel("complaints-sync")
     .on("postgres_changes", { event: "*", schema: "public", table: TABLE }, () => {
-      if (!formOpen) load();
+      if (!formOpen && !isSaving) load();
     })
     .subscribe();
 
   setInterval(() => {
-    if (!formOpen) load();
+    if (!formOpen && !isSaving) load();
   }, 60000);
 })();
 </script>
