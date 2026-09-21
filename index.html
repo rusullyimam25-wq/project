@@ -913,6 +913,7 @@ Catatan: ${item.desc || '-'}`;
     } catch(e) { console.error(e); }
   }
 
+  /* FIX: Memperbarui objek komplain secara tepat tanpa mengubah atau membuat ID baru */
   async function updateComplaint(id, data){
     let target = complaints.find(c => c.id === id);
     if(target) {
@@ -932,13 +933,15 @@ Catatan: ${item.desc || '-'}`;
     editingId = null;
     render();
 
-    let fullDesc = buildFullDescription(data.desc, data.address, data.phone, null, target ? target.officer : "", target ? target.photoBefore : null, target ? target.photoAfter : null);
+    let fullDesc = buildFullDescription(data.desc, data.address, data.phone, target ? target.rescheduledDate : null, target ? target.officer : "", target ? target.photoBefore : null, target ? target.photoAfter : null);
     const fullCust = data.meterId ? `${data.customer} (${data.meterId})` : data.customer;
 
     try{
       await sb.from(TABLE).update({
         customer: fullCust,
         phone: data.phone || null,
+        meter_id: data.meterId || null,
+        address: data.address || null,
         area: data.area,
         category: data.category,
         description: fullDesc,
